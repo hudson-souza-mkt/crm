@@ -1,27 +1,92 @@
 import { KanbanColumn } from "./KanbanColumn";
 import type { Lead } from "./PipelineCard";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
 const mockLeads: Record<string, Lead[]> = {
   "Novo Lead": [
-    { id: "1", name: "Alice Johnson", phone: "(11) 98765-4321", salesperson: "Carlos", tags: ["VIP", "Follow-up"] },
-    { id: "2", name: "Bob Williams", avatarUrl: "https://github.com/shadcn.png", phone: "(21) 91234-5678", salesperson: "Ana", tags: ["Hot"] },
+    { 
+      id: "1", 
+      name: "Hudson Souza", 
+      company: "Sem empresa",
+      phone: "(11) 98765-4321", 
+      salesperson: "Hudson Souza Souza", 
+      tags: [], 
+      value: 0, 
+      date: "13/06/2025",
+      priority: "red",
+      activities: false
+    },
+    { 
+      id: "2", 
+      name: "Maria Oliveira", 
+      company: "Tech Solutions",
+      phone: "(21) 91234-5678", 
+      salesperson: "Ana Silva", 
+      tags: [], 
+      value: 0, 
+      date: "15/06/2025",
+      activities: false
+    },
   ],
-  "Em Contato": [
-    { id: "3", name: "Charlie Brown", phone: "(31) 99999-8888", salesperson: "Carlos", tags: [] },
+  "Qualificação": [
+    { 
+      id: "3", 
+      name: "Hudson Souza", 
+      company: "Sem empresa",
+      phone: "(31) 99999-8888", 
+      salesperson: "Hudson Souza Souza", 
+      tags: [], 
+      value: 500, 
+      date: "13/06/2025",
+      priority: "green",
+      activities: false
+    },
   ],
-  "Proposta Enviada": [
-    { id: "4", name: "Diana Prince", avatarUrl: "https://github.com/vercel.png", phone: "(41) 98888-7777", salesperson: "Ana", tags: ["Urgente"] },
-  ],
-  "Negociação": [],
+  "Conversando": [],
+  "Proposta": [],
 };
 
 export function KanbanBoard() {
-  const stages = ["Novo Lead", "Em Contato", "Proposta Enviada", "Negociação", "Fechado"];
+  const stages = ["Novo Lead", "Qualificação", "Conversando", "Proposta"];
+  
+  const getTotalValue = (leads: Lead[]) => {
+    return leads.reduce((sum, lead) => sum + (lead.value || 0), 0);
+  };
+  
   return (
-    <div className="flex gap-6 overflow-x-auto pb-4">
-      {stages.map((stage) => (
-        <KanbanColumn key={stage} title={stage} leads={mockLeads[stage] || []} />
-      ))}
+    <div className="flex flex-col h-full">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Aquisição e Qualificação</h1>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" className="flex items-center gap-1">
+            <span className="h-4 w-4 grid place-items-center">⊞</span>
+            <span>Filtros</span>
+          </Button>
+          <Button variant="outline" size="sm" className="flex items-center gap-1">
+            <span className="h-4 w-4 grid place-items-center">⇅</span>
+            <span>Ordenação</span>
+          </Button>
+        </div>
+      </div>
+      
+      <div className="flex overflow-x-auto pb-4 gap-4">
+        {stages.map((stage) => (
+          <KanbanColumn 
+            key={stage} 
+            title={stage} 
+            leads={mockLeads[stage] || []} 
+            totalValue={getTotalValue(mockLeads[stage] || [])}
+            count={(mockLeads[stage] || []).length}
+          />
+        ))}
+        <div className="flex-shrink-0 w-80 h-16 flex items-center justify-center">
+          <Button variant="outline" className="w-full">
+            <Plus className="h-4 w-4 mr-2" />
+            Nova coluna
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
