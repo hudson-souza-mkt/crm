@@ -1,15 +1,25 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Search, Bell } from "lucide-react";
-import { Sidebar } from "./Sidebar";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Search, Bell, Menu } from "lucide-react";
+import { NavContent } from "./Sidebar";
 
 export function Header() {
   return (
     <header className="flex items-center justify-between h-16 px-4 md:px-6 border-b bg-card">
       <div className="flex items-center gap-4">
         <div className="md:hidden">
-          <Sidebar />
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Menu className="h-6 w-6" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-0 w-72">
+              <NavContent />
+            </SheetContent>
+          </Sheet>
         </div>
         <div className="hidden md:block relative">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />

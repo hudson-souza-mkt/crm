@@ -1,11 +1,9 @@
 import { NavLink } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   LayoutDashboard,
   Columns,
   MessageSquare,
-  Menu,
   Rocket,
   Settings,
 } from "lucide-react";
@@ -17,7 +15,7 @@ const navItems = [
   { to: "/chat", icon: MessageSquare, label: "Atendimentos" },
 ];
 
-const NavContent = () => (
+export const NavContent = () => (
   <div className="flex flex-col h-full">
     <div className="p-4 border-b border-border">
       <h1 className="text-2xl font-bold text-primary flex items-center gap-2">
@@ -55,24 +53,8 @@ const NavContent = () => (
 
 export function Sidebar() {
   return (
-    <>
-      {/* Mobile Sidebar */}
-      <div className="md:hidden">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="md:hidden">
-              <Menu className="h-6 w-6" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-72">
-            <NavContent />
-          </SheetContent>
-        </Sheet>
-      </div>
-      {/* Desktop Sidebar */}
-      <aside className="hidden md:flex md:flex-col md:w-64 md:border-r md:border-border bg-card">
-        <NavContent />
-      </aside>
-    </>
+    <aside className="hidden md:flex md:flex-col md:w-64 md:border-r md:border-border bg-card">
+      <NavContent />
+    </aside>
   );
 }

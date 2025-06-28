@@ -5,9 +5,7 @@ import { Header } from "./Header";
 export function MainLayout() {
   return (
     <div className="flex min-h-screen w-full bg-background">
-      <div className="hidden md:block">
-        <Sidebar />
-      </div>
+      <Sidebar />
       <div className="flex flex-col flex-1">
         <Header />
         <main className="flex-1 p-4 md:p-6 lg:p-8">
