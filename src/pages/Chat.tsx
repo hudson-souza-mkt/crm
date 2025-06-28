@@ -1,9 +1,8 @@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ConversationList } from "@/components/chat/ConversationList";
 import { ChatWindow } from "@/components/chat/ChatWindow";
-import { ContactDetails } from "@/components/chat/ContactDetails";
 import { Button } from "@/components/ui/button";
-import { Search, PhoneIncoming, List, ZapIcon, Lightbulb, Calendar, Tag, MessagesSquare, LifeBuoy } from "lucide-react";
+import { Phone, LayoutList, Zap, Lightbulb, Search, Calendar, Tag, MessagesSquare, HelpCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -22,20 +21,20 @@ export default function Chat() {
             <div className="bg-primary rounded-full p-2">
               <MessagesSquare className="h-5 w-5 text-white" />
             </div>
-            <h2 className="font-bold text-primary ml-2">atendechat</h2>
+            <h2 className="font-normal text-primary ml-2">atendechat</h2>
           </div>
           
-          <nav className="p-2 space-y-1">
+          <nav className="p-2 space-y-1 pt-4">
             <Button variant="ghost" className="w-full justify-start text-muted-foreground">
-              <PhoneIncoming className="mr-2 h-4 w-4" />
+              <Phone className="mr-2 h-4 w-4" />
               Atendimentos
             </Button>
             <Button variant="ghost" className="w-full justify-start text-muted-foreground">
-              <List className="mr-2 h-4 w-4" />
+              <LayoutList className="mr-2 h-4 w-4" />
               Kanban
             </Button>
             <Button variant="ghost" className="w-full justify-start text-muted-foreground">
-              <ZapIcon className="mr-2 h-4 w-4" />
+              <Zap className="mr-2 h-4 w-4" />
               Respostas Rápidas
             </Button>
             <Button variant="ghost" className="w-full justify-start text-muted-foreground">
@@ -59,7 +58,7 @@ export default function Chat() {
               Bate-papo Interno
             </Button>
             <Button variant="ghost" className="w-full justify-start text-muted-foreground">
-              <LifeBuoy className="mr-2 h-4 w-4" />
+              <HelpCircle className="mr-2 h-4 w-4" />
               Ajuda
             </Button>
           </nav>
@@ -136,28 +135,9 @@ export default function Chat() {
                   </div>
                 </div>
                 
-                {!isMobile && selectedChat ? (
-                  <div className="flex-1 flex">
-                    <div className="flex-1">
-                      <ChatWindow />
-                    </div>
-                    <div className="w-80 border-l">
-                      <ContactDetails />
-                    </div>
-                  </div>
-                ) : !isMobile && (
-                  <div className="flex-1 flex items-center justify-center bg-gray-50">
-                    <div className="text-center">
-                      <div className="flex justify-center mb-4">
-                        <div className="bg-primary/10 rounded-full p-6">
-                          <MessagesSquare className="h-12 w-12 text-primary" />
-                        </div>
-                      </div>
-                      <h3 className="text-2xl font-bold text-primary">atendechat</h3>
-                      <p className="text-muted-foreground mt-2">
-                        Selecione uma conversa para iniciar o atendimento
-                      </p>
-                    </div>
+                {!isMobile && (
+                  <div className="flex-1">
+                    <ChatWindow />
                   </div>
                 )}
               </TabsContent>

@@ -1,9 +1,8 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Paperclip, Send, Smile, Phone, Video, Archive, MoreVertical, ChevronDown, Zap } from "lucide-react";
+import { Paperclip, Send, Smile, Phone, Video, Archive, MoreVertical } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export function ChatWindow() {
   return (
@@ -95,61 +94,24 @@ export function ChatWindow() {
       </main>
       
       <footer className="p-3 bg-white border-t">
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between px-2">
-            <div className="flex items-center gap-1">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-7 px-2">
-                    <Zap className="h-4 w-4 mr-1 text-primary" />
-                    <span className="text-xs">Respostas Rápidas</span>
-                    <ChevronDown className="h-3 w-3 ml-1" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-72 p-0" align="start">
-                  <div className="p-2 border-b">
-                    <Input placeholder="Buscar resposta rápida..." className="h-8 text-xs" />
-                  </div>
-                  <div className="max-h-60 overflow-y-auto py-1">
-                    {["Olá, como posso ajudar?", "Agradecemos seu contato!", "Aguarde um momento, por favor.", "Deixe-me verificar isso para você."].map((text, i) => (
-                      <button key={i} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 transition-colors">
-                        {text}
-                      </button>
-                    ))}
-                  </div>
-                </PopoverContent>
-              </Popover>
-              
-              <Button variant="ghost" size="sm" className="h-7 px-2">
-                <span className="text-xs">Templates</span>
-                <ChevronDown className="h-3 w-3 ml-1" />
-              </Button>
-            </div>
-            
-            <Button variant="ghost" size="sm" className="h-7 px-2 text-xs">
-              Transferir atendimento
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" className="rounded-full">
+            <Smile className="h-5 w-5 text-muted-foreground" />
+          </Button>
+          <Button variant="ghost" size="icon" className="rounded-full">
+            <Paperclip className="h-5 w-5 text-muted-foreground" />
+          </Button>
+          <div className="flex-1 relative">
+            <Input 
+              placeholder="Digite sua mensagem..." 
+              className="pr-10 bg-gray-100 border-0 rounded-full"
+            />
+            <Button 
+              size="icon" 
+              className="h-8 w-8 absolute right-1 top-1/2 -translate-y-1/2 rounded-full"
+            >
+              <Send className="h-4 w-4" />
             </Button>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <Smile className="h-5 w-5 text-muted-foreground" />
-            </Button>
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <Paperclip className="h-5 w-5 text-muted-foreground" />
-            </Button>
-            <div className="flex-1 relative">
-              <Input 
-                placeholder="Digite sua mensagem..." 
-                className="pr-10 bg-gray-100 border-0 rounded-full"
-              />
-              <Button 
-                size="icon" 
-                className="h-8 w-8 absolute right-1 top-1/2 -translate-y-1/2 rounded-full"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
-            </div>
           </div>
         </div>
       </footer>

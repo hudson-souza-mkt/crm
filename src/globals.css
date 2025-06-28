@@ -13,7 +13,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
  
-    --primary: 275 80% 40%; /* Roxo do AtendeChat */
+    --primary: 240 5% 25%; /* Cinza escuro */
     --primary-foreground: 0 0% 100%;
  
     --secondary: 240 4.8% 95.9%;
@@ -30,7 +30,7 @@
 
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 275 80% 40%;
+    --ring: 240 5% 25%;
  
     --radius: 0.5rem;
 
@@ -82,7 +82,7 @@
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
  
-    --primary: 275 80% 40%;
+    --primary: 240 5% 25%;
     --primary-foreground: 0 0% 100%;
  
     --secondary: 240 3.7% 15.9%;
@@ -99,7 +99,7 @@
  
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 275 80% 40%;
+    --ring: 240 5% 25%;
   }
 }
  
@@ -299,25 +299,4 @@
 }
 .hover\:bg-gray-600:hover {
   background-color: hsl(var(--gray-600));
-}
-
-/* Estilos específicos para o AtendeChat */
-.atendechat-tag {
-  @apply text-[10px] px-1 py-0.5 rounded;
-}
-
-.atendechat-tag-green {
-  @apply bg-green-600 text-white;
-}
-
-.atendechat-tag-blue {
-  @apply bg-blue-600 text-white;
-}
-
-.atendechat-tag-purple {
-  @apply bg-purple-400 text-white;
-}
-
-.atendechat-tag-default {
-  @apply bg-gray-700 text-white;
 }
