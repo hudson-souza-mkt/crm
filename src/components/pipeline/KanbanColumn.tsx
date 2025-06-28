@@ -1,52 +1,29 @@
 import { PipelineCard, type Lead } from "./PipelineCard";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal, Plus } from "lucide-react";
+import { ColorPicker } from "./ColorPicker";
+import type { StageColor } from "./KanbanBoard";
 
 interface KanbanColumnProps {
   title: string;
   leads: Lead[];
   totalValue: number;
   count: number;
+  color: StageColor;
+  onColorChange: (color: string) => void;
 }
 
-export function KanbanColumn({ title, leads, totalValue, count }: KanbanColumnProps) {
+export function KanbanColumn({ title, leads, totalValue, count, color, onColorChange }: KanbanColumnProps) {
   const formatCurrency = (value: number) => {
     return `R$ ${value.toFixed(2).replace('.', ',')}`;
   };
 
   const getColumnStyle = () => {
-    switch (title) {
-      case "Novo Lead":
-        return {
-          bg: "bg-blue-50",
-          indicator: "bg-blue-500",
-          borderTop: "border-t-4 border-t-blue-500"
-        };
-      case "Qualificação":
-        return {
-          bg: "bg-purple-50",
-          indicator: "bg-purple-500",
-          borderTop: "border-t-4 border-t-purple-500"
-        };
-      case "Conversando":
-        return {
-          bg: "bg-amber-50",
-          indicator: "bg-amber-500",
-          borderTop: "border-t-4 border-t-amber-500"
-        };
-      case "Proposta":
-        return {
-          bg: "bg-green-50",
-          indicator: "bg-green-500",
-          borderTop: "border-t-4 border-t-green-500"
-        };
-      default:
-        return {
-          bg: "bg-gray-50",
-          indicator: "bg-gray-500",
-          borderTop: "border-t-4 border-t-gray-500"
-        };
-    }
+    return {
+      bg: `bg-${color}-50`,
+      indicator: `bg-${color}-500`,
+      borderTop: `border-t-4 border-t-${color}-500`
+    };
   };
 
   const columnStyle = getColumnStyle();
@@ -72,6 +49,10 @@ export function KanbanColumn({ title, leads, totalValue, count }: KanbanColumnPr
               Vazio
             </span>
           )}
+          <ColorPicker
+            selectedColor={color}
+            onColorChange={onColorChange}
+          />
           <Button variant="ghost" size="icon" className="h-6 w-6">
             <MoreHorizontal className="h-4 w-4" />
           </Button>

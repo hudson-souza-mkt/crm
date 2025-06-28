@@ -1,7 +1,11 @@
+import { useState } from "react";
 import { KanbanColumn } from "./KanbanColumn";
 import type { Lead } from "./PipelineCard";
 import { Button } from "@/components/ui/button";
 import { Plus, Filter, ArrowUpDown } from "lucide-react";
+import { toast } from "sonner";
+
+export type StageColor = "blue" | "purple" | "amber" | "green" | "red" | "pink" | "indigo" | "cyan" | "gray";
 
 const mockLeads: Record<string, Lead[]> = {
   "Novo Lead": [
@@ -75,8 +79,25 @@ const mockLeads: Record<string, Lead[]> = {
 export function KanbanBoard() {
   const stages = ["Novo Lead", "Qualificação", "Conversando", "Proposta"];
   
+  // Estado para armazenar as cores de cada etapa
+  const [stageColors, setStageColors] = useState<Record<string, StageColor>>({
+    "Novo Lead": "blue",
+    "Qualificação": "purple",
+    "Conversando": "amber",
+    "Proposta": "green"
+  });
+  
   const getTotalValue = (leads: Lead[]) => {
     return leads.reduce((sum, lead) => sum + (lead.value || 0), 0);
+  };
+  
+  const handleColorChange = (stage: string, color: StageColor) => {
+    setStageColors((prev) => ({
+      ...prev,
+      [stage]: color
+    }));
+    
+    toast.success(`Cor da etapa "${stage}" alterada com sucesso!`);
   };
   
   return (
@@ -103,6 +124,8 @@ export function KanbanBoard() {
             leads={mockLeads[stage] || []} 
             totalValue={getTotalValue(mockLeads[stage] || [])}
             count={(mockLeads[stage] || []).length}
+            color={stageColors[stage]}
+            onColorChange={(color) => handleColorChange(stage, color as StageColor)}
           />
         ))}
         <div className="flex-shrink-0 w-80 h-16 flex items-center justify-center">
