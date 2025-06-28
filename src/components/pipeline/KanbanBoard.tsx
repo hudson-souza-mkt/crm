@@ -1,7 +1,7 @@
 import { KanbanColumn } from "./KanbanColumn";
 import type { Lead } from "./PipelineCard";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Filter, ArrowUpDown } from "lucide-react";
 
 const mockLeads: Record<string, Lead[]> = {
   "Novo Lead": [
@@ -43,8 +43,33 @@ const mockLeads: Record<string, Lead[]> = {
       activities: false
     },
   ],
-  "Conversando": [],
-  "Proposta": [],
+  "Conversando": [
+    { 
+      id: "4", 
+      name: "Carlos Mendes", 
+      company: "Startup XYZ",
+      phone: "(21) 97777-8888", 
+      salesperson: "Hudson Souza Souza", 
+      tags: [], 
+      value: 1200, 
+      date: "20/06/2025",
+      priority: "green",
+      activities: false
+    },
+  ],
+  "Proposta": [
+    { 
+      id: "5", 
+      name: "Fernanda Lima", 
+      company: "Empresa ABC",
+      phone: "(11) 96666-5555", 
+      salesperson: "Ana Silva", 
+      tags: [], 
+      value: 3500, 
+      date: "25/06/2025",
+      activities: false
+    },
+  ],
 };
 
 export function KanbanBoard() {
@@ -59,18 +84,18 @@ export function KanbanBoard() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Aquisição e Qualificação</h1>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="flex items-center gap-1">
-            <span className="h-4 w-4 grid place-items-center">⊞</span>
+          <Button variant="outline" size="sm" className="flex items-center gap-1 bg-white">
+            <Filter className="h-4 w-4" />
             <span>Filtros</span>
           </Button>
-          <Button variant="outline" size="sm" className="flex items-center gap-1">
-            <span className="h-4 w-4 grid place-items-center">⇅</span>
+          <Button variant="outline" size="sm" className="flex items-center gap-1 bg-white">
+            <ArrowUpDown className="h-4 w-4" />
             <span>Ordenação</span>
           </Button>
         </div>
       </div>
       
-      <div className="flex overflow-x-auto pb-4 gap-4">
+      <div className="flex overflow-x-auto pb-6 gap-5">
         {stages.map((stage) => (
           <KanbanColumn 
             key={stage} 
@@ -81,7 +106,7 @@ export function KanbanBoard() {
           />
         ))}
         <div className="flex-shrink-0 w-80 h-16 flex items-center justify-center">
-          <Button variant="outline" className="w-full">
+          <Button variant="outline" className="w-full bg-white/80 border-dashed border-2">
             <Plus className="h-4 w-4 mr-2" />
             Nova coluna
           </Button>

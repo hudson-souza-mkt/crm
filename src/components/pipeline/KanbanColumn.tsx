@@ -14,40 +14,62 @@ export function KanbanColumn({ title, leads, totalValue, count }: KanbanColumnPr
     return `R$ ${value.toFixed(2).replace('.', ',')}`;
   };
 
-  const getColumnColor = () => {
+  const getColumnStyle = () => {
     switch (title) {
       case "Novo Lead":
-        return "bg-gray-100";
+        return {
+          bg: "bg-blue-50",
+          indicator: "bg-blue-500",
+          borderTop: "border-t-4 border-t-blue-500"
+        };
       case "Qualificação":
-        return "bg-gray-100";
+        return {
+          bg: "bg-purple-50",
+          indicator: "bg-purple-500",
+          borderTop: "border-t-4 border-t-purple-500"
+        };
       case "Conversando":
-        return "bg-gray-100";
+        return {
+          bg: "bg-amber-50",
+          indicator: "bg-amber-500",
+          borderTop: "border-t-4 border-t-amber-500"
+        };
       case "Proposta":
-        return "bg-gray-100";
+        return {
+          bg: "bg-green-50",
+          indicator: "bg-green-500",
+          borderTop: "border-t-4 border-t-green-500"
+        };
       default:
-        return "bg-gray-100";
+        return {
+          bg: "bg-gray-50",
+          indicator: "bg-gray-500",
+          borderTop: "border-t-4 border-t-gray-500"
+        };
     }
   };
 
+  const columnStyle = getColumnStyle();
+
   return (
-    <div className={`flex-shrink-0 w-80 rounded-lg ${getColumnColor()} overflow-hidden`}>
+    <div className={`flex-shrink-0 w-80 rounded-lg ${columnStyle.bg} overflow-hidden shadow-sm ${columnStyle.borderTop}`}>
       <div className="p-3 flex items-center justify-between border-b">
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-gray-400"></span>
-          <h3 className="font-medium text-sm">{title}</h3>
-          <span className="text-xs text-muted-foreground ml-1">
+          <span className={`w-3 h-3 rounded-full ${columnStyle.indicator}`}></span>
+          <h3 className="font-semibold text-sm">{title}</h3>
+          <span className="text-xs text-muted-foreground ml-1 font-medium">
             {formatCurrency(totalValue)}
           </span>
         </div>
         <div className="flex items-center gap-1">
           {count > 0 && (
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs bg-gray-200 px-2 py-0.5 rounded-full font-medium">
               {count === 1 ? '1 Negócio' : `${count} Negócios`}
             </span>
           )}
           {count === 0 && (
-            <span className="text-xs text-muted-foreground">
-              Nenhum negócio
+            <span className="text-xs bg-gray-200 px-2 py-0.5 rounded-full font-medium">
+              Vazio
             </span>
           )}
           <Button variant="ghost" size="icon" className="h-6 w-6">
@@ -60,8 +82,12 @@ export function KanbanColumn({ title, leads, totalValue, count }: KanbanColumnPr
           <PipelineCard key={lead.id} lead={lead} />
         ))}
       </div>
-      <div className="p-2 border-t">
-        <Button variant="ghost" className="w-full justify-center text-xs font-normal" size="sm">
+      <div className="p-2 border-t bg-white/50">
+        <Button 
+          variant="outline" 
+          className="w-full justify-center text-xs font-normal hover:bg-white/80" 
+          size="sm"
+        >
           <Plus className="h-3 w-3 mr-1" />
           Novo negócio
         </Button>

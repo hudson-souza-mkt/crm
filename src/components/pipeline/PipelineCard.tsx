@@ -27,11 +27,11 @@ export function PipelineCard({ lead }: PipelineCardProps) {
   };
 
   return (
-    <Card className="shadow-sm hover:shadow-md transition-shadow border-border">
+    <Card className="shadow-sm hover:shadow-md transition-shadow border-border bg-white pipeline-card">
       <CardContent className="p-3">
         <div className="flex justify-between items-start">
           <div className="flex gap-2">
-            <Avatar className="h-8 w-8">
+            <Avatar className="h-8 w-8 border">
               <AvatarImage src={lead.avatarUrl} />
               <AvatarFallback className="text-xs bg-primary text-primary-foreground">
                 {lead.name.charAt(0)}
@@ -50,7 +50,7 @@ export function PipelineCard({ lead }: PipelineCardProps) {
                   </span>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground">{lead.company}</p>
+              <p className="text-xs text-muted-foreground">{lead.company || "Sem empresa"}</p>
             </div>
           </div>
           <Button variant="ghost" size="icon" className="h-6 w-6 -mt-1 -mr-1">
@@ -58,31 +58,25 @@ export function PipelineCard({ lead }: PipelineCardProps) {
           </Button>
         </div>
 
-        <div className="mt-2 space-y-1">
+        <div className="mt-3 space-y-2 border-t pt-2">
           <div className="flex items-center text-xs text-muted-foreground">
-            <span className="w-4 h-4 flex items-center justify-center mr-1">H</span>
+            <span className="w-5 h-5 flex items-center justify-center mr-1 bg-gray-100 rounded-full text-gray-500">H</span>
             <span>{lead.salesperson}</span>
           </div>
-          {lead.value > 0 && (
-            <div className="flex items-center text-xs">
-              <span className="w-4 h-4 flex items-center justify-center mr-1">R$</span>
-              <span>{formatCurrency(lead.value)}</span>
-            </div>
-          )}
-          {lead.value === 0 && (
-            <div className="flex items-center text-xs">
-              <span className="w-4 h-4 flex items-center justify-center mr-1">R$</span>
-              <span>{formatCurrency(0)}</span>
-            </div>
-          )}
+          <div className="flex items-center text-xs font-medium">
+            <span className="w-5 h-5 flex items-center justify-center mr-1 bg-green-50 rounded-full text-green-600">R$</span>
+            <span className={lead.value > 0 ? "text-green-700" : "text-gray-500"}>
+              {formatCurrency(lead.value)}
+            </span>
+          </div>
           <div className="flex items-center text-xs text-muted-foreground">
-            <Calendar className="w-4 h-4 mr-1" />
+            <Calendar className="w-4 h-4 mr-1 text-gray-400" />
             <span>{lead.date}</span>
           </div>
           <div className="flex items-center text-xs text-muted-foreground">
-            <Clock className="w-4 h-4 mr-1" />
+            <Clock className="w-4 h-4 mr-1 text-gray-400" />
             <span>Sem atividades</span>
-            <Button variant="ghost" size="icon" className="h-5 w-5 ml-1">
+            <Button variant="ghost" size="icon" className="h-5 w-5 ml-1 hover:bg-gray-100">
               <Plus className="h-3 w-3" />
             </Button>
           </div>
