@@ -8,11 +8,11 @@ export function ContactDetails() {
     <div className="p-4 space-y-6">
       <div className="flex flex-col items-center gap-4">
         <Avatar className="w-24 h-24">
-          <AvatarImage src="https://github.com/shadcn.png" />
-          <AvatarFallback>JS</AvatarFallback>
+          <AvatarImage src="https://i.pravatar.cc/150?img=1" />
+          <AvatarFallback>BA</AvatarFallback>
         </Avatar>
         <div className="text-center">
-          <p className="text-xl font-semibold">João Silva</p>
+          <p className="text-xl font-semibold">Bianca Araújo</p>
           <p className="text-muted-foreground">Lead Qualificado</p>
         </div>
       </div>
@@ -23,7 +23,7 @@ export function ContactDetails() {
         <CardContent className="space-y-3 text-sm">
           <div className="flex items-center gap-3">
             <Mail className="w-4 h-4 text-muted-foreground" />
-            <span>joao.silva@email.com</span>
+            <span>bianca.araujo@email.com</span>
           </div>
           <div className="flex items-center gap-3">
             <Phone className="w-4 h-4 text-muted-foreground" />

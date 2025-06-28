@@ -1,14 +1,17 @@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ConversationList } from "@/components/chat/ConversationList";
 import { ChatWindow } from "@/components/chat/ChatWindow";
+import { ContactDetails } from "@/components/chat/ContactDetails";
 import { Button } from "@/components/ui/button";
 import { Search, PhoneIncoming, List, ZapIcon, Lightbulb, Calendar, Tag, MessagesSquare, LifeBuoy } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useState } from "react";
 
 export default function Chat() {
   const isMobile = useIsMobile();
+  const [selectedChat, setSelectedChat] = useState(1); // ID do chat selecionado
 
   return (
     <div className="h-[calc(100vh-theme(spacing.16))] flex flex-col">
@@ -95,7 +98,7 @@ export default function Chat() {
 
               <TabsContent value="abertas" className="flex-1 flex mt-0">
                 <div className="w-80 border-r flex flex-col">
-                  <div className="p-3 flex justify-between items-center">
+                  <div className="p-3 flex justify-between items-center border-b">
                     <Button className="bg-primary hover:bg-primary/90 text-white">
                       NOVO
                     </Button>
@@ -107,8 +110,8 @@ export default function Chat() {
                     </div>
                   </div>
                   
-                  <div className="border-t">
-                    <Tabs defaultValue="atendendo" className="w-full">
+                  <div className="flex-1 flex flex-col">
+                    <Tabs defaultValue="atendendo" className="flex-1 flex flex-col">
                       <TabsList className="w-full rounded-none bg-transparent">
                         <TabsTrigger value="atendendo" className="flex-1 rounded-none data-[state=active]:bg-white">
                           ATENDENDO
@@ -120,11 +123,11 @@ export default function Chat() {
                         </TabsTrigger>
                       </TabsList>
                       
-                      <TabsContent value="atendendo" className="mt-0">
+                      <TabsContent value="atendendo" className="mt-0 flex-1 overflow-auto">
                         <ConversationList />
                       </TabsContent>
                       
-                      <TabsContent value="aguardando" className="mt-0">
+                      <TabsContent value="aguardando" className="mt-0 flex-1">
                         <div className="p-4 text-center text-sm text-muted-foreground">
                           Nenhum atendimento aguardando no momento
                         </div>
@@ -133,7 +136,16 @@ export default function Chat() {
                   </div>
                 </div>
                 
-                {!isMobile && (
+                {!isMobile && selectedChat ? (
+                  <div className="flex-1 flex">
+                    <div className="flex-1">
+                      <ChatWindow />
+                    </div>
+                    <div className="w-80 border-l">
+                      <ContactDetails />
+                    </div>
+                  </div>
+                ) : !isMobile && (
                   <div className="flex-1 flex items-center justify-center bg-gray-50">
                     <div className="text-center">
                       <div className="flex justify-center mb-4">
