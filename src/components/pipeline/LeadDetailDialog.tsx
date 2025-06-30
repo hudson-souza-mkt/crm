@@ -1,11 +1,11 @@
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-  SheetClose,
-} from "@/components/ui/sheet";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from "@/components/ui/dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -42,7 +42,7 @@ import {
 import type { Lead } from "./PipelineCard";
 import { ChatMessage } from "@/components/chat/ChatMessage";
 
-interface LeadDetailSheetProps {
+interface LeadDetailDialogProps {
   lead: Lead | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -128,13 +128,13 @@ const InfoField = ({ label, value, placeholder, link }: { label: string, value?:
   </div>
 );
 
-export function LeadDetailSheet({ lead, open, onOpenChange }: LeadDetailSheetProps) {
+export function LeadDetailDialog({ lead, open, onOpenChange }: LeadDetailDialogProps) {
   if (!lead) return null;
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-[80vw] lg:max-w-[70vw] xl:max-w-[1200px] p-0">
-        <div className="flex h-full">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-[80vw] lg:max-w-[70vw] xl:max-w-[1200px] p-0 h-[90vh] flex flex-col">
+        <div className="flex h-full overflow-hidden">
           {/* Sidebar */}
           <div className="w-[350px] bg-gray-50 border-r flex-shrink-0 flex flex-col">
             <div className="p-6">
@@ -176,8 +176,8 @@ export function LeadDetailSheet({ lead, open, onOpenChange }: LeadDetailSheetPro
               </div>
             </div>
 
-            <Tabs defaultValue="perfil" className="flex-1 flex flex-col">
-              <TabsList className="grid w-full grid-cols-3 px-4">
+            <Tabs defaultValue="perfil" className="flex-1 flex flex-col overflow-hidden">
+              <TabsList className="grid w-full grid-cols-3 px-4 flex-shrink-0">
                 <TabsTrigger value="perfil">Perfil</TabsTrigger>
                 <TabsTrigger value="endereco">Endereço</TabsTrigger>
                 <TabsTrigger value="campos">Campos</TabsTrigger>
@@ -204,18 +204,13 @@ export function LeadDetailSheet({ lead, open, onOpenChange }: LeadDetailSheetPro
           </div>
 
           {/* Main Content */}
-          <div className="flex-1 flex flex-col bg-white">
-            <SheetHeader className="p-4 border-b flex-row justify-between items-center">
+          <div className="flex-1 flex flex-col bg-white overflow-hidden">
+            <DialogHeader className="p-4 border-b flex-row justify-between items-center flex-shrink-0">
               <div className="flex items-center gap-2">
                 <h3 className="font-semibold">Negócio #3</h3>
                 <Badge variant="destructive">Perdido</Badge>
               </div>
-              <SheetClose asChild>
-                <Button variant="ghost" size="icon">
-                  <X className="h-5 w-5" />
-                </Button>
-              </SheetClose>
-            </SheetHeader>
+            </DialogHeader>
             <div className="flex-1 p-6 overflow-y-auto bg-gray-50/50">
               <Tabs defaultValue="historico">
                 <TabsList>
@@ -271,7 +266,7 @@ export function LeadDetailSheet({ lead, open, onOpenChange }: LeadDetailSheetPro
                   </div>
                 </TabsContent>
                 <TabsContent value="chat" className="pt-6">
-                  <div className="flex flex-col h-[calc(100vh-280px)] border rounded-lg bg-white">
+                  <div className="flex flex-col h-[calc(100vh - 320px)] border rounded-lg bg-white">
                     <div className="flex-1 p-4 space-y-4 overflow-y-auto">
                       {chatMessagesMock.map((msg, index) => (
                           <ChatMessage key={index} isOutgoing={msg.isOutgoing} message={msg.message} time={msg.time} />
@@ -313,7 +308,7 @@ export function LeadDetailSheet({ lead, open, onOpenChange }: LeadDetailSheetPro
             </div>
           </div>
         </div>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }

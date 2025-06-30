@@ -88,11 +88,11 @@ export function KanbanBoard() {
   });
 
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleCardClick = (lead: Lead) => {
     setSelectedLead(lead);
-    setIsSheetOpen(true);
+    setIsDialogOpen(true);
   };
   
   const getTotalValue = (leads: Lead[]) => {
@@ -132,8 +132,8 @@ export function KanbanBoard() {
       </div>
       <LeadDetailDialog 
         lead={selectedLead}
-        open={isSheetOpen}
-        onOpenChange={setIsSheetOpen}
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
       />
     </div>
   );
