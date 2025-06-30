@@ -1,58 +1,62 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
-  Zap, Mail, Tag, ListChecks, Clock, GitBranch, AlertTriangle, LucideIcon 
+  MessageCircle, Zap, Filter, Clock, Shuffle, 
+  Braces, Settings, Brain, LucideIcon 
 } from "lucide-react";
 
 interface NodeOption {
-  type: 'trigger' | 'action' | 'logic';
+  type: string;
   label: string;
   icon: LucideIcon;
+  color: string;
 }
 
-const triggerOptions: NodeOption[] = [
-  { type: 'trigger', label: 'Novo Lead', icon: Zap },
-  { type: 'trigger', label: 'Etapa do Funil Alterada', icon: Zap },
-  { type: 'trigger', label: 'Tag Adicionada', icon: Zap },
+const nodeOptions: NodeOption[] = [
+  { type: 'message', label: 'Mensagem', icon: MessageCircle, color: 'text-blue-500' },
+  { type: 'action', label: 'Ações', icon: Zap, color: 'text-yellow-500' },
+  { type: 'condition', label: 'Condições', icon: Filter, color: 'text-cyan-500' },
+  { type: 'wait', label: 'Espera', icon: Clock, color: 'text-purple-500' },
+  { type: 'randomizer', label: 'Randomizador', icon: Shuffle, color: 'text-orange-500' },
+  { type: 'api', label: 'API', icon: Braces, color: 'text-green-500' },
+  { type: 'field_operations', label: 'Operações de campos', icon: Settings, color: 'text-gray-500' },
+  { type: 'ai', label: 'IA', icon: Brain, color: 'text-purple-600' },
 ];
 
-const actionOptions: NodeOption[] = [
-  { type: 'action', label: 'Enviar E-mail', icon: Mail },
-  { type: 'action', label: 'Adicionar Tag', icon: Tag },
-  { type: 'action', label: 'Criar Tarefa', icon: ListChecks },
-  { type: 'action', label: 'Notificar Usuário', icon: AlertTriangle },
-];
+const NodeOptionButton = ({ label, icon: Icon, color }: { label: string, icon: LucideIcon, color: string }) => {
+  const onDragStart = (event: React.DragEvent, nodeType: string) => {
+    event.dataTransfer.setData('application/reactflow', nodeType);
+    event.dataTransfer.effectAllowed = 'move';
+  };
 
-const logicOptions: NodeOption[] = [
-  { type: 'logic', label: 'Aguardar', icon: Clock },
-  { type: 'logic', label: 'Condição (Se/Então)', icon: GitBranch },
-];
-
-const NodeOptionButton = ({ label, icon: Icon }: { label: string, icon: LucideIcon }) => (
-  <Button variant="outline" className="w-full justify-start gap-2 cursor-grab">
-    <Icon className="h-4 w-4 text-muted-foreground" />
-    {label}
-  </Button>
-);
+  return (
+    <Button 
+      variant="outline" 
+      className="w-full justify-start gap-3 cursor-grab active:cursor-grabbing h-12"
+      draggable
+      onDragStart={(event) => onDragStart(event, label.toLowerCase())}
+    >
+      <Icon className={`h-5 w-5 ${color}`} />
+      <span className="font-medium">{label}</span>
+    </Button>
+  );
+};
 
 export function AutomationNodeSidebar() {
   return (
-    <div className="space-y-6">
-      <h2 className="text-xl font-bold">Blocos</h2>
+    <div className="space-y-4">
+      <div className="border-b pb-4">
+        <h2 className="text-lg font-semibold">Blocos básicos</h2>
+      </div>
       
-      <div className="space-y-3">
-        <h3 className="font-semibold text-muted-foreground">Gatilhos</h3>
-        {triggerOptions.map(opt => <NodeOptionButton key={opt.label} {...opt} />)}
-      </div>
-
-      <div className="space-y-3">
-        <h3 className="font-semibold text-muted-foreground">Ações</h3>
-        {actionOptions.map(opt => <NodeOptionButton key={opt.label} {...opt} />)}
-      </div>
-
-      <div className="space-y-3">
-        <h3 className="font-semibold text-muted-foreground">Lógica</h3>
-        {logicOptions.map(opt => <NodeOptionButton key={opt.label} {...opt} />)}
+      <div className="space-y-2">
+        {nodeOptions.map(option => (
+          <NodeOptionButton 
+            key={option.type}
+            label={option.label}
+            icon={option.icon}
+            color={option.color}
+          />
+        ))}
       </div>
     </div>
   );
