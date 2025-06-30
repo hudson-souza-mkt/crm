@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { KanbanColumn } from "./KanbanColumn";
 import type { Lead } from "./PipelineCard";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { LeadDetailDialog } from "./LeadDetailDialog";
+import { supabase } from "@/integrations/supabase/client";
+import type { Stage } from "@/components/settings/PipelineSettings";
 
 export type StageColor = "blue" | "purple" | "amber" | "green" | "red" | "pink" | "indigo" | "cyan" | "gray";
 
@@ -87,17 +89,30 @@ const mockLeads: Record<string, Lead[]> = {
 };
 
 export function KanbanBoard() {
-  const stages = ["Novo Lead", "Qualificação", "Conversando", "Proposta"];
-  
-  const [stageColors, setStageColors] = useState<Record<string, StageColor>>({
-    "Novo Lead": "blue",
-    "Qualificação": "purple",
-    "Conversando": "amber",
-    "Proposta": "green"
-  });
-
+  const [stages, setStages] = useState<Stage[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  useEffect(() => {
+    fetchStages();
+  }, []);
+
+  const fetchStages = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("pipeline_stages")
+      .select("id, name, order, color")
+      .order("order", { ascending: true });
+
+    if (error) {
+      toast.error("Falha ao carregar as etapas do pipeline.");
+      console.error(error);
+    } else {
+      setStages(data as Stage[]);
+    }
+    setLoading(false);
+  };
 
   const handleCardClick = (lead: Lead) => {
     setSelectedLead(lead);
@@ -108,27 +123,36 @@ export function KanbanBoard() {
     return leads.reduce((sum, lead) => sum + (lead.value || 0), 0);
   };
   
-  const handleColorChange = (stage: string, color: StageColor) => {
-    setStageColors((prev) => ({
-      ...prev,
-      [stage]: color
-    }));
-    
-    toast.success(`Cor da etapa "${stage}" alterada com sucesso!`);
+  const handleColorChange = async (stageId: string, color: StageColor) => {
+    const { error } = await supabase
+      .from("pipeline_stages")
+      .update({ color })
+      .eq("id", stageId);
+
+    if (error) {
+      toast.error("Falha ao atualizar a cor da etapa.");
+    } else {
+      toast.success("Cor da etapa atualizada!");
+      fetchStages(); // Recarrega para refletir a mudança
+    }
   };
   
+  if (loading) {
+    return <div className="flex items-center justify-center h-full"><p>Carregando pipeline...</p></div>;
+  }
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex overflow-x-auto pb-6 gap-5">
         {stages.map((stage) => (
           <KanbanColumn 
-            key={stage} 
-            title={stage} 
-            leads={mockLeads[stage] || []} 
-            totalValue={getTotalValue(mockLeads[stage] || [])}
-            count={(mockLeads[stage] || []).length}
-            color={stageColors[stage]}
-            onColorChange={(color) => handleColorChange(stage, color as StageColor)}
+            key={stage.id} 
+            title={stage.name} 
+            leads={mockLeads[stage.name] || []} // Temporariamente usando mock data
+            totalValue={getTotalValue(mockLeads[stage.name] || [])}
+            count={(mockLeads[stage.name] || []).length}
+            color={stage.color as StageColor}
+            onColorChange={(color) => handleColorChange(stage.id, color as StageColor)}
             onCardClick={handleCardClick}
           />
         ))}

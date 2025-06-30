@@ -12,11 +12,13 @@ import {
   Users2,
   Puzzle,
   Wifi,
+  Columns, // Ícone para pipeline
 } from "lucide-react";
 import { ProfileSettings } from "@/components/settings/ProfileSettings";
 import { CompanySettings } from "@/components/settings/CompanySettings";
 import { TagsSettings } from "@/components/settings/TagsSettings";
 import { CustomFieldsSettings } from "@/components/settings/CustomFieldsSettings";
+import { PipelineSettings } from "@/components/settings/PipelineSettings"; // Importando
 
 const SettingsPlaceholder = ({ title }: { title: string }) => (
   <div>
@@ -31,6 +33,7 @@ const navItems = [
   { id: "profile", label: "Meu perfil", icon: User, component: <ProfileSettings /> },
   { id: "plans", label: "Planos e uso", icon: BarChart3, component: <SettingsPlaceholder title="Planos e Uso" /> },
   { id: "company", label: "Empresa", icon: Building, component: <CompanySettings /> },
+  { id: "pipeline", label: "Funil de Vendas", icon: Columns, component: <PipelineSettings /> }, // Novo item
   { id: "tags", label: "Tags", icon: Tag, component: <TagsSettings /> },
   { id: "products", label: "Produtos", icon: ShoppingCart, component: <SettingsPlaceholder title="Produtos" /> },
   { id: "loss-reasons", label: "Motivos de perda", icon: XCircle, component: <SettingsPlaceholder title="Motivos de Perda" /> },
