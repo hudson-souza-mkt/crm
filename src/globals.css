@@ -4,65 +4,102 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 224 71.4% 4.1%;
+    --background: 0 0% 96.1%; /* #f5f5f5 */
+    --foreground: 240 10% 3.9%;
 
     --card: 0 0% 100%;
-    --card-foreground: 224 71.4% 4.1%;
+    --card-foreground: 240 10% 3.9%;
  
     --popover: 0 0% 100%;
-    --popover-foreground: 224 71.4% 4.1%;
+    --popover-foreground: 240 10% 3.9%;
  
-    --primary: 262.1 83.3% 57.8%;
+    --primary: 240 5% 25%; /* Cinza escuro */
     --primary-foreground: 0 0% 100%;
  
-    --secondary: 220 13% 91%;
-    --secondary-foreground: 220 14.3% 9.1%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
  
-    --muted: 220 13% 91%;
-    --muted-foreground: 220 8.9% 46.1%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
  
-    --accent: 220 13% 91%;
-    --accent-foreground: 220 14.3% 9.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
  
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 262.1 83.3% 57.8%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5% 25%;
  
     --radius: 0.5rem;
+
+    /* Cores para as etapas do pipeline */
+    --blue-50: 210 100% 97%;
+    --blue-500: 210 100% 50%;
+    --blue-600: 210 100% 45%;
+
+    --purple-50: 270 100% 97%;
+    --purple-500: 270 100% 50%;
+    --purple-600: 270 100% 45%;
+
+    --green-50: 120 100% 97%;
+    --green-500: 120 100% 35%;
+    --green-600: 120 100% 30%;
+
+    --amber-50: 45 100% 97%;
+    --amber-500: 45 100% 50%;
+    --amber-600: 45 100% 45%;
+
+    --red-50: 0 100% 97%;
+    --red-500: 0 100% 50%;
+    --red-600: 0 100% 45%;
+
+    --pink-50: 330 100% 97%;
+    --pink-500: 330 100% 50%;
+    --pink-600: 330 100% 45%;
+
+    --indigo-50: 240 100% 97%;
+    --indigo-500: 240 100% 50%;
+    --indigo-600: 240 100% 45%;
+
+    --cyan-50: 180 100% 97%;
+    --cyan-500: 180 100% 50%;
+    --cyan-600: 180 100% 45%;
+
+    --gray-50: 0 0% 97%;
+    --gray-500: 0 0% 50%;
+    --gray-600: 0 0% 45%;
   }
  
   .dark {
-    --background: 224 71.4% 4.1%;
-    --foreground: 210 20% 98%;
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
 
-    --card: 224 71.4% 4.1%;
-    --card-foreground: 210 20% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
  
-    --popover: 224 71.4% 4.1%;
-    --popover-foreground: 210 20% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
  
-    --primary: 263.4 95.2% 58.2%;
-    --primary-foreground: 210 20% 98%;
+    --primary: 240 5% 25%;
+    --primary-foreground: 0 0% 100%;
  
-    --secondary: 215 27.9% 16.9%;
-    --secondary-foreground: 210 20% 98%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
  
-    --muted: 215 27.9% 16.9%;
-    --muted-foreground: 217.9 10.6% 64.9%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
  
-    --accent: 215 27.9% 16.9%;
-    --accent-foreground: 210 20% 98%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
  
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
  
-    --border: 215 27.9% 16.9%;
-    --input: 215 27.9% 16.9%;
-    --ring: 263.4 95.2% 58.2%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 5% 25%;
   }
 }
  
@@ -71,7 +108,195 @@
     @apply border-border;
   }
   body {
-    @apply bg-secondary text-foreground;
+    @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
+}
+
+/* Estilos personalizados para o Pipeline */
+.pipeline-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pipeline-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.pipeline-column {
+  background-color: #f9f9fb;
+  border-radius: 8px;
+}
+
+/* Personalização do scrollbar para o pipeline */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.overflow-x-auto::-webkit-scrollbar {
+  height: 6px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+/* Classes para cores dinâmicas do pipeline */
+.bg-blue-50 {
+  background-color: hsl(var(--blue-50));
+}
+.bg-blue-500 {
+  background-color: hsl(var(--blue-500));
+}
+.bg-blue-600 {
+  background-color: hsl(var(--blue-600));
+}
+.border-t-blue-500 {
+  border-top-color: hsl(var(--blue-500));
+}
+
+.bg-purple-50 {
+  background-color: hsl(var(--purple-50));
+}
+.bg-purple-500 {
+  background-color: hsl(var(--purple-500));
+}
+.bg-purple-600 {
+  background-color: hsl(var(--purple-600));
+}
+.border-t-purple-500 {
+  border-top-color: hsl(var(--purple-500));
+}
+
+.bg-green-50 {
+  background-color: hsl(var(--green-50));
+}
+.bg-green-500 {
+  background-color: hsl(var(--green-500));
+}
+.bg-green-600 {
+  background-color: hsl(var(--green-600));
+}
+.border-t-green-500 {
+  border-top-color: hsl(var(--green-500));
+}
+
+.bg-amber-50 {
+  background-color: hsl(var(--amber-50));
+}
+.bg-amber-500 {
+  background-color: hsl(var(--amber-500));
+}
+.bg-amber-600 {
+  background-color: hsl(var(--amber-600));
+}
+.border-t-amber-500 {
+  border-top-color: hsl(var(--amber-500));
+}
+
+.bg-red-50 {
+  background-color: hsl(var(--red-50));
+}
+.bg-red-500 {
+  background-color: hsl(var(--red-500));
+}
+.bg-red-600 {
+  background-color: hsl(var(--red-600));
+}
+.border-t-red-500 {
+  border-top-color: hsl(var(--red-500));
+}
+
+.bg-pink-50 {
+  background-color: hsl(var(--pink-50));
+}
+.bg-pink-500 {
+  background-color: hsl(var(--pink-500));
+}
+.bg-pink-600 {
+  background-color: hsl(var(--pink-600));
+}
+.border-t-pink-500 {
+  border-top-color: hsl(var(--pink-500));
+}
+
+.bg-indigo-50 {
+  background-color: hsl(var(--indigo-50));
+}
+.bg-indigo-500 {
+  background-color: hsl(var(--indigo-500));
+}
+.bg-indigo-600 {
+  background-color: hsl(var(--indigo-600));
+}
+.border-t-indigo-500 {
+  border-top-color: hsl(var(--indigo-500));
+}
+
+.bg-cyan-50 {
+  background-color: hsl(var(--cyan-50));
+}
+.bg-cyan-500 {
+  background-color: hsl(var(--cyan-500));
+}
+.bg-cyan-600 {
+  background-color: hsl(var(--cyan-600));
+}
+.border-t-cyan-500 {
+  border-top-color: hsl(var(--cyan-500));
+}
+
+.bg-gray-50 {
+  background-color: hsl(var(--gray-50));
+}
+.bg-gray-500 {
+  background-color: hsl(var(--gray-500));
+}
+.bg-gray-600 {
+  background-color: hsl(var(--gray-600));
+}
+.border-t-gray-500 {
+  border-top-color: hsl(var(--gray-500));
+}
+
+.hover\:bg-blue-600:hover {
+  background-color: hsl(var(--blue-600));
+}
+.hover\:bg-purple-600:hover {
+  background-color: hsl(var(--purple-600));
+}
+.hover\:bg-green-600:hover {
+  background-color: hsl(var(--green-600));
+}
+.hover\:bg-amber-600:hover {
+  background-color: hsl(var(--amber-600));
+}
+.hover\:bg-red-600:hover {
+  background-color: hsl(var(--red-600));
+}
+.hover\:bg-pink-600:hover {
+  background-color: hsl(var(--pink-600));
+}
+.hover\:bg-indigo-600:hover {
+  background-color: hsl(var(--indigo-600));
+}
+.hover\:bg-cyan-600:hover {
+  background-color: hsl(var(--cyan-600));
+}
+.hover\:bg-gray-600:hover {
+  background-color: hsl(var(--gray-600));
 }
