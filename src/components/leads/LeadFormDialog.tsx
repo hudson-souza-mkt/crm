@@ -30,6 +30,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { LeadSource } from "@/types/lead";
+import { mockLeads } from "./LeadList";
 
 // Define the form schema
 const formSchema = z.object({
@@ -37,6 +38,7 @@ const formSchema = z.object({
   phone: z.string().min(8, "Telefone inválido"),
   email: z.string().email("Email inválido").optional().or(z.literal("")),
   company: z.string().optional(),
+  document: z.string().optional(),
   source: z.enum(["chat", "manual", "import", "webhook"], {
     required_error: "A origem é obrigatória.",
   }),
@@ -71,6 +73,7 @@ export function LeadFormDialog({ open, onOpenChange, lead }: LeadFormDialogProps
       phone: lead.phone,
       email: lead.email || "",
       company: lead.company || "",
+      document: lead.document || "",
       source: lead.source || "manual",
       funnel: lead.funnel || "",
       stage: lead.stage || "",
@@ -82,6 +85,7 @@ export function LeadFormDialog({ open, onOpenChange, lead }: LeadFormDialogProps
       phone: "",
       email: "",
       company: "",
+      document: "",
       source: "manual",
       funnel: "",
       stage: "",
@@ -91,6 +95,23 @@ export function LeadFormDialog({ open, onOpenChange, lead }: LeadFormDialogProps
   });
 
   const onSubmit = (values: FormValues) => {
+    // Duplication check
+    const isDuplicate = mockLeads.some(
+      existingLead => {
+        if (lead && existingLead.id === lead.id) {
+          return false; // Don't compare the lead against itself when editing
+        }
+        const phoneMatch = values.phone && existingLead.phone === values.phone;
+        const documentMatch = values.document && existingLead.document && existingLead.document === values.document;
+        return phoneMatch || documentMatch;
+      }
+    );
+
+    if (isDuplicate) {
+      toast.error("Já existe um contato com este telefone ou documento.");
+      return;
+    }
+
     console.log(values);
     // Here we would save the lead to the database
     toast.success(lead ? "Lead atualizado com sucesso!" : "Lead criado com sucesso!");
@@ -175,6 +196,49 @@ export function LeadFormDialog({ open, onOpenChange, lead }: LeadFormDialogProps
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
+                name="document"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>CPF/CNPJ</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="source"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Origem*</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a origem" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {sourceOptions.map(option => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
                 name="funnel"
                 render={({ field }) => (
                   <FormItem>
@@ -227,54 +291,24 @@ export function LeadFormDialog({ open, onOpenChange, lead }: LeadFormDialogProps
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="value"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Valor (R$)</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        step="0.01" 
-                        {...field} 
-                        onChange={e => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="source"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Origem*</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione a origem" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {sourceOptions.map(option => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="value"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Valor (R$)</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="number" 
+                      step="0.01" 
+                      {...field} 
+                      onChange={e => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}

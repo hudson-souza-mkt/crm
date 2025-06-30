@@ -18,13 +18,14 @@ import { MoreHorizontal, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 
 // Mock data for leads
-const mockLeads: Lead[] = [
+export const mockLeads: Lead[] = [
   {
     id: "1",
     name: "João Silva",
     phone: "(11) 98765-4321",
     email: "joao@example.com",
     company: "ABC Corp",
+    document: "111.222.333-44",
     source: "chat",
     status: "new",
     funnel: "Aquisição",
@@ -48,6 +49,7 @@ const mockLeads: Lead[] = [
     phone: "(21) 98765-1234",
     email: "maria@example.com",
     company: "Tech Solutions",
+    document: "12.345.678/0001-99",
     source: "manual",
     status: "qualified",
     funnel: "Vendas",

@@ -213,7 +213,7 @@ export function LeadDetailDialog({ lead, open, onOpenChange }: LeadDetailDialogP
                   <InfoField label="E-mail" value="exemplo@meulead.com" placeholder="Informe o e-mail" />
                   <InfoField label="Telefone" value={lead.phone} placeholder="Informe o telefone" />
                   <InfoField label="Instagram" value="hudson_souza_mkt" placeholder="Informe o Instagram" link="https://instagram.com/hudson_souza_mkt" />
-                  <InfoField label="Documento" placeholder="Informe o CPF ou CPNJ" />
+                  <InfoField label="Documento" value={lead.document} placeholder="Informe o CPF ou CPNJ" />
                   <InfoField label="Origem" value="Site" placeholder="Como o lead ficou sabendo?" />
                   <InfoField label="Site" value="www.meulead.com.br" placeholder="Informe o site" link="https://www.meulead.com.br" />
                 </TabsContent>

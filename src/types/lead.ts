@@ -15,6 +15,7 @@ export interface Lead {
   phone: string;
   email?: string;
   company?: string;
+  document?: string;
   source: LeadSource;
   status: LeadStatus;
   funnel?: string;
