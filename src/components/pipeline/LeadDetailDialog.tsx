@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -41,6 +42,8 @@ import {
 } from "lucide-react";
 import type { Lead } from "./PipelineCard";
 import { ChatMessage } from "@/components/chat/ChatMessage";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface LeadDetailDialogProps {
   lead: Lead | null;
@@ -129,7 +132,27 @@ const InfoField = ({ label, value, placeholder, link }: { label: string, value?:
 );
 
 export function LeadDetailDialog({ lead, open, onOpenChange }: LeadDetailDialogProps) {
+  const [currentStage, setCurrentStage] = useState("Perdido");
+  
   if (!lead) return null;
+
+  const stages = ["Novo Lead", "Qualificação", "Conversando", "Proposta", "Ganho", "Perdido"];
+
+  const handleStageChange = (newStage: string) => {
+    setCurrentStage(newStage);
+    toast.success(`Negócio movido para: ${newStage}`);
+  };
+
+  const getStageBadgeClass = (stage: string) => {
+    switch (stage) {
+      case "Ganho":
+        return "bg-green-100 text-green-700 border-green-200 hover:bg-green-200/80";
+      case "Perdido":
+        return "bg-red-100 text-red-700 border-red-200 hover:bg-red-200/80";
+      default:
+        return "bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200/80";
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -216,7 +239,19 @@ export function LeadDetailDialog({ lead, open, onOpenChange }: LeadDetailDialogP
             <DialogHeader className="p-4 border-b flex-row justify-between items-center flex-shrink-0">
               <div className="flex items-center gap-2">
                 <h3 className="font-semibold">Negócio #3</h3>
-                <Badge variant="destructive">Perdido</Badge>
+                <Select value={currentStage} onValueChange={handleStageChange}>
+                  <SelectTrigger className={cn(
+                    "w-auto h-auto border-none px-2.5 py-0.5 rounded-md text-xs font-semibold focus:ring-0 focus:ring-offset-0",
+                    getStageBadgeClass(currentStage)
+                  )}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {stages.map(stage => (
+                      <SelectItem key={stage} value={stage}>{stage}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </DialogHeader>
             <div className="flex-1 p-6 overflow-y-auto bg-gray-50/50">
