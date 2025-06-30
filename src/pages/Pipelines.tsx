@@ -3,14 +3,22 @@ import { KanbanBoard } from "@/components/pipeline/KanbanBoard";
 import { PipelineFilters } from "@/components/pipeline/PipelineFilters";
 import { PipelineGroupList } from "@/components/pipeline/PipelineGroupList";
 import { Button } from "@/components/ui/button";
-import { Filter, ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { Filter, ArrowUpDown, ChevronLeft, ChevronRight, Calendar, Timer } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function Pipelines() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [activeGroupId, setActiveGroupId] = useState("group1");
   const [activePipelineId, setActivePipelineId] = useState("pipeline1");
   const [pipelineMenuCollapsed, setPipelineMenuCollapsed] = useState(false);
+  const [sortOption, setSortOption] = useState("date-desc");
   
   // Mapeamento de nomes de pipelines (em um app real, isso viria de uma API)
   const pipelineNames: Record<string, string> = {
@@ -64,6 +72,25 @@ export default function Pipelines() {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">{pipelineNames[activePipelineId] || "Pipeline"}</h1>
           <div className="flex gap-2">
+            <Select value={sortOption} onValueChange={setSortOption}>
+              <SelectTrigger className="w-[200px] bg-white">
+                <ArrowUpDown className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Ordenar por..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="date-desc">Data (mais recente)</SelectItem>
+                <SelectItem value="date-asc">Data (mais antigo)</SelectItem>
+                <SelectItem value="value-desc">Valor (maior primeiro)</SelectItem>
+                <SelectItem value="value-asc">Valor (menor primeiro)</SelectItem>
+                <SelectItem value="time-desc">
+                  <div className="flex items-center">
+                    <Timer className="h-4 w-4 mr-1" />
+                    <span>Mais tempo na etapa</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="name-asc">Nome (A-Z)</SelectItem>
+              </SelectContent>
+            </Select>
             <Button 
               variant="outline" 
               size="sm" 
@@ -72,10 +99,6 @@ export default function Pipelines() {
             >
               <Filter className="h-4 w-4" />
               <span>Filtros</span>
-            </Button>
-            <Button variant="outline" size="sm" className="flex items-center gap-1 bg-white">
-              <ArrowUpDown className="h-4 w-4" />
-              <span>Ordenação</span>
             </Button>
           </div>
         </div>

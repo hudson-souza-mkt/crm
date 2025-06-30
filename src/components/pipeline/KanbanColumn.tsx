@@ -1,10 +1,15 @@
-import { PipelineCard, type Lead } from "./PipelineCard";
+import { DraggableLeadCard } from "./DraggableLeadCard";
+import { type Lead } from "./PipelineCard";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal, Plus } from "lucide-react";
 import { ColorPicker } from "./ColorPicker";
 import type { StageColor } from "./KanbanBoard";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { useDroppable } from "@dnd-kit/core";
+import { cn } from "@/lib/utils";
 
 interface KanbanColumnProps {
+  id: string;
   title: string;
   leads: Lead[];
   totalValue: number;
@@ -12,9 +17,20 @@ interface KanbanColumnProps {
   color: StageColor;
   onColorChange: (color: string) => void;
   onCardClick: (lead: Lead) => void;
+  onAddClick?: () => void;
 }
 
-export function KanbanColumn({ title, leads, totalValue, count, color, onColorChange, onCardClick }: KanbanColumnProps) {
+export function KanbanColumn({ 
+  id,
+  title, 
+  leads, 
+  totalValue, 
+  count, 
+  color, 
+  onColorChange, 
+  onCardClick,
+  onAddClick
+}: KanbanColumnProps) {
   const formatCurrency = (value: number) => {
     return `R$ ${value.toFixed(2).replace('.', ',')}`;
   };
@@ -29,8 +45,24 @@ export function KanbanColumn({ title, leads, totalValue, count, color, onColorCh
 
   const columnStyle = getColumnStyle();
 
+  // Configuração para o droppable
+  const { setNodeRef, isOver } = useDroppable({
+    id,
+    data: {
+      type: 'column',
+      accepts: ['lead'],
+      stage: title
+    }
+  });
+
   return (
-    <div className={`flex-shrink-0 w-80 rounded-lg ${columnStyle.bg} overflow-hidden shadow-sm ${columnStyle.borderTop}`}>
+    <div 
+      ref={setNodeRef}
+      className={cn(
+        `flex-shrink-0 w-80 rounded-lg ${columnStyle.bg} overflow-hidden shadow-sm ${columnStyle.borderTop}`,
+        isOver && "ring-2 ring-primary/50"
+      )}
+    >
       <div className="p-3 flex items-center justify-between border-b">
         <div className="flex items-center gap-2">
           <span className={`w-3 h-3 rounded-full ${columnStyle.indicator}`}></span>
@@ -60,15 +92,22 @@ export function KanbanColumn({ title, leads, totalValue, count, color, onColorCh
         </div>
       </div>
       <div className="p-2 space-y-2 max-h-[calc(100vh-220px)] overflow-y-auto">
-        {leads.map((lead) => (
-          <PipelineCard key={lead.id} lead={lead} onCardClick={onCardClick} />
-        ))}
+        <SortableContext items={leads.map(lead => lead.id)} strategy={verticalListSortingStrategy}>
+          {leads.map((lead) => (
+            <DraggableLeadCard
+              key={lead.id}
+              lead={lead}
+              onCardClick={onCardClick}
+            />
+          ))}
+        </SortableContext>
       </div>
       <div className="p-2 border-t bg-white/50">
         <Button 
           variant="outline" 
           className="w-full justify-center text-xs font-normal hover:bg-white/80" 
           size="sm"
+          onClick={onAddClick}
         >
           <Plus className="h-3 w-3 mr-1" />
           Novo negócio

@@ -2,14 +2,41 @@ import { useState, useEffect } from "react";
 import { KanbanColumn } from "./KanbanColumn";
 import type { Lead } from "./PipelineCard";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, FileBarChart } from "lucide-react";
 import { toast } from "sonner";
 import { LeadDetailDialog } from "./LeadDetailDialog";
 import { supabase } from "@/integrations/supabase/client";
 import type { Stage } from "@/components/settings/PipelineSettings";
+import { 
+  ensureDefaultPipelineStages, 
+  canMoveLeadToStage, 
+  updateLeadStage,
+  identifyLeadsAtRisk,
+  calculatePipelineStats
+} from "@/lib/pipeline-utils";
+import { DndContext, DragOverlay, closestCorners, useSensor, useSensors, PointerSensor, DragStartEvent, DragOverEvent, DragEndEvent } from "@dnd-kit/core";
+import { PipelineCard } from "./PipelineCard";
+import { LeadFormDialog } from "@/components/leads/LeadFormDialog";
+import { StageTransitionDialog } from "./StageTransitionDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 export type StageColor = "blue" | "purple" | "amber" | "green" | "red" | "pink" | "indigo" | "cyan" | "gray";
 
+// Dados mockados para demonstração, em um app real viriam do banco de dados
 const mockLeads: Record<string, Lead[]> = {
   "Novo Lead": [
     { 
@@ -17,13 +44,15 @@ const mockLeads: Record<string, Lead[]> = {
       name: "Hudson Souza", 
       company: "Sem empresa",
       phone: "(11) 98765-4321", 
-      salesperson: "Hudson Souza Souza", 
+      salesperson: "Hudson Souza", 
       tags: [], 
       value: 0, 
       date: "13/06/2025",
       priority: "red",
       activities: false,
       document: "111.222.333-44",
+      stage: "Novo Lead",
+      stageUpdatedAt: "2025-06-10T10:00:00Z",
       utms: {
         utm_source: "google",
         utm_medium: "cpc",
@@ -43,34 +72,41 @@ const mockLeads: Record<string, Lead[]> = {
       date: "15/06/2025",
       activities: false,
       document: "12.345.678/0001-99",
+      stage: "Novo Lead",
+      stageUpdatedAt: "2025-06-15T14:30:00Z",
     },
   ],
   "Qualificação": [
     { 
       id: "3", 
-      name: "Hudson Souza", 
+      name: "João Pereira", 
       company: "Sem empresa",
       phone: "(31) 99999-8888", 
-      salesperson: "Hudson Souza Souza", 
+      salesperson: "Hudson Souza", 
       tags: [], 
       value: 500, 
       date: "13/06/2025",
       priority: "green",
-      activities: false
+      activities: false,
+      stage: "Qualificação",
+      stageUpdatedAt: "2025-06-01T09:15:00Z",
+      atRisk: true
     },
   ],
-  "Conversando": [
+  "Apresentação": [
     { 
       id: "4", 
       name: "Carlos Mendes", 
       company: "Startup XYZ",
       phone: "(21) 97777-8888", 
-      salesperson: "Hudson Souza Souza", 
+      salesperson: "Hudson Souza", 
       tags: [], 
       value: 1200, 
       date: "20/06/2025",
       priority: "green",
-      activities: false
+      activities: false,
+      stage: "Apresentação",
+      stageUpdatedAt: "2025-06-18T16:45:00Z",
     },
   ],
   "Proposta": [
@@ -83,7 +119,40 @@ const mockLeads: Record<string, Lead[]> = {
       tags: [], 
       value: 3500, 
       date: "25/06/2025",
-      activities: false
+      activities: false,
+      stage: "Proposta",
+      stageUpdatedAt: "2025-06-20T11:20:00Z",
+    },
+  ],
+  "Negociação": [],
+  "Ganho": [
+    { 
+      id: "6", 
+      name: "Ricardo Santos", 
+      company: "Santos Digital",
+      phone: "(47) 98888-7777", 
+      salesperson: "Hudson Souza", 
+      tags: [], 
+      value: 7800, 
+      date: "05/06/2025",
+      activities: false,
+      stage: "Ganho",
+      stageUpdatedAt: "2025-06-25T10:00:00Z",
+    },
+  ],
+  "Perdido": [
+    { 
+      id: "7", 
+      name: "Amanda Carvalho", 
+      company: "Consultoria Amanda",
+      phone: "(11) 95555-4444", 
+      salesperson: "Ana Silva", 
+      tags: [], 
+      value: 2500, 
+      date: "01/06/2025",
+      activities: false,
+      stage: "Perdido",
+      stageUpdatedAt: "2025-06-15T17:30:00Z",
     },
   ],
 };
@@ -92,10 +161,62 @@ export function KanbanBoard() {
   const [stages, setStages] = useState<Stage[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [isNewLeadDialogOpen, setIsNewLeadDialogOpen] = useState(false);
+  const [activeNewLeadStage, setActiveNewLeadStage] = useState<string | null>(null);
+  const [draggedLead, setDraggedLead] = useState<Lead | null>(null);
+  const [targetStage, setTargetStage] = useState<string | null>(null);
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
+  const [validationMessage, setValidationMessage] = useState<string | null>(null);
+  const [isTransitionDialogOpen, setIsTransitionDialogOpen] = useState(false);
+  
+  // Estado local para armazenar os leads e permitir arrastar entre colunas
+  const [localLeads, setLocalLeads] = useState<Record<string, Lead[]>>({});
+  
+  // Pipeline stats
+  const [stats, setStats] = useState<{
+    totalLeads: number;
+    totalValue: number;
+    byStage: Record<string, { count: number; value: number }>;
+  } | null>(null);
+
+  // Sensores para o DND kit
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
 
   useEffect(() => {
-    fetchStages();
+    async function initPipeline() {
+      // Primeiro, verificar se existem etapas. Se não, criar as padrões.
+      await ensureDefaultPipelineStages();
+      
+      // Depois, buscar as etapas do banco de dados
+      await fetchStages();
+    }
+    
+    initPipeline();
+  }, []);
+  
+  useEffect(() => {
+    // Processar os leads para identificar os que estão em risco
+    const processedLeads: Record<string, Lead[]> = {};
+    
+    // Para cada etapa
+    Object.keys(mockLeads).forEach(stageName => {
+      // Processar os leads para identificar os que estão em risco
+      const leadsWithRiskFlags = identifyLeadsAtRisk(mockLeads[stageName] || []);
+      processedLeads[stageName] = leadsWithRiskFlags;
+    });
+    
+    setLocalLeads(processedLeads);
+    
+    // Calcular estatísticas
+    const pipelineStats = calculatePipelineStats(processedLeads);
+    setStats(pipelineStats);
   }, []);
 
   const fetchStages = async () => {
@@ -116,7 +237,7 @@ export function KanbanBoard() {
 
   const handleCardClick = (lead: Lead) => {
     setSelectedLead(lead);
-    setIsDialogOpen(true);
+    setIsDetailDialogOpen(true);
   };
   
   const getTotalValue = (leads: Lead[]) => {
@@ -136,6 +257,164 @@ export function KanbanBoard() {
       fetchStages(); // Recarrega para refletir a mudança
     }
   };
+
+  const handleNewLeadClick = (stageName: string) => {
+    setActiveNewLeadStage(stageName);
+    setIsNewLeadDialogOpen(true);
+  };
+
+  const handleCreateLead = (leadData: any) => {
+    // Em um app real, salvaríamos no banco de dados e obteríamos o ID
+    const newLead: Lead = {
+      id: `new-${Date.now()}`,
+      name: leadData.name,
+      company: leadData.company || "",
+      phone: leadData.phone,
+      salesperson: leadData.assignedTo || "Não atribuído",
+      tags: [],
+      value: leadData.value || 0,
+      date: new Date().toLocaleDateString('pt-BR'),
+      activities: false,
+      document: leadData.document,
+      stage: activeNewLeadStage || "Novo Lead",
+      stageUpdatedAt: new Date().toISOString(),
+    };
+
+    // Adiciona o novo lead ao estado local
+    setLocalLeads(prev => {
+      const stageName = activeNewLeadStage || "Novo Lead";
+      const updatedLeads = {
+        ...prev,
+        [stageName]: [...(prev[stageName] || []), newLead]
+      };
+      
+      // Atualiza as estatísticas
+      setStats(calculatePipelineStats(updatedLeads));
+      
+      return updatedLeads;
+    });
+
+    toast.success(`Lead ${leadData.name} criado com sucesso!`);
+    setIsNewLeadDialogOpen(false);
+  };
+  
+  // Handlers para drag and drop
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    
+    // Encontrar o lead que está sendo arrastado
+    if (active.data.current?.type === 'lead') {
+      setDraggedLead(active.data.current.lead);
+    }
+  };
+
+  const handleDragOver = (event: DragOverEvent) => {
+    const { over } = event;
+    
+    if (over && over.data.current?.type === 'column') {
+      setTargetStage(over.data.current.stage);
+    } else {
+      setTargetStage(null);
+    }
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { over } = event;
+    
+    // Resetar estados
+    setDraggedLead(null);
+    
+    // Se não dropou em nenhuma coluna, não faz nada
+    if (!over || !targetStage) {
+      setTargetStage(null);
+      return;
+    }
+    
+    // Verificar se a etapa alvo é a mesma que a atual
+    if (draggedLead?.stage === targetStage) {
+      setTargetStage(null);
+      return;
+    }
+    
+    // Verificar se o lead pode ser movido para a etapa alvo
+    if (draggedLead) {
+      const validation = canMoveLeadToStage(draggedLead, targetStage);
+      
+      if (!validation.valid) {
+        setValidationMessage(validation.message || "Este lead não pode ser movido para esta etapa.");
+        setIsConfirmDialogOpen(true);
+        return;
+      }
+      
+      // Se a etapa alvo for "Ganho" ou "Perdido", abrir o diálogo de transição
+      if (targetStage === "Ganho" || targetStage === "Perdido") {
+        setIsTransitionDialogOpen(true);
+        return;
+      }
+      
+      // Se não precisa de validação, mover o lead diretamente
+      moveLead(draggedLead, targetStage);
+    }
+    
+    setTargetStage(null);
+  };
+
+  const confirmMoveToStage = () => {
+    if (draggedLead && targetStage) {
+      moveLead(draggedLead, targetStage);
+    }
+    
+    setIsConfirmDialogOpen(false);
+    setTargetStage(null);
+    setValidationMessage(null);
+  };
+  
+  const handleTransitionConfirm = (reason: string, comments: string) => {
+    if (draggedLead && targetStage) {
+      moveLead(draggedLead, targetStage, reason, comments);
+    }
+    
+    setIsTransitionDialogOpen(false);
+  };
+
+  const moveLead = (lead: Lead, toStage: string, reason?: string, comments?: string) => {
+    // Remove o lead da etapa atual
+    const fromStage = lead.stage || "Novo Lead";
+    
+    setLocalLeads(prev => {
+      // Remove o lead da etapa atual
+      const updatedFromStage = prev[fromStage]?.filter(l => l.id !== lead.id) || [];
+      
+      // Adiciona o lead à nova etapa com timestamp atualizado
+      const updatedLead = {
+        ...lead,
+        stage: toStage,
+        stageUpdatedAt: new Date().toISOString()
+      };
+      
+      const updatedLeads = {
+        ...prev,
+        [fromStage]: updatedFromStage,
+        [toStage]: [...(prev[toStage] || []), updatedLead]
+      };
+      
+      // Atualiza as estatísticas
+      setStats(calculatePipelineStats(updatedLeads));
+      
+      return updatedLeads;
+    });
+    
+    // Em um app real, salvaríamos essa mudança no banco de dados
+    updateLeadStage(lead.id, toStage, reason, comments);
+    
+    const successMessage = toStage === "Ganho" 
+      ? `Parabéns! Negócio ${lead.name} foi ganho.` 
+      : toStage === "Perdido" 
+        ? `Negócio ${lead.name} foi marcado como perdido.` 
+        : `Lead ${lead.name} movido para ${toStage}`;
+        
+    toast.success(successMessage);
+  };
   
   if (loading) {
     return <div className="flex items-center justify-center h-full"><p>Carregando pipeline...</p></div>;
@@ -143,30 +422,122 @@ export function KanbanBoard() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex overflow-x-auto pb-6 gap-5">
-        {stages.map((stage) => (
-          <KanbanColumn 
-            key={stage.id} 
-            title={stage.name} 
-            leads={mockLeads[stage.name] || []} // Temporariamente usando mock data
-            totalValue={getTotalValue(mockLeads[stage.name] || [])}
-            count={(mockLeads[stage.name] || []).length}
-            color={stage.color as StageColor}
-            onColorChange={(color) => handleColorChange(stage.id, color as StageColor)}
-            onCardClick={handleCardClick}
-          />
-        ))}
-        <div className="flex-shrink-0 w-80 h-16 flex items-center justify-center">
-          <Button variant="outline" className="w-full bg-white/80 border-dashed border-2">
-            <Plus className="h-4 w-4 mr-2" />
-            Nova coluna
-          </Button>
+      {/* Estatísticas do funil */}
+      {stats && (
+        <div className="flex justify-between items-center mb-4 p-4 bg-white rounded-lg border shadow-sm">
+          <div>
+            <h3 className="font-medium text-sm">Resumo do funil</h3>
+            <p className="text-xs text-muted-foreground">
+              Total: {stats.totalLeads} negócios / R$ {stats.totalValue.toFixed(2)}
+            </p>
+          </div>
+          
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm">
+                <FileBarChart className="h-4 w-4 mr-2" />
+                Estatísticas detalhadas
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80">
+              <div className="space-y-2">
+                <h4 className="font-medium text-sm">Estatísticas por etapa</h4>
+                <div className="text-xs space-y-1">
+                  {stages.map(stage => (
+                    <div key={stage.id} className="flex justify-between items-center">
+                      <span>{stage.name}</span>
+                      <span>
+                        {stats.byStage[stage.name]?.count || 0} leads / 
+                        R$ {(stats.byStage[stage.name]?.value || 0).toFixed(2)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
-      </div>
+      )}
+      
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCorners}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="flex overflow-x-auto pb-6 gap-5">
+          {stages.map((stage) => (
+            <KanbanColumn 
+              key={stage.id} 
+              id={stage.id}
+              title={stage.name} 
+              leads={localLeads[stage.name] || []}
+              totalValue={getTotalValue(localLeads[stage.name] || [])}
+              count={(localLeads[stage.name] || []).length}
+              color={stage.color as StageColor}
+              onColorChange={(color) => handleColorChange(stage.id, color as StageColor)}
+              onCardClick={handleCardClick}
+              onAddClick={() => handleNewLeadClick(stage.name)}
+            />
+          ))}
+          <div className="flex-shrink-0 w-80 h-16 flex items-center justify-center">
+            <Button variant="outline" className="w-full bg-white/80 border-dashed border-2">
+              <Plus className="h-4 w-4 mr-2" />
+              Nova coluna
+            </Button>
+          </div>
+        </div>
+        
+        {/* Overlay para arrastar */}
+        <DragOverlay>
+          {draggedLead ? (
+            <div className="w-80">
+              <PipelineCard lead={draggedLead} onCardClick={() => {}} />
+            </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
+      
+      {/* Diálogo de detalhes do lead */}
       <LeadDetailDialog 
         lead={selectedLead}
-        open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
+        open={isDetailDialogOpen}
+        onOpenChange={setIsDetailDialogOpen}
+      />
+      
+      {/* Diálogo para criar novo lead */}
+      <LeadFormDialog
+        open={isNewLeadDialogOpen}
+        onOpenChange={setIsNewLeadDialogOpen}
+        onSubmit={handleCreateLead}
+      />
+      
+      {/* Diálogo de validação */}
+      <AlertDialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Ação não permitida
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {validationMessage}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Entendi</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      {/* Diálogo de transição de etapa */}
+      <StageTransitionDialog
+        open={isTransitionDialogOpen}
+        onOpenChange={setIsTransitionDialogOpen}
+        fromStage={draggedLead?.stage || ""}
+        toStage={targetStage || ""}
+        isClosing={targetStage === "Ganho" || targetStage === "Perdido"}
+        onConfirm={handleTransitionConfirm}
       />
     </div>
   );

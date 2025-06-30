@@ -1,8 +1,9 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
-import { Calendar, Clock, Flag, MoreHorizontal, Plus } from "lucide-react";
+import { Calendar, Clock, Flag, MoreHorizontal, Plus, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UTMs } from "@/types/lead";
+import { cn } from "@/lib/utils";
 
 export interface Lead {
   id: string;
@@ -18,21 +19,46 @@ export interface Lead {
   activities: boolean;
   document?: string;
   utms?: UTMs;
+  // Novos campos para melhor gestão do pipeline
+  stage?: string;
+  stageUpdatedAt?: string; // Para calcular tempo em etapa
+  atRisk?: boolean; // Para identificar negócios em risco
+  lastActivity?: string; // Data da última atividade
 }
 
 interface PipelineCardProps {
   lead: Lead;
   onCardClick: (lead: Lead) => void;
+  isDragging?: boolean;
 }
 
-export function PipelineCard({ lead, onCardClick }: PipelineCardProps) {
+export function PipelineCard({ lead, onCardClick, isDragging }: PipelineCardProps) {
   const formatCurrency = (value: number) => {
     return `R$ ${value.toFixed(2).replace('.', ',')}`;
   };
 
+  // Calcula quantos dias o lead está na etapa atual
+  const getDaysInStage = () => {
+    if (!lead.stageUpdatedAt) return null;
+    
+    const updatedDate = new Date(lead.stageUpdatedAt);
+    const today = new Date();
+    const diffTime = Math.abs(today.getTime() - updatedDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    return diffDays;
+  };
+
+  const daysInStage = getDaysInStage();
+  const isStagnated = daysInStage && daysInStage > 7; // Considera estagnado após 7 dias
+
   return (
     <Card 
-      className="shadow-sm hover:shadow-md transition-shadow border-border bg-white pipeline-card cursor-pointer"
+      className={cn(
+        "shadow-sm hover:shadow-md transition-shadow border-border bg-white pipeline-card cursor-pointer",
+        lead.atRisk && "border-l-4 border-l-red-500",
+        isDragging && "ring-2 ring-primary shadow-lg"
+      )}
       onClick={() => onCardClick(lead)}
     >
       <CardContent className="p-3">
@@ -54,6 +80,11 @@ export function PipelineCard({ lead, onCardClick }: PipelineCardProps) {
                     ) : (
                       <Flag className="h-3 w-3 text-green-500 fill-green-500" />
                     )}
+                  </span>
+                )}
+                {isStagnated && (
+                  <span className="ml-1" title={`${daysInStage} dias na etapa atual`}>
+                    <AlertCircle className="h-3 w-3 text-amber-500" />
                   </span>
                 )}
               </div>
@@ -82,7 +113,13 @@ export function PipelineCard({ lead, onCardClick }: PipelineCardProps) {
           </div>
           <div className="flex items-center text-xs text-muted-foreground">
             <Clock className="w-4 h-4 mr-1 text-gray-400" />
-            <span>Sem atividades</span>
+            {daysInStage ? (
+              <span className={cn(isStagnated && "text-amber-600")}>
+                {daysInStage} {daysInStage === 1 ? "dia" : "dias"} na etapa
+              </span>
+            ) : (
+              <span>Sem atividades</span>
+            )}
             <Button variant="ghost" size="icon" className="h-5 w-5 ml-1 hover:bg-gray-100" onClick={(e) => e.stopPropagation()}>
               <Plus className="h-3 w-3" />
             </Button>

@@ -55,6 +55,7 @@ interface LeadFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   lead?: any; // Optional lead for editing
+  onSubmit?: (values: FormValues) => void; // Novo prop para receber dados do form
 }
 
 const sourceOptions: { value: LeadSource; label: string }[] = [
@@ -64,7 +65,7 @@ const sourceOptions: { value: LeadSource; label: string }[] = [
     { value: "webhook", label: "Sistema Externo" },
 ];
 
-export function LeadFormDialog({ open, onOpenChange, lead }: LeadFormDialogProps) {
+export function LeadFormDialog({ open, onOpenChange, lead, onSubmit }: LeadFormDialogProps) {
   // Initialize the form
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -94,8 +95,8 @@ export function LeadFormDialog({ open, onOpenChange, lead }: LeadFormDialogProps
     },
   });
 
-  const onSubmit = (values: FormValues) => {
-    // Duplication check
+  const handleFormSubmit = (values: FormValues) => {
+    // Verificar duplicação (mockado, em um app real seria no banco)
     const isDuplicate = mockLeads.some(
       existingLead => {
         if (lead && existingLead.id === lead.id) {
@@ -112,10 +113,16 @@ export function LeadFormDialog({ open, onOpenChange, lead }: LeadFormDialogProps
       return;
     }
 
-    console.log(values);
-    // Here we would save the lead to the database
-    toast.success(lead ? "Lead atualizado com sucesso!" : "Lead criado com sucesso!");
-    onOpenChange(false);
+    // Se o prop onSubmit foi fornecido, chamá-lo com os valores
+    if (onSubmit) {
+      onSubmit(values);
+    } else {
+      console.log(values);
+      // Aqui salvaríamos o lead no banco de dados
+      toast.success(lead ? "Lead atualizado com sucesso!" : "Lead criado com sucesso!");
+      onOpenChange(false);
+    }
+    
     form.reset();
   };
 
@@ -132,7 +139,7 @@ export function LeadFormDialog({ open, onOpenChange, lead }: LeadFormDialogProps
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
