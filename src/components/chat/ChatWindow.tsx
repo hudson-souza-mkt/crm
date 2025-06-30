@@ -25,6 +25,9 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { ChatLeadDetailSidebar } from "./ChatLeadDetailSidebar";
+import type { Lead } from "@/components/pipeline/PipelineCard";
 
 function CreateDealDialog() {
   const [funnel, setFunnel] = useState("");
@@ -139,25 +142,50 @@ const messages = [
     { isOutgoing: false, message: "Sim, por favor! E gostaria de agendar uma reunião também.", time: "10:30" },
 ];
 
+const currentChatLead: Lead = {
+  id: "1",
+  name: "João Silva",
+  company: "ABC Corp",
+  phone: "(11) 98765-4321",
+  salesperson: "Ana Sales",
+  tags: ["potencial", "software"],
+  value: 5000,
+  date: "10/06/2023",
+  activities: false,
+  utms: {
+    utm_source: "facebook",
+    utm_medium: "social",
+  }
+};
+
 export function ChatWindow() {
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+
   return (
     <div className="flex flex-col h-full bg-white">
       <header className="flex items-center justify-between p-3 border-b">
-        <div className="flex items-center">
-          <Avatar>
-            <AvatarFallback>JS</AvatarFallback>
-          </Avatar>
-          <div className="ml-3">
-            <div className="flex items-center gap-2">
-              <p className="font-semibold">João Silva</p>
-              <MessageSquare className="h-4 w-4 text-muted-foreground" />
+        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+          <SheetTrigger asChild>
+            <div className="flex items-center cursor-pointer">
+              <Avatar>
+                <AvatarFallback>JS</AvatarFallback>
+              </Avatar>
+              <div className="ml-3">
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold">João Silva</p>
+                  <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                </div>
+                <div className="flex items-center gap-1.5 mt-1">
+                    <span className="h-2 w-2 rounded-full bg-green-500"></span>
+                    <span className="text-xs text-muted-foreground">Atendendo</span>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-1.5 mt-1">
-                <span className="h-2 w-2 rounded-full bg-green-500"></span>
-                <span className="text-xs text-muted-foreground">Atendendo</span>
-            </div>
-          </div>
-        </div>
+          </SheetTrigger>
+          <SheetContent className="w-[400px] sm:w-[450px] p-0">
+            <ChatLeadDetailSidebar lead={currentChatLead} />
+          </SheetContent>
+        </Sheet>
         <div className="flex items-center gap-2">
           <CreateDealDialog />
           <Button variant="ghost" size="icon" className="rounded-full">
