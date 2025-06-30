@@ -21,6 +21,7 @@ const mockLeads: Record<string, Lead[]> = {
       date: "13/06/2025",
       priority: "red",
       activities: false,
+      document: "111.222.333-44",
       utms: {
         utm_source: "google",
         utm_medium: "cpc",
@@ -38,7 +39,8 @@ const mockLeads: Record<string, Lead[]> = {
       tags: [], 
       value: 0, 
       date: "15/06/2025",
-      activities: false
+      activities: false,
+      document: "12.345.678/0001-99",
     },
   ],
   "Qualificação": [

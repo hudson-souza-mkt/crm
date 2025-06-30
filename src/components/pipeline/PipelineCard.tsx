@@ -16,6 +16,7 @@ export interface Lead {
   date: string;
   priority?: "red" | "green";
   activities: boolean;
+  document?: string;
   utms?: UTMs;
 }
 

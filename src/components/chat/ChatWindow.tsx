@@ -152,6 +152,7 @@ const currentChatLead: Lead = {
   value: 5000,
   date: "10/06/2023",
   activities: false,
+  document: "111.222.333-44",
   utms: {
     utm_source: "facebook",
     utm_medium: "social",

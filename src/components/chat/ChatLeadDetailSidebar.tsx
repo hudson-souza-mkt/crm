@@ -112,6 +112,7 @@ export function ChatLeadDetailSidebar({ lead }: ChatLeadDetailSidebarProps) {
               <InfoField label="Empresa" value={lead.company} placeholder="Informe a empresa do lead" />
               <InfoField label="E-mail" value="joao.silva@example.com" placeholder="Informe o e-mail" />
               <InfoField label="Telefone" value={lead.phone} placeholder="Informe o telefone" />
+              <InfoField label="Documento (CPF/CNPJ)" value={lead.document} placeholder="Não informado" />
               <InfoField label="Instagram" value="joao.silva.mkt" placeholder="Informe o Instagram" link="https://instagram.com/joao.silva.mkt" />
             </TabsContent>
             <TabsContent value="endereco" className="mt-6">
