@@ -7,6 +7,7 @@ import {
   MessageSquare,
   Settings,
   Rocket,
+  Bot,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -20,6 +21,7 @@ const navItems = [
   { to: "/pipelines", icon: Columns, label: "Pipelines" },
   { to: "/leads", icon: Users, label: "Leads/Clientes" },
   { to: "/chat", icon: MessageSquare, label: "Atendimentos" },
+  { to: "/automations", icon: Bot, label: "Automações" },
 ];
 
 export const NavContent = ({ collapsed }: SidebarProps) => (
