@@ -6,12 +6,40 @@ import { LeadSegmentsNav } from "@/components/leads/LeadSegmentsNav";
 import { Button } from "@/components/ui/button";
 import { Plus, Upload, Filter, Users, UserPlus, UserCheck, DollarSign, Calendar } from "lucide-react";
 import { MetricCard } from "@/components/dashboard/MetricCard";
+import { LeadDetailDialog } from "@/components/pipeline/LeadDetailDialog";
+import { Lead as ListLead } from "@/types/lead";
+import { Lead as DetailLead } from "@/components/pipeline/PipelineCard";
+
+// Função para mapear o tipo de lead da lista para o tipo de lead do diálogo de detalhes
+const mapListLeadToDetailLead = (listLead: ListLead): DetailLead => {
+  return {
+    id: listLead.id,
+    name: listLead.name,
+    company: listLead.company,
+    phone: listLead.phone,
+    salesperson: listLead.assignedTo || "Não atribuído",
+    tags: listLead.tags,
+    value: listLead.value || 0,
+    date: listLead.createdAt.toLocaleDateString('pt-BR'),
+    activities: false, // Este campo não existe no tipo ListLead, então definimos um padrão
+    // O campo 'priority' também não existe, então será omitido
+  };
+};
 
 export default function Leads() {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [activeSegment, setActiveSegment] = useState("all");
+
+  const [selectedLead, setSelectedLead] = useState<DetailLead | null>(null);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+
+  const handleLeadClick = (lead: ListLead) => {
+    const detailLead = mapListLeadToDetailLead(lead);
+    setSelectedLead(detailLead);
+    setIsDetailDialogOpen(true);
+  };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-8">
@@ -88,7 +116,7 @@ export default function Leads() {
           </div>
         </div>
 
-        <LeadList filterOpen={filterOpen} />
+        <LeadList filterOpen={filterOpen} onLeadClick={handleLeadClick} />
         
         <LeadFormDialog 
           open={addDialogOpen} 
@@ -98,6 +126,12 @@ export default function Leads() {
         <LeadImportDialog 
           open={importDialogOpen} 
           onOpenChange={setImportDialogOpen} 
+        />
+
+        <LeadDetailDialog
+          lead={selectedLead}
+          open={isDetailDialogOpen}
+          onOpenChange={setIsDetailDialogOpen}
         />
       </div>
     </div>

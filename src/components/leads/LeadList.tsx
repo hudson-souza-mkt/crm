@@ -5,7 +5,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { LeadFilters } from "./LeadFilters";
-import { Lead } from "@/types/lead";
+import { Lead, LeadSource, LeadStatus } from "@/types/lead";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { 
   DropdownMenu,
@@ -113,9 +113,10 @@ const mockLeads: Lead[] = [
 
 interface LeadListProps {
   filterOpen: boolean;
+  onLeadClick: (lead: Lead) => void;
 }
 
-export function LeadList({ filterOpen }: LeadListProps) {
+export function LeadList({ filterOpen, onLeadClick }: LeadListProps) {
   const [leads] = useState<Lead[]>(mockLeads);
   
   const handleChatWithLead = (lead: Lead) => {
@@ -165,7 +166,11 @@ export function LeadList({ filterOpen }: LeadListProps) {
           </TableHeader>
           <TableBody>
             {leads.map(lead => (
-              <TableRow key={lead.id} className="cursor-pointer hover:bg-muted/50">
+              <TableRow 
+                key={lead.id} 
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => onLeadClick(lead)}
+              >
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-2">
                     <Avatar className="h-8 w-8 border">
@@ -209,13 +214,21 @@ export function LeadList({ filterOpen }: LeadListProps) {
                       variant="ghost" 
                       size="icon" 
                       className="h-8 w-8" 
-                      onClick={() => handleChatWithLead(lead)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleChatWithLead(lead);
+                      }}
                     >
                       <MessageCircle className="h-4 w-4" />
                     </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
