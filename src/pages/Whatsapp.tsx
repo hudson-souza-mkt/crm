@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Loader2, CheckCircle, XCircle, QrCode } from 'lucide-react';
-import QRCode from 'qrcode.react';
 import { toast } from 'sonner';
 
 type ConnectionStatus = 'idle' | 'loading' | 'qr' | 'connected' | 'error';
@@ -39,6 +38,14 @@ export default function Whatsapp() {
     }
   };
 
+  // Função para renderizar o QR Code usando um serviço online
+  const getQRCodeUrl = (text: string) => {
+    // Codifica o texto para uso em URL
+    const encodedText = encodeURIComponent(text);
+    // Usa o Google Charts API para gerar QR code
+    return `https://chart.googleapis.com/chart?chs=256x256&cht=qr&chl=${encodedText}&choe=UTF-8`;
+  };
+
   const renderStatus = () => {
     switch (status) {
       case 'loading':
@@ -54,7 +61,14 @@ export default function Whatsapp() {
           <div className="flex flex-col items-center text-center">
             <p className="font-semibold mb-4">Escaneie o QR Code</p>
             <div className="p-4 border rounded-lg bg-white">
-              {qrCode && <QRCode value={qrCode} size={256} />}
+              {qrCode && (
+                <img 
+                  src={getQRCodeUrl(qrCode)} 
+                  alt="QR Code para WhatsApp" 
+                  width={256} 
+                  height={256} 
+                />
+              )}
             </div>
             <p className="text-sm text-muted-foreground mt-4">Abra o WhatsApp no seu celular e escaneie o código.</p>
           </div>
