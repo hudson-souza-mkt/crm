@@ -22,6 +22,7 @@ const mapListLeadToDetailLead = (listLead: ListLead): DetailLead => {
     value: listLead.value || 0,
     date: listLead.createdAt.toLocaleDateString('pt-BR'),
     activities: false, // Este campo não existe no tipo ListLead, então definimos um padrão
+    utms: listLead.utms, // Mapeia os dados UTM
     // O campo 'priority' também não existe, então será omitido
   };
 };

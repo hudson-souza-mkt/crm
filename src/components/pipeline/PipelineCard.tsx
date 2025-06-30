@@ -2,6 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Calendar, Clock, Flag, MoreHorizontal, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { UTMs } from "@/types/lead";
 
 export interface Lead {
   id: string;
@@ -15,6 +16,7 @@ export interface Lead {
   date: string;
   priority?: "red" | "green";
   activities: boolean;
+  utms?: UTMs;
 }
 
 interface PipelineCardProps {

@@ -20,7 +20,14 @@ const mockLeads: Record<string, Lead[]> = {
       value: 0, 
       date: "13/06/2025",
       priority: "red",
-      activities: false
+      activities: false,
+      utms: {
+        utm_source: "google",
+        utm_medium: "cpc",
+        utm_campaign: "vendas_software_2024",
+        utm_term: "crm_para_vendas",
+        utm_content: "anuncio_principal"
+      }
     },
     { 
       id: "2", 

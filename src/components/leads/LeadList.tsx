@@ -35,7 +35,12 @@ const mockLeads: Lead[] = [
     createdAt: new Date("2023-06-10"),
     updatedAt: new Date("2023-06-15"),
     lastContact: new Date("2023-06-15"),
-    assignedTo: "Ana Sales"
+    assignedTo: "Ana Sales",
+    utms: {
+      utm_source: "facebook",
+      utm_medium: "social",
+      utm_campaign: "lancamento_feature_x",
+    }
   },
   {
     id: "2",

@@ -177,10 +177,11 @@ export function LeadDetailDialog({ lead, open, onOpenChange }: LeadDetailDialogP
             </div>
 
             <Tabs defaultValue="perfil" className="flex-1 flex flex-col overflow-hidden">
-              <TabsList className="grid w-full grid-cols-3 px-4 flex-shrink-0">
+              <TabsList className="grid w-full grid-cols-4 px-4 flex-shrink-0">
                 <TabsTrigger value="perfil">Perfil</TabsTrigger>
                 <TabsTrigger value="endereco">Endereço</TabsTrigger>
                 <TabsTrigger value="campos">Campos</TabsTrigger>
+                <TabsTrigger value="utms">UTMs</TabsTrigger>
               </TabsList>
               <div className="flex-1 overflow-y-auto p-6">
                 <TabsContent value="perfil" className="space-y-4 mt-0">
@@ -198,6 +199,13 @@ export function LeadDetailDialog({ lead, open, onOpenChange }: LeadDetailDialogP
                 </TabsContent>
                 <TabsContent value="campos" className="mt-0">
                   <p className="text-sm text-muted-foreground text-center py-8">Nenhum campo adicional.</p>
+                </TabsContent>
+                <TabsContent value="utms" className="space-y-4 mt-0">
+                  <InfoField label="utm_source" value={lead.utms?.utm_source} placeholder="Não informado" />
+                  <InfoField label="utm_medium" value={lead.utms?.utm_medium} placeholder="Não informado" />
+                  <InfoField label="utm_campaign" value={lead.utms?.utm_campaign} placeholder="Não informado" />
+                  <InfoField label="utm_term" value={lead.utms?.utm_term} placeholder="Não informado" />
+                  <InfoField label="utm_content" value={lead.utms?.utm_content} placeholder="Não informado" />
                 </TabsContent>
               </div>
             </Tabs>
