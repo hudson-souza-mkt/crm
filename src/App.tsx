@@ -7,6 +7,7 @@ import { MainLayout } from "./components/layout/MainLayout";
 import Dashboard from "./pages/Dashboard";
 import Pipelines from "./pages/Pipelines";
 import Chat from "./pages/Chat";
+import Leads from "./pages/Leads";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -23,6 +24,7 @@ const App = () => (
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/pipelines" element={<Pipelines />} />
+            <Route path="/leads" element={<Leads />} />
             <Route path="/chat" element={<Chat />} />
             <Route path="/settings" element={<Settings />} />
           </Route>

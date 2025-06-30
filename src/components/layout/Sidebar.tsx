@@ -3,15 +3,17 @@ import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
   Columns,
+  Users,
   MessageSquare,
-  Rocket,
   Settings,
+  Rocket,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { to: "/pipelines", icon: Columns, label: "Pipelines" },
+  { to: "/leads", icon: Users, label: "Leads/Clientes" },
   { to: "/chat", icon: MessageSquare, label: "Atendimentos" },
 ];
 
