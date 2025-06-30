@@ -29,6 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { LeadSource } from "@/types/lead";
 
 // Define the form schema
 const formSchema = z.object({
@@ -36,6 +37,9 @@ const formSchema = z.object({
   phone: z.string().min(8, "Telefone inválido"),
   email: z.string().email("Email inválido").optional().or(z.literal("")),
   company: z.string().optional(),
+  source: z.enum(["chat", "manual", "import", "webhook"], {
+    required_error: "A origem é obrigatória.",
+  }),
   funnel: z.string().optional(),
   stage: z.string().optional(),
   value: z.number().optional(),
@@ -51,6 +55,13 @@ interface LeadFormDialogProps {
   lead?: any; // Optional lead for editing
 }
 
+const sourceOptions: { value: LeadSource; label: string }[] = [
+    { value: "manual", label: "Manual" },
+    { value: "chat", label: "Chat" },
+    { value: "import", label: "Importação" },
+    { value: "webhook", label: "Sistema Externo" },
+];
+
 export function LeadFormDialog({ open, onOpenChange, lead }: LeadFormDialogProps) {
   // Initialize the form
   const form = useForm<FormValues>({
@@ -60,6 +71,7 @@ export function LeadFormDialog({ open, onOpenChange, lead }: LeadFormDialogProps
       phone: lead.phone,
       email: lead.email || "",
       company: lead.company || "",
+      source: lead.source || "manual",
       funnel: lead.funnel || "",
       stage: lead.stage || "",
       value: lead.value || undefined,
@@ -70,6 +82,7 @@ export function LeadFormDialog({ open, onOpenChange, lead }: LeadFormDialogProps
       phone: "",
       email: "",
       company: "",
+      source: "manual",
       funnel: "",
       stage: "",
       notes: "",
@@ -236,18 +249,46 @@ export function LeadFormDialog({ open, onOpenChange, lead }: LeadFormDialogProps
 
               <FormField
                 control={form.control}
-                name="assignedTo"
+                name="source"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Responsável</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
+                    <FormLabel>Origem*</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a origem" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {sourceOptions.map(option => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="assignedTo"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Responsável</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}
