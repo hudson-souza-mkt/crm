@@ -133,7 +133,7 @@ export function LeadDetailDialog({ lead, open, onOpenChange }: LeadDetailDialogP
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[80vw] lg:max-w-[70vw] xl:max-w-[1200px] p-0 h-[90vh] flex flex-col">
+      <DialogContent className="max-w-[90vw] lg:max-w-[85vw] xl:max-w-[1400px] p-0 h-[90vh] flex flex-col">
         <div className="flex h-full overflow-hidden">
           {/* Sidebar */}
           <div className="w-[350px] bg-gray-50 border-r flex-shrink-0 flex flex-col">
