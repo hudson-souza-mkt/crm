@@ -4,7 +4,7 @@ import type { Lead } from "./PipelineCard";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
-import { LeadDetailSheet } from "./LeadDetailSheet";
+import { LeadDetailDialog } from "./LeadDetailDialog";
 
 export type StageColor = "blue" | "purple" | "amber" | "green" | "red" | "pink" | "indigo" | "cyan" | "gray";
 
@@ -130,7 +130,7 @@ export function KanbanBoard() {
           </Button>
         </div>
       </div>
-      <LeadDetailSheet 
+      <LeadDetailDialog 
         lead={selectedLead}
         open={isSheetOpen}
         onOpenChange={setIsSheetOpen}
