@@ -34,6 +34,7 @@ import {
   Globe,
   ExternalLink,
   List,
+  Check,
 } from "lucide-react";
 import type { Lead } from "./PipelineCard";
 
@@ -140,6 +141,17 @@ export function LeadDetailSheet({ lead, open, onOpenChange }: LeadDetailSheetPro
               <h2 className="text-xl font-bold text-center mt-4">{lead.name}</h2>
               <p className="text-sm text-muted-foreground text-center">{lead.company || "Marketing Digital"}</p>
               
+              <div className="mt-4 flex gap-2">
+                <Button className="flex-1 bg-green-500 hover:bg-green-600 text-white">
+                  <Check className="h-4 w-4 mr-2" />
+                  Ganhar
+                </Button>
+                <Button className="flex-1 bg-red-500 hover:bg-red-600 text-white">
+                  <X className="h-4 w-4 mr-2" />
+                  Perder
+                </Button>
+              </div>
+
               <div className="mt-4 space-y-2">
                 <Button variant="outline" className="w-full justify-start text-muted-foreground">
                   <Tag className="h-4 w-4 mr-2" /> Adicionar tags
