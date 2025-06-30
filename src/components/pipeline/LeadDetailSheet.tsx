@@ -20,7 +20,6 @@ import {
 import {
   Tag,
   Edit,
-  MessageSquare,
   Briefcase,
   Plus,
   Mail,
@@ -28,6 +27,13 @@ import {
   MapPin,
   Calendar as CalendarIcon,
   X,
+  User,
+  Building,
+  Instagram,
+  FileText,
+  Globe,
+  ExternalLink,
+  List,
 } from "lucide-react";
 import type { Lead } from "./PipelineCard";
 
@@ -63,16 +69,6 @@ const historyMock = [
     content: "Lead atualizado.",
     date: "25/06/2025 10:01",
   },
-  {
-    type: "tag_remove",
-    content: 'Tag "Frio" removida do lead.',
-    date: "25/06/2025 10:01",
-  },
-  {
-    type: "tag_remove",
-    content: 'Tag "Quente" removida do lead.',
-    date: "25/06/2025 10:01",
-  },
 ];
 
 const TimelineItem = ({ icon, children, isLast = false }: { icon: React.ReactNode, children: React.ReactNode, isLast?: boolean }) => (
@@ -103,6 +99,24 @@ const getIconForHistory = (type: string) => {
   }
 };
 
+const InfoField = ({ label, value, placeholder, link }: { label: string, value?: string, placeholder: string, link?: string }) => (
+  <div>
+    <p className="text-xs font-medium text-gray-500 mb-1">{label}</p>
+    {value ? (
+      <div className="flex items-center justify-between group">
+        <p className="text-sm text-gray-800">{value}</p>
+        {link && (
+          <a href={link} target="_blank" rel="noopener noreferrer">
+            <ExternalLink className="h-4 w-4 text-gray-400 group-hover:text-primary" />
+          </a>
+        )}
+      </div>
+    ) : (
+      <p className="text-sm text-gray-400 italic">{placeholder}</p>
+    )}
+  </div>
+);
+
 export function LeadDetailSheet({ lead, open, onOpenChange }: LeadDetailSheetProps) {
   if (!lead) return null;
 
@@ -111,72 +125,83 @@ export function LeadDetailSheet({ lead, open, onOpenChange }: LeadDetailSheetPro
       <SheetContent className="w-full sm:max-w-[80vw] lg:max-w-[70vw] xl:max-w-[1200px] p-0">
         <div className="flex h-full">
           {/* Sidebar */}
-          <div className="w-[320px] bg-gray-50 border-r flex-shrink-0 flex flex-col p-6">
-            <Avatar className="h-24 w-24 mx-auto border-4 border-white shadow-md">
-              <AvatarFallback className="text-4xl bg-primary text-primary-foreground">
-                {lead.name.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-            <h2 className="text-xl font-bold text-center mt-4">{lead.name}</h2>
-            <p className="text-sm text-muted-foreground text-center">{lead.company}</p>
-            <div className="flex gap-2 justify-center mt-4">
-              <Badge variant="destructive">Quente</Badge>
-              <Badge variant="secondary" className="bg-amber-100 text-amber-800">Morno</Badge>
-              <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full bg-gray-200">
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="mt-8 space-y-4 text-sm">
-              <div className="flex items-start">
-                <Mail className="h-4 w-4 mr-3 mt-0.5 text-muted-foreground" />
-                <div>
-                  <span className="font-medium">E-mail:</span>
-                  <p className="text-muted-foreground hover:text-primary cursor-pointer">Clique para editar</p>
-                </div>
+          <div className="w-[350px] bg-gray-50 border-r flex-shrink-0 flex flex-col">
+            <div className="p-6">
+              <div className="relative w-24 h-24 mx-auto">
+                <Avatar className="h-24 w-24 border-4 border-white shadow-md">
+                  <AvatarFallback className="text-4xl bg-primary text-primary-foreground">
+                    {lead.name.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <Button size="icon" className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full">
+                  <Edit className="h-4 w-4" />
+                </Button>
               </div>
-              <div className="flex items-start">
-                <Phone className="h-4 w-4 mr-3 mt-0.5 text-muted-foreground" />
-                <div>
-                  <span className="font-medium">Telefone:</span>
-                  <p className="text-muted-foreground">{lead.phone}</p>
-                </div>
+              <h2 className="text-xl font-bold text-center mt-4">{lead.name}</h2>
+              <p className="text-sm text-muted-foreground text-center">{lead.company || "Marketing Digital"}</p>
+              
+              <div className="mt-4 space-y-2">
+                <Button variant="outline" className="w-full justify-start text-muted-foreground">
+                  <Tag className="h-4 w-4 mr-2" /> Adicionar tags
+                </Button>
+                <Button variant="outline" className="w-full justify-start text-muted-foreground">
+                  <List className="h-4 w-4 mr-2" /> Adicionar listas
+                </Button>
               </div>
-              <div className="flex items-start">
-                <MapPin className="h-4 w-4 mr-3 mt-0.5 text-muted-foreground" />
-                <div>
-                  <span className="font-medium">Endereço:</span>
-                  <p className="text-muted-foreground hover:text-primary cursor-pointer">Clique para editar</p>
-                </div>
-              </div>
-              <div className="flex items-start">
-                <CalendarIcon className="h-4 w-4 mr-3 mt-0.5 text-muted-foreground" />
-                <div>
-                  <span className="font-medium">Desde:</span>
-                  <p className="text-muted-foreground">{lead.date} (6 dias)</p>
-                </div>
+              <div className="mt-4 flex items-center text-sm text-muted-foreground">
+                <User className="h-4 w-4 mr-2" />
+                <span>{lead.salesperson}</span>
               </div>
             </div>
+
+            <Tabs defaultValue="perfil" className="flex-1 flex flex-col">
+              <TabsList className="grid w-full grid-cols-3 px-4">
+                <TabsTrigger value="perfil">Perfil</TabsTrigger>
+                <TabsTrigger value="endereco">Endereço</TabsTrigger>
+                <TabsTrigger value="campos">Campos</TabsTrigger>
+              </TabsList>
+              <div className="flex-1 overflow-y-auto p-6">
+                <TabsContent value="perfil" className="space-y-4 mt-0">
+                  <InfoField label="Nome" value={`${lead.name} | Marketing Digital`} placeholder="Informe o nome" />
+                  <InfoField label="Empresa" value={lead.company} placeholder="Informe a empresa do lead" />
+                  <InfoField label="E-mail" value="exemplo@meulead.com" placeholder="Informe o e-mail" />
+                  <InfoField label="Telefone" value={lead.phone} placeholder="Informe o telefone" />
+                  <InfoField label="Instagram" value="hudson_souza_mkt" placeholder="Informe o Instagram" link="https://instagram.com/hudson_souza_mkt" />
+                  <InfoField label="Documento" placeholder="Informe o CPF ou CPNJ" />
+                  <InfoField label="Origem" value="Site" placeholder="Como o lead ficou sabendo?" />
+                  <InfoField label="Site" value="www.meulead.com.br" placeholder="Informe o site" link="https://www.meulead.com.br" />
+                </TabsContent>
+                <TabsContent value="endereco" className="mt-0">
+                  <p className="text-sm text-muted-foreground text-center py-8">Nenhum endereço informado.</p>
+                </TabsContent>
+                <TabsContent value="campos" className="mt-0">
+                  <p className="text-sm text-muted-foreground text-center py-8">Nenhum campo adicional.</p>
+                </TabsContent>
+              </div>
+            </Tabs>
           </div>
 
           {/* Main Content */}
           <div className="flex-1 flex flex-col bg-white">
             <SheetHeader className="p-4 border-b flex-row justify-between items-center">
-              <SheetTitle className="sr-only">Detalhes do Lead</SheetTitle>
-              <SheetDescription className="sr-only">Veja os detalhes e histórico do lead.</SheetDescription>
-              <div />
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold">Negócio #3</h3>
+                <Badge variant="destructive">Perdido</Badge>
+              </div>
               <SheetClose asChild>
                 <Button variant="ghost" size="icon">
                   <X className="h-5 w-5" />
                 </Button>
               </SheetClose>
             </SheetHeader>
-            <div className="flex-1 p-6 overflow-y-auto">
+            <div className="flex-1 p-6 overflow-y-auto bg-gray-50/50">
               <Tabs defaultValue="historico">
                 <TabsList>
                   <TabsTrigger value="historico">Histórico</TabsTrigger>
                   <TabsTrigger value="atividades">Atividades</TabsTrigger>
                   <TabsTrigger value="negocios">Negócios</TabsTrigger>
-                  <TabsTrigger value="chat">Chat</TabsTrigger>
+                  <TabsTrigger value="arquivos">Arquivos</TabsTrigger>
+                  <TabsTrigger value="info">Informações do Negócio</TabsTrigger>
                 </TabsList>
                 <TabsContent value="historico" className="pt-6">
                   <div className="flex justify-between items-center mb-4">
@@ -211,18 +236,27 @@ export function LeadDetailSheet({ lead, open, onOpenChange }: LeadDetailSheetPro
                   </div>
                 </TabsContent>
                 <TabsContent value="atividades">
-                  <div className="text-center py-12">
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Briefcase className="mx-auto h-10 w-10 mb-2" />
                     <p>Nenhuma atividade encontrada.</p>
                   </div>
                 </TabsContent>
                 <TabsContent value="negocios">
-                  <div className="text-center py-12">
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Briefcase className="mx-auto h-10 w-10 mb-2" />
                     <p>Nenhum negócio encontrado.</p>
                   </div>
                 </TabsContent>
-                <TabsContent value="chat">
-                  <div className="text-center py-12">
-                    <p>Nenhum chat encontrado.</p>
+                <TabsContent value="arquivos">
+                  <div className="text-center py-12 text-muted-foreground">
+                    <FileText className="mx-auto h-10 w-10 mb-2" />
+                    <p>Nenhum arquivo encontrado.</p>
+                  </div>
+                </TabsContent>
+                <TabsContent value="info">
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Briefcase className="mx-auto h-10 w-10 mb-2" />
+                    <p>Nenhuma informação do negócio.</p>
                   </div>
                 </TabsContent>
               </Tabs>
