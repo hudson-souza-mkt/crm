@@ -9,6 +9,7 @@ import Pipelines from "./pages/Pipelines";
 import Chat from "./pages/Chat";
 import Leads from "./pages/Leads";
 import Settings from "./pages/Settings";
+import Whatsapp from "./pages/Whatsapp";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/pipelines" element={<Pipelines />} />
             <Route path="/leads" element={<Leads />} />
             <Route path="/chat" element={<Chat />} />
+            <Route path="/whatsapp" element={<Whatsapp />} />
             <Route path="/settings" element={<Settings />} />
           </Route>
           <Route path="*" element={<NotFound />} />
