@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Users, UserCheck, UserPlus, List, Plus, Star, Folder } from "lucide-react";
+import { Users, UserCheck, UserPlus, List, Plus, Star, Folder, ChevronDown } from "lucide-react";
 
 interface LeadSegmentsNavProps {
   activeSegment: string;
@@ -20,8 +21,10 @@ const customLists = [
 ];
 
 export function LeadSegmentsNav({ activeSegment, setActiveSegment }: LeadSegmentsNavProps) {
+  const [isListsOpen, setIsListsOpen] = useState(true);
+
   return (
-    <nav className="flex flex-col gap-4">
+    <nav className="flex flex-col gap-2">
       <div>
         {mainSegments.map((item) => (
           <Button
@@ -40,26 +43,36 @@ export function LeadSegmentsNav({ activeSegment, setActiveSegment }: LeadSegment
       </div>
       
       <div className="space-y-1">
-        <div className="flex items-center justify-between px-3">
-          <h3 className="text-sm font-semibold text-muted-foreground">Listas</h3>
-          <Button variant="ghost" size="icon" className="h-7 w-7">
-            <Plus className="h-4 w-4" />
-          </Button>
-        </div>
-        {customLists.map((item) => (
-          <Button
-            key={item.id}
-            variant="ghost"
-            onClick={() => setActiveSegment(item.id)}
-            className={cn(
-              "w-full justify-start",
-              activeSegment === item.id && "bg-muted text-primary font-semibold"
-            )}
-          >
-            <item.icon className="mr-3 h-5 w-5" />
-            {item.label}
-          </Button>
-        ))}
+        <Button
+          variant="ghost"
+          onClick={() => setIsListsOpen(!isListsOpen)}
+          className="w-full justify-between text-sm font-semibold text-muted-foreground"
+        >
+          <div className="flex items-center">
+            <ChevronDown className={cn("h-4 w-4 mr-2 transition-transform", !isListsOpen && "-rotate-90")} />
+            Listas
+          </div>
+          <Plus className="h-4 w-4" />
+        </Button>
+
+        {isListsOpen && (
+          <div className="pl-4 space-y-1">
+            {customLists.map((item) => (
+              <Button
+                key={item.id}
+                variant="ghost"
+                onClick={() => setActiveSegment(item.id)}
+                className={cn(
+                  "w-full justify-start font-normal",
+                  activeSegment === item.id && "bg-muted text-primary font-semibold"
+                )}
+              >
+                <item.icon className="mr-3 h-5 w-5" />
+                {item.label}
+              </Button>
+            ))}
+          </div>
+        )}
       </div>
     </nav>
   );
