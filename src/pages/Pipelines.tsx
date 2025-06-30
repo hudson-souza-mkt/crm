@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SetupButton } from "@/components/pipeline/SetupButton"; // Importando o novo componente
 
 export default function Pipelines() {
   const [filterOpen, setFilterOpen] = useState(false);
@@ -70,7 +71,10 @@ export default function Pipelines() {
         pipelineMenuCollapsed ? "w-full pl-4" : "flex-1 p-4"
       )}>
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">{pipelineNames[activePipelineId] || "Pipeline"}</h1>
+          <div className="flex items-center gap-4">
+            <h1 className="text-2xl font-bold">{pipelineNames[activePipelineId] || "Pipeline"}</h1>
+            <SetupButton />
+          </div>
           <div className="flex gap-2">
             <Select value={sortOption} onValueChange={setSortOption}>
               <SelectTrigger className="w-[200px] bg-white">
