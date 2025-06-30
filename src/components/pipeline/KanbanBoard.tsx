@@ -6,18 +6,10 @@ import { Plus, FileBarChart } from "lucide-react";
 import { toast } from "sonner";
 import { LeadDetailDialog } from "./LeadDetailDialog";
 import { supabase } from "@/integrations/supabase/client";
-import type { Stage } from "@/components/settings/PipelineSettings";
-import { 
-  ensureDefaultPipelineStages, 
-  canMoveLeadToStage, 
-  updateLeadStage,
-  identifyLeadsAtRisk,
-  calculatePipelineStats
-} from "@/lib/pipeline-utils";
-import { DndContext, DragOverlay, closestCorners, useSensor, useSensors, PointerSensor, DragStartEvent, DragOverEvent, DragEndEvent } from "@dnd-kit/core";
-import { PipelineCard } from "./PipelineCard";
-import { LeadFormDialog } from "@/components/leads/LeadFormDialog";
 import { StageTransitionDialog } from "./StageTransitionDialog";
+import { LeadFormDialog } from "@/components/leads/LeadFormDialog";
+import { DndContext, DragOverlay, closestCorners, useSensor, useSensors, PointerSensor, DragStartEvent, DragOverEvent, DragEndEvent } from '@dnd-kit/core';
+import { PipelineCard } from "./PipelineCard";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,16 +28,35 @@ import {
 
 export type StageColor = "blue" | "purple" | "amber" | "green" | "red" | "pink" | "indigo" | "cyan" | "gray";
 
-// Dados mockados para demonstração, em um app real viriam do banco de dados
+// Interface para etapa de pipeline
+interface Stage {
+  id: string;
+  name: string;
+  order: number;
+  color: StageColor;
+}
+
+// Etapas mockadas para ilustração
+const mockStages: Stage[] = [
+  { id: "stage1", name: "Novo Lead", order: 0, color: "blue" },
+  { id: "stage2", name: "Qualificação", order: 1, color: "purple" },
+  { id: "stage3", name: "Apresentação", order: 2, color: "amber" },
+  { id: "stage4", name: "Proposta", order: 3, color: "indigo" },
+  { id: "stage5", name: "Negociação", order: 4, color: "pink" },
+  { id: "stage6", name: "Ganho", order: 5, color: "green" },
+  { id: "stage7", name: "Perdido", order: 6, color: "red" }
+];
+
+// Leads mockados para ilustração, com diferentes características e estados
 const mockLeads: Record<string, Lead[]> = {
   "Novo Lead": [
     { 
       id: "1", 
       name: "Hudson Souza", 
-      company: "Sem empresa",
+      company: "Acme Corp",
       phone: "(11) 98765-4321", 
-      salesperson: "Hudson Souza", 
-      tags: [], 
+      salesperson: "Amanda Vendas", 
+      tags: ["potencial", "software"], 
       value: 0, 
       date: "13/06/2025",
       priority: "red",
@@ -56,9 +67,7 @@ const mockLeads: Record<string, Lead[]> = {
       utms: {
         utm_source: "google",
         utm_medium: "cpc",
-        utm_campaign: "vendas_software_2024",
-        utm_term: "crm_para_vendas",
-        utm_content: "anuncio_principal"
+        utm_campaign: "vendas_software_2024"
       }
     },
     { 
@@ -66,24 +75,37 @@ const mockLeads: Record<string, Lead[]> = {
       name: "Maria Oliveira", 
       company: "Tech Solutions",
       phone: "(21) 91234-5678", 
-      salesperson: "Ana Silva", 
-      tags: [], 
+      salesperson: "Carlos Almeida", 
+      tags: ["novo", "médio porte"], 
       value: 0, 
       date: "15/06/2025",
       activities: false,
       document: "12.345.678/0001-99",
       stage: "Novo Lead",
-      stageUpdatedAt: "2025-06-15T14:30:00Z",
+      stageUpdatedAt: new Date().toISOString(),
+    },
+    { 
+      id: "3", 
+      name: "Felipe Ribeiro", 
+      company: "Startup Inovadora",
+      phone: "(31) 99876-5432", 
+      salesperson: "Amanda Vendas", 
+      tags: ["tech", "indicação"], 
+      value: 0, 
+      date: "25/06/2025",
+      activities: false,
+      stage: "Novo Lead",
+      stageUpdatedAt: new Date().toISOString(),
     },
   ],
   "Qualificação": [
     { 
-      id: "3", 
+      id: "4", 
       name: "João Pereira", 
-      company: "Sem empresa",
+      company: "Empresa Regional",
       phone: "(31) 99999-8888", 
-      salesperson: "Hudson Souza", 
-      tags: [], 
+      salesperson: "Carlos Almeida", 
+      tags: ["consultoria"], 
       value: 500, 
       date: "13/06/2025",
       priority: "green",
@@ -92,15 +114,28 @@ const mockLeads: Record<string, Lead[]> = {
       stageUpdatedAt: "2025-06-01T09:15:00Z",
       atRisk: true
     },
+    { 
+      id: "5", 
+      name: "Ana Silva", 
+      company: "Consultoria Silva",
+      phone: "(11) 95555-4444", 
+      salesperson: "Amanda Vendas", 
+      tags: ["consultoria", "pequeno porte"], 
+      value: 750, 
+      date: "10/06/2025",
+      activities: false,
+      stage: "Qualificação",
+      stageUpdatedAt: "2025-06-05T11:30:00Z"
+    },
   ],
   "Apresentação": [
     { 
-      id: "4", 
+      id: "6", 
       name: "Carlos Mendes", 
       company: "Startup XYZ",
       phone: "(21) 97777-8888", 
-      salesperson: "Hudson Souza", 
-      tags: [], 
+      salesperson: "Amanda Vendas", 
+      tags: ["tech", "startup"], 
       value: 1200, 
       date: "20/06/2025",
       priority: "green",
@@ -111,43 +146,84 @@ const mockLeads: Record<string, Lead[]> = {
   ],
   "Proposta": [
     { 
-      id: "5", 
+      id: "7", 
       name: "Fernanda Lima", 
       company: "Empresa ABC",
       phone: "(11) 96666-5555", 
-      salesperson: "Ana Silva", 
-      tags: [], 
+      salesperson: "Carlos Almeida", 
+      tags: ["software", "médio porte"], 
       value: 3500, 
       date: "25/06/2025",
       activities: false,
       stage: "Proposta",
       stageUpdatedAt: "2025-06-20T11:20:00Z",
     },
+    { 
+      id: "8", 
+      name: "Roberto Ferreira", 
+      company: "Indústria Nacional",
+      phone: "(21) 99876-5432", 
+      salesperson: "Amanda Vendas", 
+      tags: ["indústria", "alto valor"], 
+      value: 12000, 
+      date: "22/06/2025",
+      priority: "red",
+      activities: false,
+      stage: "Proposta",
+      stageUpdatedAt: "2025-06-22T09:10:00Z",
+    },
   ],
-  "Negociação": [],
+  "Negociação": [
+    { 
+      id: "9", 
+      name: "Luciana Martins", 
+      company: "Comércio Digital",
+      phone: "(11) 97777-6666", 
+      salesperson: "Carlos Almeida", 
+      tags: ["e-commerce", "médio porte"], 
+      value: 5800, 
+      date: "18/06/2025",
+      activities: false,
+      stage: "Negociação",
+      stageUpdatedAt: "2025-06-18T14:25:00Z",
+    },
+  ],
   "Ganho": [
     { 
-      id: "6", 
+      id: "10", 
       name: "Ricardo Santos", 
       company: "Santos Digital",
       phone: "(47) 98888-7777", 
-      salesperson: "Hudson Souza", 
-      tags: [], 
+      salesperson: "Amanda Vendas", 
+      tags: ["tech", "fidelizado"], 
       value: 7800, 
       date: "05/06/2025",
       activities: false,
       stage: "Ganho",
       stageUpdatedAt: "2025-06-25T10:00:00Z",
     },
+    { 
+      id: "11", 
+      name: "Gabriela Costa", 
+      company: "Agência de Viagens",
+      phone: "(11) 99876-5432", 
+      salesperson: "Carlos Almeida", 
+      tags: ["serviços", "recorrente"], 
+      value: 4200, 
+      date: "10/06/2025",
+      activities: false,
+      stage: "Ganho",
+      stageUpdatedAt: "2025-06-27T15:20:00Z",
+    },
   ],
   "Perdido": [
     { 
-      id: "7", 
+      id: "12", 
       name: "Amanda Carvalho", 
       company: "Consultoria Amanda",
       phone: "(11) 95555-4444", 
-      salesperson: "Ana Silva", 
-      tags: [], 
+      salesperson: "Carlos Almeida", 
+      tags: ["consultoria"], 
       value: 2500, 
       date: "01/06/2025",
       activities: false,
@@ -157,9 +233,25 @@ const mockLeads: Record<string, Lead[]> = {
   ],
 };
 
+// Estatísticas mockadas para o resumo do funil
+const mockStats = {
+  totalLeads: 12,
+  totalValue: 38250,
+  byStage: {
+    "Novo Lead": { count: 3, value: 0 },
+    "Qualificação": { count: 2, value: 1250 },
+    "Apresentação": { count: 1, value: 1200 },
+    "Proposta": { count: 2, value: 15500 },
+    "Negociação": { count: 1, value: 5800 },
+    "Ganho": { count: 2, value: 12000 },
+    "Perdido": { count: 1, value: 2500 }
+  }
+};
+
 export function KanbanBoard() {
-  const [stages, setStages] = useState<Stage[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Usando dados mockados para ilustrar como o funil deve parecer
+  const [stages, setStages] = useState<Stage[]>(mockStages);
+  const [loading, setLoading] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [isNewLeadDialogOpen, setIsNewLeadDialogOpen] = useState(false);
@@ -171,14 +263,8 @@ export function KanbanBoard() {
   const [isTransitionDialogOpen, setIsTransitionDialogOpen] = useState(false);
   
   // Estado local para armazenar os leads e permitir arrastar entre colunas
-  const [localLeads, setLocalLeads] = useState<Record<string, Lead[]>>({});
-  
-  // Pipeline stats
-  const [stats, setStats] = useState<{
-    totalLeads: number;
-    totalValue: number;
-    byStage: Record<string, { count: number; value: number }>;
-  } | null>(null);
+  const [localLeads, setLocalLeads] = useState<Record<string, Lead[]>>(mockLeads);
+  const [stats] = useState(mockStats);
 
   // Sensores para o DND kit
   const sensors = useSensors(
@@ -188,52 +274,6 @@ export function KanbanBoard() {
       },
     })
   );
-
-  useEffect(() => {
-    async function initPipeline() {
-      // Primeiro, verificar se existem etapas. Se não, criar as padrões.
-      await ensureDefaultPipelineStages();
-      
-      // Depois, buscar as etapas do banco de dados
-      await fetchStages();
-    }
-    
-    initPipeline();
-  }, []);
-  
-  useEffect(() => {
-    // Processar os leads para identificar os que estão em risco
-    const processedLeads: Record<string, Lead[]> = {};
-    
-    // Para cada etapa
-    Object.keys(mockLeads).forEach(stageName => {
-      // Processar os leads para identificar os que estão em risco
-      const leadsWithRiskFlags = identifyLeadsAtRisk(mockLeads[stageName] || []);
-      processedLeads[stageName] = leadsWithRiskFlags;
-    });
-    
-    setLocalLeads(processedLeads);
-    
-    // Calcular estatísticas
-    const pipelineStats = calculatePipelineStats(processedLeads);
-    setStats(pipelineStats);
-  }, []);
-
-  const fetchStages = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("pipeline_stages")
-      .select("id, name, order, color")
-      .order("order", { ascending: true });
-
-    if (error) {
-      toast.error("Falha ao carregar as etapas do pipeline.");
-      console.error(error);
-    } else {
-      setStages(data as Stage[]);
-    }
-    setLoading(false);
-  };
 
   const handleCardClick = (lead: Lead) => {
     setSelectedLead(lead);
@@ -245,17 +285,11 @@ export function KanbanBoard() {
   };
   
   const handleColorChange = async (stageId: string, color: StageColor) => {
-    const { error } = await supabase
-      .from("pipeline_stages")
-      .update({ color })
-      .eq("id", stageId);
-
-    if (error) {
-      toast.error("Falha ao atualizar a cor da etapa.");
-    } else {
-      toast.success("Cor da etapa atualizada!");
-      fetchStages(); // Recarrega para refletir a mudança
-    }
+    // Atualiza localmente para demo
+    setStages(prev => 
+      prev.map(stage => stage.id === stageId ? {...stage, color} : stage)
+    );
+    toast.success("Cor da etapa atualizada!");
   };
 
   const handleNewLeadClick = (stageName: string) => {
@@ -264,13 +298,13 @@ export function KanbanBoard() {
   };
 
   const handleCreateLead = (leadData: any) => {
-    // Em um app real, salvaríamos no banco de dados e obteríamos o ID
+    // Cria um novo lead para a demonstração
     const newLead: Lead = {
       id: `new-${Date.now()}`,
       name: leadData.name,
       company: leadData.company || "",
       phone: leadData.phone,
-      salesperson: leadData.assignedTo || "Não atribuído",
+      salesperson: leadData.assignedTo || "Carlos Almeida",
       tags: [],
       value: leadData.value || 0,
       date: new Date().toLocaleDateString('pt-BR'),
@@ -283,15 +317,10 @@ export function KanbanBoard() {
     // Adiciona o novo lead ao estado local
     setLocalLeads(prev => {
       const stageName = activeNewLeadStage || "Novo Lead";
-      const updatedLeads = {
+      return {
         ...prev,
         [stageName]: [...(prev[stageName] || []), newLead]
       };
-      
-      // Atualiza as estatísticas
-      setStats(calculatePipelineStats(updatedLeads));
-      
-      return updatedLeads;
     });
 
     toast.success(`Lead ${leadData.name} criado com sucesso!`);
@@ -336,12 +365,11 @@ export function KanbanBoard() {
       return;
     }
     
-    // Verificar se o lead pode ser movido para a etapa alvo
+    // Validações específicas para demonstração
     if (draggedLead) {
-      const validation = canMoveLeadToStage(draggedLead, targetStage);
-      
-      if (!validation.valid) {
-        setValidationMessage(validation.message || "Este lead não pode ser movido para esta etapa.");
+      // Exemplo de validação: precisa ter valor para mover para Proposta
+      if (targetStage === "Proposta" && (!draggedLead.value || draggedLead.value === 0)) {
+        setValidationMessage("O lead precisa ter um valor definido para avançar para a etapa de Proposta.");
         setIsConfirmDialogOpen(true);
         return;
       }
@@ -359,25 +387,20 @@ export function KanbanBoard() {
     setTargetStage(null);
   };
 
-  const confirmMoveToStage = () => {
-    if (draggedLead && targetStage) {
-      moveLead(draggedLead, targetStage);
-    }
-    
-    setIsConfirmDialogOpen(false);
-    setTargetStage(null);
-    setValidationMessage(null);
-  };
-  
   const handleTransitionConfirm = (reason: string, comments: string) => {
     if (draggedLead && targetStage) {
-      moveLead(draggedLead, targetStage, reason, comments);
+      const message = targetStage === "Ganho" 
+        ? `Parabéns! Negócio ${draggedLead.name} foi ganho. Motivo: ${reason}`
+        : `Negócio ${draggedLead.name} foi marcado como perdido. Motivo: ${reason}`;
+        
+      toast.success(message);
+      moveLead(draggedLead, targetStage);
     }
     
     setIsTransitionDialogOpen(false);
   };
 
-  const moveLead = (lead: Lead, toStage: string, reason?: string, comments?: string) => {
+  const moveLead = (lead: Lead, toStage: string) => {
     // Remove o lead da etapa atual
     const fromStage = lead.stage || "Novo Lead";
     
@@ -392,30 +415,16 @@ export function KanbanBoard() {
         stageUpdatedAt: new Date().toISOString()
       };
       
-      const updatedLeads = {
+      return {
         ...prev,
         [fromStage]: updatedFromStage,
         [toStage]: [...(prev[toStage] || []), updatedLead]
       };
-      
-      // Atualiza as estatísticas
-      setStats(calculatePipelineStats(updatedLeads));
-      
-      return updatedLeads;
     });
     
-    // Em um app real, salvaríamos essa mudança no banco de dados
-    updateLeadStage(lead.id, toStage, reason, comments);
-    
-    const successMessage = toStage === "Ganho" 
-      ? `Parabéns! Negócio ${lead.name} foi ganho.` 
-      : toStage === "Perdido" 
-        ? `Negócio ${lead.name} foi marcado como perdido.` 
-        : `Lead ${lead.name} movido para ${toStage}`;
-        
-    toast.success(successMessage);
+    toast.success(`Lead ${lead.name} movido para ${toStage}`);
   };
-  
+
   if (loading) {
     return <div className="flex items-center justify-center h-full"><p>Carregando pipeline...</p></div>;
   }
@@ -423,41 +432,48 @@ export function KanbanBoard() {
   return (
     <div className="flex flex-col h-full">
       {/* Estatísticas do funil */}
-      {stats && (
-        <div className="flex justify-between items-center mb-4 p-4 bg-white rounded-lg border shadow-sm">
-          <div>
-            <h3 className="font-medium text-sm">Resumo do funil</h3>
-            <p className="text-xs text-muted-foreground">
-              Total: {stats.totalLeads} negócios / R$ {stats.totalValue.toFixed(2)}
-            </p>
-          </div>
-          
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" size="sm">
-                <FileBarChart className="h-4 w-4 mr-2" />
-                Estatísticas detalhadas
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80">
-              <div className="space-y-2">
-                <h4 className="font-medium text-sm">Estatísticas por etapa</h4>
-                <div className="text-xs space-y-1">
-                  {stages.map(stage => (
-                    <div key={stage.id} className="flex justify-between items-center">
-                      <span>{stage.name}</span>
-                      <span>
-                        {stats.byStage[stage.name]?.count || 0} leads / 
-                        R$ {(stats.byStage[stage.name]?.value || 0).toFixed(2)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
+      <div className="flex justify-between items-center mb-4 p-4 bg-white rounded-lg border shadow-sm">
+        <div>
+          <h3 className="font-medium text-sm">Resumo do funil</h3>
+          <p className="text-xs text-muted-foreground">
+            Total: {stats.totalLeads} negócios / R$ {stats.totalValue.toFixed(2)}
+          </p>
         </div>
-      )}
+        
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="sm">
+              <FileBarChart className="h-4 w-4 mr-2" />
+              Estatísticas detalhadas
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-80">
+            <div className="space-y-2">
+              <h4 className="font-medium text-sm">Estatísticas por etapa</h4>
+              <div className="text-xs space-y-1">
+                {stages.map(stage => (
+                  <div key={stage.id} className="flex justify-between items-center">
+                    <span>{stage.name}</span>
+                    <span>
+                      {stats.byStage[stage.name]?.count || 0} leads / 
+                      R$ {(stats.byStage[stage.name]?.value || 0).toFixed(2)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
+      
+      {/* Dica para o usuário */}
+      <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
+        <p>
+          <strong>Nota:</strong> Esta é uma visualização ilustrativa do funil de vendas. Você pode interagir com os 
+          elementos para ver como funcionaria em um ambiente real. Experimente arrastar cards entre colunas, 
+          criar novos leads e visualizar os detalhes!
+        </p>
+      </div>
       
       <DndContext
         sensors={sensors}
@@ -475,7 +491,7 @@ export function KanbanBoard() {
               leads={localLeads[stage.name] || []}
               totalValue={getTotalValue(localLeads[stage.name] || [])}
               count={(localLeads[stage.name] || []).length}
-              color={stage.color as StageColor}
+              color={stage.color}
               onColorChange={(color) => handleColorChange(stage.id, color as StageColor)}
               onCardClick={handleCardClick}
               onAddClick={() => handleNewLeadClick(stage.name)}
