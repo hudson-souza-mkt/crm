@@ -14,20 +14,8 @@ import {
   Wifi,
 } from "lucide-react";
 import { ProfileSettings } from "@/components/settings/ProfileSettings";
-
-const navItems = [
-  { id: "profile", label: "Meu perfil", icon: User, component: <ProfileSettings /> },
-  { id: "plans", label: "Planos e uso", icon: BarChart3, component: <SettingsPlaceholder title="Planos e Uso" /> },
-  { id: "company", label: "Empresa", icon: Building, component: <SettingsPlaceholder title="Empresa" /> },
-  { id: "tags", label: "Tags", icon: Tag, component: <SettingsPlaceholder title="Tags" /> },
-  { id: "products", label: "Produtos", icon: ShoppingCart, component: <SettingsPlaceholder title="Produtos" /> },
-  { id: "loss-reasons", label: "Motivos de perda", icon: XCircle, component: <SettingsPlaceholder title="Motivos de Perda" /> },
-  { id: "lists", label: "Listas", icon: List, component: <SettingsPlaceholder title="Listas" /> },
-  { id: "custom-fields", label: "Campos adicionais", icon: PlusSquare, component: <SettingsPlaceholder title="Campos Adicionais" /> },
-  { id: "departments", label: "Departamentos", icon: Users2, component: <SettingsPlaceholder title="Departamentos" /> },
-  { id: "integrations", label: "Integrações", icon: Puzzle, component: <SettingsPlaceholder title="Integrações" /> },
-  { id: "connections", label: "Conexões", icon: Wifi, component: <SettingsPlaceholder title="Conexões" /> },
-];
+import { CompanySettings } from "@/components/settings/CompanySettings";
+import { TagsSettings } from "@/components/settings/TagsSettings";
 
 const SettingsPlaceholder = ({ title }: { title: string }) => (
   <div>
@@ -37,6 +25,20 @@ const SettingsPlaceholder = ({ title }: { title: string }) => (
     </p>
   </div>
 );
+
+const navItems = [
+  { id: "profile", label: "Meu perfil", icon: User, component: <ProfileSettings /> },
+  { id: "plans", label: "Planos e uso", icon: BarChart3, component: <SettingsPlaceholder title="Planos e Uso" /> },
+  { id: "company", label: "Empresa", icon: Building, component: <CompanySettings /> },
+  { id: "tags", label: "Tags", icon: Tag, component: <TagsSettings /> },
+  { id: "products", label: "Produtos", icon: ShoppingCart, component: <SettingsPlaceholder title="Produtos" /> },
+  { id: "loss-reasons", label: "Motivos de perda", icon: XCircle, component: <SettingsPlaceholder title="Motivos de Perda" /> },
+  { id: "lists", label: "Listas", icon: List, component: <SettingsPlaceholder title="Listas" /> },
+  { id: "custom-fields", label: "Campos adicionais", icon: PlusSquare, component: <SettingsPlaceholder title="Campos Adicionais" /> },
+  { id: "departments", label: "Departamentos", icon: Users2, component: <SettingsPlaceholder title="Departamentos" /> },
+  { id: "integrations", label: "Integrações", icon: Puzzle, component: <SettingsPlaceholder title="Integrações" /> },
+  { id: "connections", label: "Conexões", icon: Wifi, component: <SettingsPlaceholder title="Conexões" /> },
+];
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState("profile");
