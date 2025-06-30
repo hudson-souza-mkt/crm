@@ -3,7 +3,8 @@ import { LeadList } from "@/components/leads/LeadList";
 import { LeadFormDialog } from "@/components/leads/LeadFormDialog";
 import { LeadImportDialog } from "@/components/leads/LeadImportDialog";
 import { Button } from "@/components/ui/button";
-import { Plus, Upload, Filter } from "lucide-react";
+import { Plus, Upload, Filter, Users, UserPlus, UserCheck, DollarSign, Calendar } from "lucide-react";
+import { MetricCard } from "@/components/dashboard/MetricCard";
 
 export default function Leads() {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -12,6 +13,45 @@ export default function Leads() {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Dashboard de métricas */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+        <MetricCard
+          title="Total de Contatos"
+          value="2.347"
+          icon={Users}
+          change="+12% vs. mês passado"
+          changeType="increase"
+        />
+        <MetricCard
+          title="Leads Ativos"
+          value="1.879"
+          icon={UserPlus}
+          change="+8.1% vs. mês passado"
+          changeType="increase"
+        />
+        <MetricCard
+          title="Clientes"
+          value="468"
+          icon={UserCheck}
+          change="+15.3% vs. mês passado"
+          changeType="increase"
+        />
+        <MetricCard
+          title="Ticket Médio"
+          value="R$ 1.250,00"
+          icon={DollarSign}
+          change="+5.2% vs. mês passado"
+          changeType="increase"
+        />
+        <MetricCard
+          title="LTV/Meses"
+          value="4.2"
+          icon={Calendar}
+          change="+0.3 vs. mês passado"
+          changeType="increase"
+        />
+      </div>
+      
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold tracking-tight">Leads e Clientes</h1>
         <div className="flex gap-2">
