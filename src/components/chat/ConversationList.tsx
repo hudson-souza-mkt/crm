@@ -1,9 +1,17 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Filter } from "lucide-react";
+import { Filter, Search, MessageSquarePlus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ConversationItem } from "./ConversationItem";
 import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 type ConversationStatus = 'attending' | 'waiting' | 'offline';
 
@@ -81,11 +89,31 @@ export function ConversationList() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="p-4 flex justify-between items-center border-b">
-        <h2 className="text-lg font-semibold">Conversas</h2>
-        <Button variant="ghost" size="icon">
-          <Filter className="h-5 w-5" />
+      <div className="p-3 border-b space-y-3">
+        <Button className="w-full">
+          <MessageSquarePlus className="mr-2 h-4 w-4" />
+          Iniciar conversa
         </Button>
+        <div className="flex items-center gap-2">
+          <div className="relative w-full">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Buscar conversas..." className="pl-8 h-9" />
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon" className="h-9 w-9 flex-shrink-0">
+                <Filter className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem>Todas as conversas</DropdownMenuItem>
+              <DropdownMenuItem>Finalizadas</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>Filtrar por tags</DropdownMenuItem>
+              <DropdownMenuItem>Filtrar por usuários</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
       
       <div className="p-2 border-b">
