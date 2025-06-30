@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Loader2, CheckCircle, XCircle, QrCode } from 'lucide-react';
-import QRCode from 'react-qr-code';
+import QRCode from 'qrcode.react';
 import { toast } from 'sonner';
 
 type ConnectionStatus = 'idle' | 'loading' | 'qr' | 'connected' | 'error';
