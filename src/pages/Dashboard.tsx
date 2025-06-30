@@ -1,41 +1,56 @@
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { DollarSign, Users, Activity, TrendingUp } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 export default function Dashboard() {
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+    <div className="flex flex-col gap-8">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <MetricCard
-          title="Total de Vendas"
+          title="Receita Total"
           value="R$ 45.231,89"
           icon={DollarSign}
-          change="+20.1% vs. mês passado"
-          changeType="increase"
+          change="+20.1% do último mês"
         />
         <MetricCard
-          title="Novos Leads"
+          title="Assinaturas"
           value="+2.350"
           icon={Users}
-          change="+180.1% vs. mês passado"
-          changeType="increase"
+          change="+180.1% do último mês"
         />
         <MetricCard
-          title="Taxa de Conversão"
-          value="12,5%"
+          title="Vendas"
+          value="+12.234"
           icon={TrendingUp}
-          change="-2% vs. mês passado"
-          changeType="decrease"
+          change="+19% do último mês"
         />
         <MetricCard
-          title="Atendimentos Ativos"
-          value="57"
+          title="Ativos Agora"
+          value="+573"
           icon={Activity}
-          change="+12 desde ontem"
-          changeType="increase"
+          change="+201 desde a última hora"
         />
       </div>
-      {/* Futuramente adicionaremos gráficos aqui */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
+        <Card className="xl:col-span-2">
+          <CardHeader>
+            <CardTitle>Visão Geral da Receita</CardTitle>
+            <CardDescription>Um gráfico mostrando a receita ao longo do tempo.</CardDescription>
+          </CardHeader>
+          <CardContent className="h-[300px] flex items-center justify-center text-muted-foreground">
+            [Gráfico de Linha Aqui]
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Vendas Recentes</CardTitle>
+            <CardDescription>Você fez 265 vendas este mês.</CardDescription>
+          </CardHeader>
+          <CardContent className="h-[300px] flex items-center justify-center text-muted-foreground">
+            [Lista de Vendas Aqui]
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

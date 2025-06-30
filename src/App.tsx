@@ -6,11 +6,14 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { MainLayout } from "./components/layout/MainLayout";
 import Dashboard from "./pages/Dashboard";
 import Pipelines from "./pages/Pipelines";
-import Chat from "./pages/Chat";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+// Placeholder for pages that will be created later
+const Contacts = () => <div className="text-3xl font-bold">Contatos (Em Breve)</div>;
+const Chat = () => <div className="text-3xl font-bold">Atendimentos (Em Breve)</div>;
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -23,6 +26,7 @@ const App = () => (
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/pipelines" element={<Pipelines />} />
+            <Route path="/contacts" element={<Contacts />} />
             <Route path="/chat" element={<Chat />} />
             <Route path="/settings" element={<Settings />} />
           </Route>

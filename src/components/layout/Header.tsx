@@ -1,45 +1,60 @@
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Search, Bell, Menu } from "lucide-react";
-import { NavContent } from "./Sidebar";
+import { Button } from "@/components/ui/button";
+import { Search, PanelLeft, Rocket, LayoutDashboard, Columns, Users, MessageSquare, Settings } from "lucide-react";
+import { UserNav } from "./UserNav";
+import { NavLink } from "react-router-dom";
+import { cn } from "@/lib/utils";
+
+const navItems = [
+  { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+  { to: "/pipelines", icon: Columns, label: "Pipelines" },
+  { to: "/contacts", icon: Users, label: "Contatos" },
+  { to: "/chat", icon: MessageSquare, label: "Atendimentos" },
+  { to: "/settings", icon: Settings, label: "Configurações" },
+];
 
 export function Header() {
   return (
-    <header className="flex items-center justify-between h-16 px-4 md:px-6 border-b bg-card">
-      <div className="flex items-center gap-4">
-        <div className="md:hidden">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu className="h-6 w-6" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-72">
-              <NavContent />
-            </SheetContent>
-          </Sheet>
-        </div>
-        <div className="hidden md:block relative">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Buscar leads, contatos..."
-            className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px] bg-background"
-          />
-        </div>
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button size="icon" variant="outline" className="sm:hidden">
+            <PanelLeft className="h-5 w-5" />
+            <span className="sr-only">Abrir Menu</span>
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left" className="sm:max-w-xs">
+          <nav className="grid gap-6 text-lg font-medium">
+            <NavLink
+              to="/"
+              className="group flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:text-base"
+            >
+              <Rocket className="h-5 w-5 transition-all group-hover:scale-110" />
+              <span className="sr-only">Lasy CRM</span>
+            </NavLink>
+            {navItems.map(item => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({isActive}) => cn("flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground", isActive && "text-foreground")}
+              >
+                <item.icon className="h-5 w-5" />
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+        </SheetContent>
+      </Sheet>
+      <div className="relative ml-auto flex-1 md:grow-0">
+        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input
+          type="search"
+          placeholder="Buscar..."
+          className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
+        />
       </div>
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon">
-          <Bell className="h-5 w-5" />
-          <span className="sr-only">Notificações</span>
-        </Button>
-        <Avatar>
-          <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-          <AvatarFallback>CN</AvatarFallback>
-        </Avatar>
-      </div>
+      <UserNav />
     </header>
   );
 }
