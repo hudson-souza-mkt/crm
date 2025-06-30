@@ -16,6 +16,7 @@ import {
 import { ProfileSettings } from "@/components/settings/ProfileSettings";
 import { CompanySettings } from "@/components/settings/CompanySettings";
 import { TagsSettings } from "@/components/settings/TagsSettings";
+import { CustomFieldsSettings } from "@/components/settings/CustomFieldsSettings";
 
 const SettingsPlaceholder = ({ title }: { title: string }) => (
   <div>
@@ -34,7 +35,7 @@ const navItems = [
   { id: "products", label: "Produtos", icon: ShoppingCart, component: <SettingsPlaceholder title="Produtos" /> },
   { id: "loss-reasons", label: "Motivos de perda", icon: XCircle, component: <SettingsPlaceholder title="Motivos de Perda" /> },
   { id: "lists", label: "Listas", icon: List, component: <SettingsPlaceholder title="Listas" /> },
-  { id: "custom-fields", label: "Campos adicionais", icon: PlusSquare, component: <SettingsPlaceholder title="Campos Adicionais" /> },
+  { id: "custom-fields", label: "Campos adicionais", icon: PlusSquare, component: <CustomFieldsSettings /> },
   { id: "departments", label: "Departamentos", icon: Users2, component: <SettingsPlaceholder title="Departamentos" /> },
   { id: "integrations", label: "Integrações", icon: Puzzle, component: <SettingsPlaceholder title="Integrações" /> },
   { id: "connections", label: "Conexões", icon: Wifi, component: <SettingsPlaceholder title="Conexões" /> },
