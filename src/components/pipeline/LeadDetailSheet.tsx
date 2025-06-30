@@ -9,6 +9,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
@@ -35,8 +36,11 @@ import {
   ExternalLink,
   List,
   Check,
+  Send,
+  Smile,
 } from "lucide-react";
 import type { Lead } from "./PipelineCard";
+import { ChatMessage } from "@/components/chat/ChatMessage";
 
 interface LeadDetailSheetProps {
   lead: Lead | null;
@@ -70,6 +74,12 @@ const historyMock = [
     content: "Lead atualizado.",
     date: "25/06/2025 10:01",
   },
+];
+
+const chatMessagesMock = [
+    { isOutgoing: false, message: "Olá! Gostaria de saber mais sobre seus produtos.", time: "10:25" },
+    { isOutgoing: true, message: "Olá João! Claro, ficarei feliz em ajudar. Que tipo de produto você está procurando?", time: "10:26" },
+    { isOutgoing: false, message: "Estou interessado em soluções para automação de vendas.", time: "10:28" },
 ];
 
 const TimelineItem = ({ icon, children, isLast = false }: { icon: React.ReactNode, children: React.ReactNode, isLast?: boolean }) => (
@@ -212,6 +222,7 @@ export function LeadDetailSheet({ lead, open, onOpenChange }: LeadDetailSheetPro
                   <TabsTrigger value="historico">Histórico</TabsTrigger>
                   <TabsTrigger value="atividades">Atividades</TabsTrigger>
                   <TabsTrigger value="negocios">Negócios</TabsTrigger>
+                  <TabsTrigger value="chat">Chat</TabsTrigger>
                   <TabsTrigger value="arquivos">Arquivos</TabsTrigger>
                   <TabsTrigger value="info">Informações do Negócio</TabsTrigger>
                 </TabsList>
@@ -257,6 +268,33 @@ export function LeadDetailSheet({ lead, open, onOpenChange }: LeadDetailSheetPro
                   <div className="text-center py-12 text-muted-foreground">
                     <Briefcase className="mx-auto h-10 w-10 mb-2" />
                     <p>Nenhum negócio encontrado.</p>
+                  </div>
+                </TabsContent>
+                <TabsContent value="chat" className="pt-6">
+                  <div className="flex flex-col h-[calc(100vh-280px)] border rounded-lg bg-white">
+                    <div className="flex-1 p-4 space-y-4 overflow-y-auto">
+                      {chatMessagesMock.map((msg, index) => (
+                          <ChatMessage key={index} isOutgoing={msg.isOutgoing} message={msg.message} time={msg.time} />
+                      ))}
+                    </div>
+                    <div className="p-3 bg-white border-t">
+                      <div className="flex items-center gap-2">
+                          <div className="relative w-full">
+                              <Input
+                                  placeholder="Digite sua mensagem..."
+                                  className="h-10 rounded-lg border bg-white pl-3 pr-10"
+                              />
+                              <div className="absolute inset-y-0 right-0 flex items-center pr-2">
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+                                      <Smile className="h-5 w-5 text-muted-foreground" />
+                                  </Button>
+                              </div>
+                          </div>
+                          <Button size="icon" className="h-10 w-10 flex-shrink-0 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90">
+                              <Send className="h-5 w-5" />
+                          </Button>
+                      </div>
+                    </div>
                   </div>
                 </TabsContent>
                 <TabsContent value="arquivos">
