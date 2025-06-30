@@ -16,7 +16,6 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
 
 export function LeadFilters() {
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);

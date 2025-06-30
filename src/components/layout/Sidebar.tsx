@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
   Columns,
@@ -14,7 +15,6 @@ const navItems = [
   { to: "/pipelines", icon: Columns, label: "Pipelines" },
   { to: "/leads", icon: Users, label: "Leads/Clientes" },
   { to: "/chat", icon: MessageSquare, label: "Atendimentos" },
-  { to: "/whatsapp", icon: MessageSquare, label: "WhatsApp" },
 ];
 
 export const NavContent = () => (
