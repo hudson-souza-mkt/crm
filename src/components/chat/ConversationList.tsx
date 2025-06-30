@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 
 type ConversationStatus = 'attending' | 'waiting' | 'offline';
 
@@ -26,7 +27,7 @@ type Conversation = {
   status: ConversationStatus;
 };
 
-const conversations: Conversation[] = [
+const initialConversations: Conversation[] = [
     { 
         id: 1, 
         name: "João Silva", 
@@ -77,6 +78,18 @@ const conversations: Conversation[] = [
 
 export function ConversationList() {
   const [activeTab, setActiveTab] = useState<'attending' | 'waiting'>('attending');
+  const [conversations, setConversations] = useState<Conversation[]>(initialConversations);
+
+  const handleAcceptConversation = (id: number) => {
+    setConversations(prev => 
+      prev.map(conv => 
+        conv.id === id ? { ...conv, status: 'attending' } : conv
+      )
+    );
+    
+    // Mostra notificação de sucesso
+    toast.success("Conversa aceita com sucesso!");
+  };
 
   const filteredConversations = conversations.filter(c => {
       if (activeTab === 'attending') return c.status === 'attending' || c.status === 'offline';
@@ -145,6 +158,7 @@ export function ConversationList() {
         {filteredConversations.map((conv) => (
           <ConversationItem
             key={conv.id}
+            id={conv.id}
             name={conv.name}
             lastMessage={conv.lastMessage}
             time={conv.time}
@@ -152,6 +166,7 @@ export function ConversationList() {
             avatar={conv.avatar}
             active={conv.active}
             status={conv.status}
+            onAccept={handleAcceptConversation}
           />
         ))}
       </div>

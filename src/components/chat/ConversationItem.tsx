@@ -1,10 +1,12 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type ConversationStatus = 'attending' | 'waiting' | 'offline';
 
 interface ConversationItemProps {
+  id: number;
   name: string;
   lastMessage: string;
   time: string;
@@ -12,6 +14,7 @@ interface ConversationItemProps {
   avatar: string;
   active?: boolean;
   status: ConversationStatus;
+  onAccept?: (id: number) => void;
 }
 
 const statusClasses: Record<ConversationStatus, string> = {
@@ -20,7 +23,9 @@ const statusClasses: Record<ConversationStatus, string> = {
     offline: 'bg-gray-400'
 }
 
-export function ConversationItem({ name, lastMessage, time, unread, avatar, active, status }: ConversationItemProps) {
+export function ConversationItem({ 
+  id, name, lastMessage, time, unread, avatar, active, status, onAccept 
+}: ConversationItemProps) {
   return (
     <div
       className={cn(
@@ -48,6 +53,23 @@ export function ConversationItem({ name, lastMessage, time, unread, avatar, acti
                 </Badge>
             )}
         </div>
+        
+        {/* Botão de aceitar para conversas em espera */}
+        {status === 'waiting' && (
+          <div className="mt-2 flex justify-end">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="text-xs bg-green-50 text-green-600 hover:bg-green-100 border-green-200"
+              onClick={(e) => {
+                e.stopPropagation(); // Previne que a conversa seja selecionada
+                onAccept?.(id);
+              }}
+            >
+              Aceitar
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
