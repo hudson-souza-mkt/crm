@@ -1,149 +1,132 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Filter } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ConversationItem } from "./ConversationItem";
 import { cn } from "@/lib/utils";
+
+type ConversationStatus = 'attending' | 'waiting' | 'offline';
 
 type Conversation = {
   id: number;
   name: string;
-  role?: string;
-  department?: string;
   lastMessage: string;
   time: string;
   unread: number;
-  avatar?: string;
+  avatar: string;
   active?: boolean;
-  tags: {
-    text: string;
-    color: "green" | "blue" | "purple" | "default";
-  }[];
+  status: ConversationStatus;
 };
 
 const conversations: Conversation[] = [
-  { 
-    id: 1, 
-    name: "Bianca Araújo", 
-    role: "Operacional", 
-    lastMessage: "aguii Mi", 
-    time: "16:33", 
-    unread: 0, 
-    avatar: "https://i.pravatar.cc/150?img=1", 
-    active: true,
-    tags: [
-      { text: "VENDEDOR CARLOS", color: "green" },
-      { text: "SUPORTE", color: "default" },
-      { text: "MÍDIA", color: "purple" }
-    ]
-  },
-  { 
-    id: 2, 
-    name: "Bela Prisma", 
-    role: "Consignado", 
-    lastMessage: "Suporte oi", 
-    time: "16:07", 
-    unread: 0, 
-    avatar: "https://i.pravatar.cc/150?img=5",
-    tags: [
-      { text: "MÍDIA", color: "purple" },
-      { text: "SUPORTE", color: "default" },
-      { text: "MÍDIA", color: "purple" }
-    ]
-  },
-  { 
-    id: 3, 
-    name: "Ana Clara Prisma", 
-    lastMessage: "Ok", 
-    time: "16:04", 
-    unread: 0, 
-    avatar: "https://i.pravatar.cc/150?img=9",
-    tags: [
-      { text: "MÍDIA", color: "purple" },
-      { text: "SUPORTE", color: "default" },
-      { text: "MÍDIA", color: "purple" }
-    ]
-  },
-  { 
-    id: 4, 
-    name: "Carlos Consultor", 
-    role: "Prisma", 
-    lastMessage: "Suporte oi", 
-    time: "15:54", 
-    unread: 0,
-    avatar: "https://i.pravatar.cc/150?img=15",
-    tags: [
-      { text: "VENDEDOR MICAEL", color: "green" },
-      { text: "SUPORTE", color: "default" },
-      { text: "MÍDIA", color: "purple" }
-    ]
-  },
+    { 
+        id: 1, 
+        name: "João Silva", 
+        lastMessage: "Gostaria de saber mais sobre o produto", 
+        time: "10:30", 
+        unread: 2, 
+        avatar: "JS", 
+        active: true,
+        status: 'attending'
+    },
+    { 
+        id: 2, 
+        name: "Maria Santos", 
+        lastMessage: "Obrigada pelo atendimento!", 
+        time: "09:45", 
+        unread: 0, 
+        avatar: "MS",
+        status: 'offline'
+    },
+    { 
+        id: 3, 
+        name: "Pedro Costa", 
+        lastMessage: "Aguardando retorno sobre o orçamento", 
+        time: "08:20", 
+        unread: 1, 
+        avatar: "PC",
+        status: 'waiting'
+    },
+    { 
+        id: 4, 
+        name: "Ana Oliveira", 
+        lastMessage: "Quando posso agendar uma reunião?", 
+        time: "Ontem", 
+        unread: 3,
+        avatar: "AO",
+        status: 'attending'
+    },
+    {
+        id: 5,
+        name: "Carlos Ferreira",
+        lastMessage: "Perfeito, vou analisar a proposta",
+        time: "Ontem",
+        unread: 0,
+        avatar: "CF",
+        status: 'waiting'
+    }
 ];
 
 export function ConversationList() {
-  const getTagColor = (color: string) => {
-    switch (color) {
-      case "green":
-        return "bg-green-600 text-white";
-      case "purple":
-        return "bg-purple-400 text-white";
-      case "blue":
-        return "bg-blue-600 text-white";
-      default:
-        return "bg-gray-700 text-white";
-    }
-  };
+  const [activeTab, setActiveTab] = useState<'attending' | 'waiting'>('attending');
+
+  const filteredConversations = conversations.filter(c => {
+      if (activeTab === 'attending') return c.status === 'attending' || c.status === 'offline';
+      if (activeTab === 'waiting') return c.status === 'waiting';
+      return true;
+  });
+
+  const attendingCount = conversations.filter(c => c.status === 'attending').length;
+  const waitingCount = conversations.filter(c => c.status === 'waiting').length;
 
   return (
-    <div className="flex flex-col">
-      {conversations.map((conv) => (
-        <div
-          key={conv.id}
-          className={cn(
-            "flex flex-col border-b cursor-pointer transition-colors hover:bg-gray-50",
-            conv.active ? "bg-gray-50" : ""
-          )}
-        >
-          <div className="flex items-start p-3">
-            <Avatar className="h-10 w-10 flex-shrink-0">
-              <AvatarImage src={conv.avatar} />
-              <AvatarFallback>{conv.name.charAt(0)}</AvatarFallback>
-            </Avatar>
-            
-            <div className="ml-3 flex-1 overflow-hidden">
-              <div className="flex justify-between">
-                <div>
-                  <p className="font-medium text-sm">{conv.name} {conv.role && <span className="text-xs text-muted-foreground">{conv.role}</span>}</p>
-                  <p className="text-xs text-muted-foreground truncate">{conv.lastMessage}</p>
-                </div>
-                <span className="text-xs text-muted-foreground whitespace-nowrap">{conv.time}</span>
-              </div>
-              
-              <div className="flex flex-wrap gap-1 mt-1">
-                {conv.tags.map((tag, idx) => (
-                  <span 
-                    key={idx} 
-                    className={cn(
-                      "text-[10px] px-1 py-0.5 rounded", 
-                      getTagColor(tag.color)
-                    )}
-                  >
-                    {tag.text}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-          
-          <div className="px-3 pb-2">
+    <div className="flex flex-col h-full">
+      <div className="p-4 flex justify-between items-center border-b">
+        <h2 className="text-lg font-semibold">Conversas</h2>
+        <Button variant="ghost" size="icon">
+          <Filter className="h-5 w-5" />
+        </Button>
+      </div>
+      
+      <div className="p-2 border-b">
+        <div className="flex items-center gap-2">
             <Button 
-              variant="destructive" 
-              size="sm" 
-              className="text-[10px] h-6 w-full"
+                variant={activeTab === 'attending' ? 'secondary' : 'ghost'}
+                size="sm"
+                onClick={() => setActiveTab('attending')}
+                className="rounded-full h-auto px-3 py-1 text-sm font-normal"
             >
-              FINALIZAR
+                <span className="h-2 w-2 rounded-full bg-green-500 mr-2"></span>
+                Atendendo
+                <Badge variant="destructive" className="ml-2 rounded-full text-xs px-1.5 py-0">{attendingCount}</Badge>
             </Button>
-          </div>
+            <Button 
+                variant={activeTab === 'waiting' ? 'secondary' : 'ghost'}
+                size="sm"
+                onClick={() => setActiveTab('waiting')}
+                className="rounded-full h-auto px-3 py-1 text-sm font-normal"
+            >
+                <span className="h-2 w-2 rounded-full bg-yellow-500 mr-2"></span>
+                Aguardando
+                <Badge variant="destructive" className="ml-2 rounded-full text-xs px-1.5 py-0">{waitingCount}</Badge>
+            </Button>
         </div>
-      ))}
+      </div>
+
+      <div className="flex-1 overflow-y-auto">
+        {filteredConversations.map((conv) => (
+          <ConversationItem
+            key={conv.id}
+            name={conv.name}
+            lastMessage={conv.lastMessage}
+            time={conv.time}
+            unread={conv.unread}
+            avatar={conv.avatar}
+            active={conv.active}
+            status={conv.status}
+          />
+        ))}
+      </div>
     </div>
   );
 }
