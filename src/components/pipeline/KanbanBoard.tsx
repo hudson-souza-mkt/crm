@@ -2,8 +2,9 @@ import { useState } from "react";
 import { KanbanColumn } from "./KanbanColumn";
 import type { Lead } from "./PipelineCard";
 import { Button } from "@/components/ui/button";
-import { Plus, Filter, ArrowUpDown } from "lucide-react";
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
+import { LeadDetailSheet } from "./LeadDetailSheet";
 
 export type StageColor = "blue" | "purple" | "amber" | "green" | "red" | "pink" | "indigo" | "cyan" | "gray";
 
@@ -79,13 +80,20 @@ const mockLeads: Record<string, Lead[]> = {
 export function KanbanBoard() {
   const stages = ["Novo Lead", "Qualificação", "Conversando", "Proposta"];
   
-  // Estado para armazenar as cores de cada etapa
   const [stageColors, setStageColors] = useState<Record<string, StageColor>>({
     "Novo Lead": "blue",
     "Qualificação": "purple",
     "Conversando": "amber",
     "Proposta": "green"
   });
+
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+  const handleCardClick = (lead: Lead) => {
+    setSelectedLead(lead);
+    setIsSheetOpen(true);
+  };
   
   const getTotalValue = (leads: Lead[]) => {
     return leads.reduce((sum, lead) => sum + (lead.value || 0), 0);
@@ -102,20 +110,6 @@ export function KanbanBoard() {
   
   return (
     <div className="flex flex-col h-full">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Aquisição e Qualificação</h1>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="flex items-center gap-1 bg-white">
-            <Filter className="h-4 w-4" />
-            <span>Filtros</span>
-          </Button>
-          <Button variant="outline" size="sm" className="flex items-center gap-1 bg-white">
-            <ArrowUpDown className="h-4 w-4" />
-            <span>Ordenação</span>
-          </Button>
-        </div>
-      </div>
-      
       <div className="flex overflow-x-auto pb-6 gap-5">
         {stages.map((stage) => (
           <KanbanColumn 
@@ -126,6 +120,7 @@ export function KanbanBoard() {
             count={(mockLeads[stage] || []).length}
             color={stageColors[stage]}
             onColorChange={(color) => handleColorChange(stage, color as StageColor)}
+            onCardClick={handleCardClick}
           />
         ))}
         <div className="flex-shrink-0 w-80 h-16 flex items-center justify-center">
@@ -135,6 +130,11 @@ export function KanbanBoard() {
           </Button>
         </div>
       </div>
+      <LeadDetailSheet 
+        lead={selectedLead}
+        open={isSheetOpen}
+        onOpenChange={setIsSheetOpen}
+      />
     </div>
   );
 }

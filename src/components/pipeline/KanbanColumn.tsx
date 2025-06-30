@@ -11,9 +11,10 @@ interface KanbanColumnProps {
   count: number;
   color: StageColor;
   onColorChange: (color: string) => void;
+  onCardClick: (lead: Lead) => void;
 }
 
-export function KanbanColumn({ title, leads, totalValue, count, color, onColorChange }: KanbanColumnProps) {
+export function KanbanColumn({ title, leads, totalValue, count, color, onColorChange, onCardClick }: KanbanColumnProps) {
   const formatCurrency = (value: number) => {
     return `R$ ${value.toFixed(2).replace('.', ',')}`;
   };
@@ -60,7 +61,7 @@ export function KanbanColumn({ title, leads, totalValue, count, color, onColorCh
       </div>
       <div className="p-2 space-y-2 max-h-[calc(100vh-220px)] overflow-y-auto">
         {leads.map((lead) => (
-          <PipelineCard key={lead.id} lead={lead} />
+          <PipelineCard key={lead.id} lead={lead} onCardClick={onCardClick} />
         ))}
       </div>
       <div className="p-2 border-t bg-white/50">
