@@ -1,9 +1,6 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Filter, Search, MessageSquarePlus } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { ConversationItem } from "./ConversationItem";
-import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
@@ -12,100 +9,30 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { toast } from "sonner";
+import { Conversation } from "@/types/chat";
+import { Skeleton } from "@/components/ui/skeleton";
 
-type ConversationStatus = 'attending' | 'waiting' | 'offline';
+interface ConversationListProps {
+  conversations: Conversation[];
+  selectedConversationId: string | null;
+  onSelectConversation: (id: string) => void;
+  onNewConversation: () => void;
+  isLoading: boolean;
+}
 
-type Conversation = {
-  id: number;
-  name: string;
-  lastMessage: string;
-  time: string;
-  unread: number;
-  avatar: string;
-  active?: boolean;
-  status: ConversationStatus;
-};
-
-const initialConversations: Conversation[] = [
-    { 
-        id: 1, 
-        name: "João Silva", 
-        lastMessage: "Gostaria de saber mais sobre o produto", 
-        time: "10:30", 
-        unread: 2, 
-        avatar: "JS", 
-        active: true,
-        status: 'attending'
-    },
-    { 
-        id: 2, 
-        name: "Maria Santos", 
-        lastMessage: "Obrigada pelo atendimento!", 
-        time: "09:45", 
-        unread: 0, 
-        avatar: "MS",
-        status: 'offline'
-    },
-    { 
-        id: 3, 
-        name: "Pedro Costa", 
-        lastMessage: "Aguardando retorno sobre o orçamento", 
-        time: "08:20", 
-        unread: 1, 
-        avatar: "PC",
-        status: 'waiting'
-    },
-    { 
-        id: 4, 
-        name: "Ana Oliveira", 
-        lastMessage: "Quando posso agendar uma reunião?", 
-        time: "Ontem", 
-        unread: 3,
-        avatar: "AO",
-        status: 'attending'
-    },
-    {
-        id: 5,
-        name: "Carlos Ferreira",
-        lastMessage: "Perfeito, vou analisar a proposta",
-        time: "Ontem",
-        unread: 0,
-        avatar: "CF",
-        status: 'waiting'
-    }
-];
-
-export function ConversationList() {
-  const [activeTab, setActiveTab] = useState<'attending' | 'waiting'>('attending');
-  const [conversations, setConversations] = useState<Conversation[]>(initialConversations);
-
-  const handleAcceptConversation = (id: number) => {
-    setConversations(prev => 
-      prev.map(conv => 
-        conv.id === id ? { ...conv, status: 'attending' } : conv
-      )
-    );
-    
-    // Mostra notificação de sucesso
-    toast.success("Conversa aceita com sucesso!");
-  };
-
-  const filteredConversations = conversations.filter(c => {
-      if (activeTab === 'attending') return c.status === 'attending' || c.status === 'offline';
-      if (activeTab === 'waiting') return c.status === 'waiting';
-      return true;
-  });
-
-  const attendingCount = conversations.filter(c => c.status === 'attending').length;
-  const waitingCount = conversations.filter(c => c.status === 'waiting').length;
-
+export function ConversationList({
+  conversations,
+  selectedConversationId,
+  onSelectConversation,
+  onNewConversation,
+  isLoading,
+}: ConversationListProps) {
   return (
     <div className="flex flex-col h-full">
       <div className="p-3 border-b space-y-3">
-        <Button className="w-full">
+        <Button className="w-full" onClick={onNewConversation}>
           <MessageSquarePlus className="mr-2 h-4 w-4" />
-          Iniciar conversa
+          Nova conversa
         </Button>
         <div className="flex items-center gap-2">
           <div className="relative w-full">
@@ -128,47 +55,34 @@ export function ConversationList() {
           </DropdownMenu>
         </div>
       </div>
-      
-      <div className="p-2 border-b">
-        <div className="flex items-center gap-2">
-            <Button 
-                variant={activeTab === 'attending' ? 'secondary' : 'ghost'}
-                size="sm"
-                onClick={() => setActiveTab('attending')}
-                className="rounded-full h-auto px-3 py-1 text-sm font-normal"
-            >
-                <span className="h-2 w-2 rounded-full bg-green-500 mr-2"></span>
-                Atendendo
-                <Badge variant="destructive" className="ml-2 rounded-full text-xs px-1.5 py-0">{attendingCount}</Badge>
-            </Button>
-            <Button 
-                variant={activeTab === 'waiting' ? 'secondary' : 'ghost'}
-                size="sm"
-                onClick={() => setActiveTab('waiting')}
-                className="rounded-full h-auto px-3 py-1 text-sm font-normal"
-            >
-                <span className="h-2 w-2 rounded-full bg-yellow-500 mr-2"></span>
-                Aguardando
-                <Badge variant="destructive" className="ml-2 rounded-full text-xs px-1.5 py-0">{waitingCount}</Badge>
-            </Button>
-        </div>
-      </div>
 
       <div className="flex-1 overflow-y-auto">
-        {filteredConversations.map((conv) => (
-          <ConversationItem
-            key={conv.id}
-            id={conv.id}
-            name={conv.name}
-            lastMessage={conv.lastMessage}
-            time={conv.time}
-            unread={conv.unread}
-            avatar={conv.avatar}
-            active={conv.active}
-            status={conv.status}
-            onAccept={handleAcceptConversation}
-          />
-        ))}
+        {isLoading ? (
+          <div className="p-3 space-y-3">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex items-center space-x-3">
+                <Skeleton className="h-10 w-10 rounded-full" />
+                <div className="space-y-2 flex-1">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          conversations.map((conv) => (
+            <ConversationItem
+              key={conv.id}
+              id={conv.id}
+              name={conv.title || "Conversa sem título"}
+              lastMessage="Clique para ver as mensagens..."
+              time={new Date(conv.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              avatar={(conv.title || "C").charAt(0)}
+              active={conv.id === selectedConversationId}
+              onClick={() => onSelectConversation(conv.id)}
+            />
+          ))
+        )}
       </div>
     </div>
   );

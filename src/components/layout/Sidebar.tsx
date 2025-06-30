@@ -2,7 +2,6 @@ import { NavLink } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
-  Columns,
   Users,
   MessageSquare,
   Settings,
@@ -18,7 +17,6 @@ interface SidebarProps {
 
 const navItems = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { to: "/pipelines", icon: Columns, label: "Pipelines" },
   { to: "/leads", icon: Users, label: "Leads/Clientes" },
   { to: "/chat", icon: MessageSquare, label: "Atendimentos" },
   { to: "/automations", icon: Bot, label: "Automações" },

@@ -6,26 +6,7 @@ import { LeadSegmentsNav } from "@/components/leads/LeadSegmentsNav";
 import { Button } from "@/components/ui/button";
 import { Plus, Upload, Filter, Users, UserPlus, UserCheck, DollarSign, Calendar } from "lucide-react";
 import { MetricCard } from "@/components/dashboard/MetricCard";
-import { LeadDetailDialog } from "@/components/pipeline/LeadDetailDialog";
 import { Lead as ListLead } from "@/types/lead";
-import { Lead as DetailLead } from "@/components/pipeline/PipelineCard";
-
-// Função para mapear o tipo de lead da lista para o tipo de lead do diálogo de detalhes
-const mapListLeadToDetailLead = (listLead: ListLead): DetailLead => {
-  return {
-    id: listLead.id,
-    name: listLead.name,
-    company: listLead.company,
-    phone: listLead.phone,
-    salesperson: listLead.assignedTo || "Não atribuído",
-    tags: listLead.tags,
-    value: listLead.value || 0,
-    date: listLead.createdAt.toLocaleDateString('pt-BR'),
-    activities: false, // Este campo não existe no tipo ListLead, então definimos um padrão
-    utms: listLead.utms, // Mapeia os dados UTM
-    // O campo 'priority' também não existe, então será omitido
-  };
-};
 
 export default function Leads() {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -33,13 +14,9 @@ export default function Leads() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [activeSegment, setActiveSegment] = useState("all");
 
-  const [selectedLead, setSelectedLead] = useState<DetailLead | null>(null);
-  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
-
   const handleLeadClick = (lead: ListLead) => {
-    const detailLead = mapListLeadToDetailLead(lead);
-    setSelectedLead(detailLead);
-    setIsDetailDialogOpen(true);
+    // A funcionalidade de detalhe foi removida por enquanto.
+    console.log("Lead clicado:", lead);
   };
 
   return (
@@ -127,12 +104,6 @@ export default function Leads() {
         <LeadImportDialog 
           open={importDialogOpen} 
           onOpenChange={setImportDialogOpen} 
-        />
-
-        <LeadDetailDialog
-          lead={selectedLead}
-          open={isDetailDialogOpen}
-          onOpenChange={setIsDetailDialogOpen}
         />
       </div>
     </div>
