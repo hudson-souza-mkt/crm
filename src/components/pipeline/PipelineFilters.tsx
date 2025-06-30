@@ -16,19 +16,20 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
-export function LeadFilters() {
+export function PipelineFilters() {
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
-  const [lastPurchaseStart, setLastPurchaseStart] = useState<Date | undefined>(undefined);
-  const [lastPurchaseEnd, setLastPurchaseEnd] = useState<Date | undefined>(undefined);
+  const [minValue, setMinValue] = useState<string>("");
+  const [maxValue, setMaxValue] = useState<string>("");
   
   const handleReset = () => {
     // Reset all filters
     setStartDate(undefined);
     setEndDate(undefined);
-    setLastPurchaseStart(undefined);
-    setLastPurchaseEnd(undefined);
+    setMinValue("");
+    setMaxValue("");
   };
   
   return (
@@ -38,7 +39,7 @@ export function LeadFilters() {
       <div className="space-y-1 max-h-[calc(100vh-200px)] overflow-y-auto pr-2">
         <FilterSection title="Tags">
           <div className="space-y-2">
-            {["Potencial", "Fidelizado", "Alto valor", "Médio porte", "Consultoria"].map((tag) => (
+            {["Potencial", "Urgente", "Alto valor", "Desconto aplicado", "VIP"].map((tag) => (
               <div key={tag} className="flex items-center space-x-2">
                 <Checkbox id={`tag-${tag}`} />
                 <Label htmlFor={`tag-${tag}`} className="text-sm font-normal cursor-pointer">
@@ -86,29 +87,29 @@ export function LeadFilters() {
         <FilterSection title="Negócios">
           <div className="space-y-2">
             <div>
-              <Label htmlFor="funil" className="text-xs">Funil</Label>
+              <Label htmlFor="tipo" className="text-xs">Tipo de negócio</Label>
               <Select>
-                <SelectTrigger id="funil" className="h-8 text-xs">
+                <SelectTrigger id="tipo" className="h-8 text-xs">
                   <SelectValue placeholder="Selecione" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="aquisicao">Aquisição e Qualificação</SelectItem>
-                  <SelectItem value="vendas">Funil de Vendas</SelectItem>
-                  <SelectItem value="onboarding">Onboarding</SelectItem>
+                  <SelectItem value="novo">Novo cliente</SelectItem>
+                  <SelectItem value="renovacao">Renovação</SelectItem>
+                  <SelectItem value="upgrade">Upgrade</SelectItem>
+                  <SelectItem value="adicional">Venda adicional</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label htmlFor="estagio" className="text-xs">Estágio</Label>
+              <Label htmlFor="prioridade" className="text-xs">Prioridade</Label>
               <Select>
-                <SelectTrigger id="estagio" className="h-8 text-xs">
+                <SelectTrigger id="prioridade" className="h-8 text-xs">
                   <SelectValue placeholder="Selecione" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="novo">Novo Lead</SelectItem>
-                  <SelectItem value="qualificado">Qualificado</SelectItem>
-                  <SelectItem value="proposta">Proposta</SelectItem>
-                  <SelectItem value="fechado">Fechado</SelectItem>
+                  <SelectItem value="alta">Alta</SelectItem>
+                  <SelectItem value="media">Média</SelectItem>
+                  <SelectItem value="baixa">Baixa</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -117,7 +118,7 @@ export function LeadFilters() {
         
         <FilterSection title="Listas">
           <div className="space-y-2">
-            {["Newsletter", "Webinar Jul/23", "Campanha Promocional"].map((lista) => (
+            {["Black Friday", "Promoção de Verão", "Clientes Inativos"].map((lista) => (
               <div key={lista} className="flex items-center space-x-2">
                 <Checkbox id={`lista-${lista}`} />
                 <Label htmlFor={`lista-${lista}`} className="text-sm font-normal cursor-pointer">
@@ -156,7 +157,7 @@ export function LeadFilters() {
         
         <FilterSection title="Origem">
           <div className="space-y-2">
-            {["Chat", "Manual", "Importação", "Sistema Externo"].map((origem) => (
+            {["Chat", "Indicação", "Site", "Ligação"].map((origem) => (
               <div key={origem} className="flex items-center space-x-2">
                 <Checkbox id={`origem-${origem}`} />
                 <Label htmlFor={`origem-${origem}`} className="text-sm font-normal cursor-pointer">
@@ -170,28 +171,30 @@ export function LeadFilters() {
         <FilterSection title="Campos adicionais">
           <div className="space-y-2">
             <div>
-              <Label htmlFor="segmento" className="text-xs">Segmento</Label>
+              <Label htmlFor="desconto" className="text-xs">Desconto aplicado</Label>
               <Select>
-                <SelectTrigger id="segmento" className="h-8 text-xs">
+                <SelectTrigger id="desconto" className="h-8 text-xs">
                   <SelectValue placeholder="Selecione" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="b2b">B2B</SelectItem>
-                  <SelectItem value="b2c">B2C</SelectItem>
-                  <SelectItem value="governo">Governo</SelectItem>
+                  <SelectItem value="sem">Sem desconto</SelectItem>
+                  <SelectItem value="ate10">Até 10%</SelectItem>
+                  <SelectItem value="ate20">Até 20%</SelectItem>
+                  <SelectItem value="mais20">Mais de 20%</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label htmlFor="tamanho" className="text-xs">Tamanho da empresa</Label>
+              <Label htmlFor="metodo" className="text-xs">Método de pagamento</Label>
               <Select>
-                <SelectTrigger id="tamanho" className="h-8 text-xs">
+                <SelectTrigger id="metodo" className="h-8 text-xs">
                   <SelectValue placeholder="Selecione" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pequena">Pequena (1-50)</SelectItem>
-                  <SelectItem value="media">Média (51-200)</SelectItem>
-                  <SelectItem value="grande">Grande (201+)</SelectItem>
+                  <SelectItem value="cartao">Cartão de crédito</SelectItem>
+                  <SelectItem value="boleto">Boleto</SelectItem>
+                  <SelectItem value="pix">PIX</SelectItem>
+                  <SelectItem value="transferencia">Transferência</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -255,78 +258,44 @@ export function LeadFilters() {
         
         <FilterSection title="Última compra">
           <div className="space-y-2">
-            <div>
-              <Label className="text-xs">De</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={"outline"}
-                    className={cn(
-                      "w-full justify-start text-left h-8 text-xs font-normal",
-                      !lastPurchaseStart && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-3 w-3" />
-                    {lastPurchaseStart ? format(lastPurchaseStart, "dd/MM/yyyy") : "Selecione uma data"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={lastPurchaseStart}
-                    onSelect={setLastPurchaseStart}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+            <div className="flex items-center space-x-2">
+              <Checkbox id="has-previous-purchase" />
+              <Label htmlFor="has-previous-purchase" className="text-sm font-normal cursor-pointer">
+                Cliente já realizou compra anterior
+              </Label>
             </div>
-            <div>
-              <Label className="text-xs">Até</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={"outline"}
-                    className={cn(
-                      "w-full justify-start text-left h-8 text-xs font-normal",
-                      !lastPurchaseEnd && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-3 w-3" />
-                    {lastPurchaseEnd ? format(lastPurchaseEnd, "dd/MM/yyyy") : "Selecione uma data"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={lastPurchaseEnd}
-                    onSelect={setLastPurchaseEnd}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+            <div className="flex items-center space-x-2">
+              <Checkbox id="first-purchase" />
+              <Label htmlFor="first-purchase" className="text-sm font-normal cursor-pointer">
+                Primeira compra
+              </Label>
             </div>
           </div>
         </FilterSection>
         
-        <FilterSection title="Quantidade de negócios">
+        <FilterSection title="Valor do negócio">
           <div className="space-y-2">
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <Label htmlFor="min-deals" className="text-xs">Mínimo</Label>
+                <Label htmlFor="min-value" className="text-xs">Valor mínimo</Label>
                 <Input 
-                  id="min-deals" 
+                  id="min-value" 
                   type="number" 
                   className="h-8 text-xs" 
-                  placeholder="0" 
+                  placeholder="R$ 0,00"
+                  value={minValue}
+                  onChange={(e) => setMinValue(e.target.value)}
                 />
               </div>
               <div>
-                <Label htmlFor="max-deals" className="text-xs">Máximo</Label>
+                <Label htmlFor="max-value" className="text-xs">Valor máximo</Label>
                 <Input 
-                  id="max-deals" 
+                  id="max-value" 
                   type="number" 
                   className="h-8 text-xs" 
-                  placeholder="100" 
+                  placeholder="R$ 10.000,00"
+                  value={maxValue}
+                  onChange={(e) => setMaxValue(e.target.value)}
                 />
               </div>
             </div>
