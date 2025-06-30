@@ -13,7 +13,7 @@ export default function Pipelines() {
   const [pipelineMenuCollapsed, setPipelineMenuCollapsed] = useState(false);
   
   // Mapeamento de nomes de pipelines (em um app real, isso viria de uma API)
-  const pipelineNames = {
+  const pipelineNames: Record<string, string> = {
     "pipeline1": "Funil de Qualificação",
     "pipeline2": "Funil de Conversão",
     "pipeline3": "Produtos Digitais",
