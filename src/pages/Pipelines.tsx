@@ -73,7 +73,7 @@ export default function Pipelines() {
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-4">
             <h1 className="text-2xl font-bold">{pipelineNames[activePipelineId] || "Pipeline"}</h1>
-            <SetupButton pipelineId={activePipelineId} />
+            <SetupButton />
           </div>
           <div className="flex gap-2">
             <Select value={sortOption} onValueChange={setSortOption}>
@@ -113,7 +113,7 @@ export default function Pipelines() {
           </div>
         )}
         
-        <KanbanBoard pipelineId={activePipelineId} />
+        <KanbanBoard />
       </div>
     </div>
   );

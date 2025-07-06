@@ -1,6 +1,4 @@
-import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +12,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -32,7 +31,6 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Skeleton } from "@/components/ui/skeleton";
 
 type FieldType = "short_text" | "long_text" | "select" | "tags" | "rating" | "number";
 
@@ -40,10 +38,47 @@ interface CustomField {
   id: string;
   name: string;
   type: FieldType;
-  options?: string[];
-  applies_to: "lead" | "deal" | "both";
-  user_id: string;
+  showOnLead: boolean;
+  showOnDeal: boolean;
+  options?: string[]; // Para campos do tipo select ou tags
+  required?: boolean;
 }
+
+const initialFields: CustomField[] = [
+  {
+    id: "1",
+    name: "Cargo",
+    type: "short_text",
+    showOnLead: true,
+    showOnDeal: false,
+    required: false,
+  },
+  {
+    id: "2",
+    name: "Observações",
+    type: "long_text",
+    showOnLead: true,
+    showOnDeal: true,
+    required: false,
+  },
+  {
+    id: "3",
+    name: "Origem",
+    type: "select",
+    showOnLead: true,
+    showOnDeal: true,
+    options: ["Site", "Indicação", "Google", "Facebook", "Instagram"],
+    required: true,
+  },
+  {
+    id: "4",
+    name: "Avaliação",
+    type: "rating",
+    showOnLead: false,
+    showOnDeal: true,
+    required: false,
+  },
+];
 
 const fieldTypeLabels: Record<FieldType, string> = {
   short_text: "Texto curto",
@@ -54,25 +89,8 @@ const fieldTypeLabels: Record<FieldType, string> = {
   number: "Número"
 };
 
-const fetchCustomFields = async (): Promise<CustomField[]> => {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Usuário não autenticado");
-
-  const { data, error } = await supabase
-    .from("custom_fields")
-    .select("*")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: true });
-
-  if (error) throw error;
-  return data.map(field => ({
-    ...field,
-    options: Array.isArray(field.options) ? field.options : [],
-  }));
-};
-
 export function CustomFieldsSettings() {
-  const queryClient = useQueryClient();
+  const [fields, setFields] = useState<CustomField[]>(initialFields);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingField, setEditingField] = useState<CustomField | null>(null);
 
@@ -81,64 +99,15 @@ export function CustomFieldsSettings() {
   const [fieldType, setFieldType] = useState<FieldType>("short_text");
   const [showOnLead, setShowOnLead] = useState(true);
   const [showOnDeal, setShowOnDeal] = useState(false);
+  const [isRequired, setIsRequired] = useState(false);
   const [fieldOptions, setFieldOptions] = useState("");
-
-  const { data: fields = [], isLoading } = useQuery<CustomField[]>({
-    queryKey: ["customFields"],
-    queryFn: fetchCustomFields,
-  });
-
-  const saveFieldMutation = useMutation({
-    mutationFn: async (fieldData: Partial<CustomField> & { name: string, type: FieldType, applies_to: string }) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuário não autenticado");
-
-      const payload = {
-        name: fieldData.name,
-        type: fieldData.type,
-        applies_to: fieldData.applies_to,
-        options: fieldData.options,
-        user_id: user.id,
-      };
-
-      if (fieldData.id) {
-        const { error } = await supabase.from("custom_fields").update(payload).eq("id", fieldData.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from("custom_fields").insert(payload);
-        if (error) throw error;
-      }
-    },
-    onSuccess: () => {
-      toast.success(`Campo ${editingField ? 'atualizado' : 'criado'} com sucesso!`);
-      queryClient.invalidateQueries({ queryKey: ["customFields"] });
-      setIsDialogOpen(false);
-      resetForm();
-    },
-    onError: (error: any) => {
-      toast.error(`Falha ao salvar campo: ${error.message}`);
-    }
-  });
-
-  const deleteFieldMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("custom_fields").delete().eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Campo excluído com sucesso!");
-      queryClient.invalidateQueries({ queryKey: ["customFields"] });
-    },
-    onError: (error: any) => {
-      toast.error(`Falha ao excluir campo: ${error.message}`);
-    }
-  });
 
   const resetForm = () => {
     setFieldName("");
     setFieldType("short_text");
     setShowOnLead(true);
     setShowOnDeal(false);
+    setIsRequired(false);
     setFieldOptions("");
     setEditingField(null);
   };
@@ -152,8 +121,9 @@ export function CustomFieldsSettings() {
     setEditingField(field);
     setFieldName(field.name);
     setFieldType(field.type);
-    setShowOnLead(field.applies_to === 'lead' || field.applies_to === 'both');
-    setShowOnDeal(field.applies_to === 'deal' || field.applies_to === 'both');
+    setShowOnLead(field.showOnLead);
+    setShowOnDeal(field.showOnDeal);
+    setIsRequired(field.required || false);
     setFieldOptions(field.options?.join(", ") || "");
     setIsDialogOpen(true);
   };
@@ -173,17 +143,31 @@ export function CustomFieldsSettings() {
       return;
     }
 
-    let applies_to = 'lead';
-    if (showOnLead && showOnDeal) applies_to = 'both';
-    else if (showOnDeal) applies_to = 'deal';
-
-    saveFieldMutation.mutate({
-      id: editingField?.id,
+    const newField: CustomField = {
+      id: editingField ? editingField.id : Date.now().toString(),
       name: fieldName,
       type: fieldType,
-      applies_to,
+      showOnLead,
+      showOnDeal,
       options,
-    });
+      required: isRequired
+    };
+
+    if (editingField) {
+      setFields(fields.map(f => f.id === editingField.id ? newField : f));
+      toast.success("Campo atualizado com sucesso!");
+    } else {
+      setFields([...fields, newField]);
+      toast.success("Campo criado com sucesso!");
+    }
+
+    setIsDialogOpen(false);
+    resetForm();
+  };
+
+  const handleDeleteField = (id: string) => {
+    setFields(fields.filter(f => f.id !== id));
+    toast.success("Campo excluído com sucesso!");
   };
 
   return (
@@ -211,56 +195,49 @@ export function CustomFieldsSettings() {
               <TableHead>Nome do Campo</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead>Visibilidade</TableHead>
+              <TableHead>Obrigatório</TableHead>
               <TableHead className="w-[100px]">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading ? (
-              [...Array(3)].map((_, i) => (
-                <TableRow key={i}>
-                  <TableCell colSpan={5}><Skeleton className="h-10 w-full" /></TableCell>
-                </TableRow>
-              ))
-            ) : (
-              fields.map((field) => (
-                <TableRow key={field.id}>
-                  <TableCell>
-                    <Move className="h-4 w-4 text-muted-foreground cursor-move" />
-                  </TableCell>
-                  <TableCell className="font-medium">{field.name}</TableCell>
-                  <TableCell>{fieldTypeLabels[field.type]}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      {(field.applies_to === 'lead' || field.applies_to === 'both') && <Badge variant="outline">Lead</Badge>}
-                      {(field.applies_to === 'deal' || field.applies_to === 'both') && <Badge variant="outline">Negócio</Badge>}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => openEditFieldDialog(field)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => deleteFieldMutation.mutate(field.id)}
-                        className="text-destructive hover:text-destructive/90"
-                        disabled={deleteFieldMutation.isPending}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-            {fields.length === 0 && !isLoading && (
+            {fields.map((field) => (
+              <TableRow key={field.id}>
+                <TableCell>
+                  <Move className="h-4 w-4 text-muted-foreground cursor-move" />
+                </TableCell>
+                <TableCell className="font-medium">{field.name}</TableCell>
+                <TableCell>{fieldTypeLabels[field.type]}</TableCell>
+                <TableCell>
+                  <div className="flex gap-2">
+                    {field.showOnLead && <Badge variant="outline">Lead</Badge>}
+                    {field.showOnDeal && <Badge variant="outline">Negócio</Badge>}
+                  </div>
+                </TableCell>
+                <TableCell>{field.required ? "Sim" : "Não"}</TableCell>
+                <TableCell>
+                  <div className="flex space-x-2">
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => openEditFieldDialog(field)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => handleDeleteField(field.id)}
+                      className="text-destructive hover:text-destructive/90"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+            {fields.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
+                <TableCell colSpan={6} className="text-center py-6 text-muted-foreground">
                   Nenhum campo adicional criado.
                 </TableCell>
               </TableRow>
@@ -359,14 +336,30 @@ export function CustomFieldsSettings() {
                 </div>
               </div>
             </div>
+
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">Obrigatório</Label>
+              <div className="col-span-3">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="is-required"
+                    checked={isRequired}
+                    onCheckedChange={(checked) => setIsRequired(checked as boolean)}
+                  />
+                  <Label htmlFor="is-required" className="font-normal cursor-pointer">
+                    Campo obrigatório
+                  </Label>
+                </div>
+              </div>
+            </div>
           </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleSaveField} disabled={saveFieldMutation.isPending}>
-              {saveFieldMutation.isPending ? "Salvando..." : (editingField ? "Salvar alterações" : "Criar campo")}
+            <Button onClick={handleSaveField}>
+              {editingField ? "Salvar alterações" : "Criar campo"}
             </Button>
           </DialogFooter>
         </DialogContent>

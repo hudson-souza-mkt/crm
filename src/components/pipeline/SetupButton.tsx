@@ -4,22 +4,13 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { RefreshCw } from "lucide-react";
 
-interface SetupButtonProps {
-  pipelineId: string;
-}
-
-export function SetupButton({ pipelineId }: SetupButtonProps) {
+export function SetupButton() {
   const [loading, setLoading] = useState(false);
   
   const handleSetup = async () => {
-    if (!pipelineId) {
-      toast.error("Selecione um pipeline antes de configurar.");
-      return;
-    }
-
     setLoading(true);
     try {
-      const result = await setupDefaultPipeline(pipelineId);
+      const result = await setupDefaultPipeline();
       if (result.success) {
         toast.success("Pipeline configurado com sucesso! Recarregando a página...");
         // Recarregar a página para mostrar as novas etapas

@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export const DEFAULT_PIPELINE_STAGES = [
   { name: "Novo Lead", color: "blue", order: 0 },
@@ -7,49 +8,49 @@ export const DEFAULT_PIPELINE_STAGES = [
   { name: "Proposta", color: "indigo", order: 3 },
   { name: "Negociação", color: "pink", order: 4 },
   { name: "Ganho", color: "green", order: 5 },
-  { name: "Perdido", color: "red", order: 6 },
+  { name: "Perdido", color: "red", order: 6 }
 ];
 
-/**
- * Configura (ou reconfigura) as etapas padrão para um pipeline específico.
- * @param pipelineId O ID do pipeline a ser configurado.
- */
-export async function setupDefaultPipeline(pipelineId: string) {
-  if (!pipelineId) {
-    return { success: false, error: new Error("ID do pipeline é obrigatório.") };
-  }
-
+export async function setupDefaultPipeline() {
   try {
-    // 1. Limpa as etapas existentes para este pipeline para evitar duplicatas
-    const { error: deleteError } = await supabase
+    // Primeiro verificamos se já existem etapas
+    const { data: existingStages, error: checkError } = await supabase
       .from("pipeline_stages")
-      .delete()
-      .eq("pipeline_id", pipelineId);
-
-    if (deleteError) {
-      console.error("Erro ao limpar etapas existentes:", deleteError);
-      return { success: false, error: deleteError };
+      .select("id")
+      .limit(1);
+      
+    if (checkError) {
+      console.error("Erro ao verificar etapas existentes:", checkError);
+      return { success: false, error: checkError };
     }
-
-    // 2. Prepara as novas etapas com o ID do pipeline
-    const stagesToInsert = DEFAULT_PIPELINE_STAGES.map(stage => ({
-      ...stage,
-      pipeline_id: pipelineId,
-    }));
-
-    // 3. Insere as novas etapas padrão
+    
+    // Se já existem etapas, perguntamos se o usuário quer reconfigurar
+    if (existingStages && existingStages.length > 0) {
+      // Limpar etapas existentes
+      const { error: deleteError } = await supabase
+        .from("pipeline_stages")
+        .delete()
+        .neq("id", "00000000-0000-0000-0000-000000000000"); // Hack para excluir todas
+      
+      if (deleteError) {
+        console.error("Erro ao excluir etapas existentes:", deleteError);
+        return { success: false, error: deleteError };
+      }
+    }
+    
+    // Inserir novas etapas
     const { error: insertError } = await supabase
       .from("pipeline_stages")
-      .insert(stagesToInsert);
-
+      .insert(DEFAULT_PIPELINE_STAGES);
+    
     if (insertError) {
       console.error("Erro ao inserir etapas padrão:", insertError);
       return { success: false, error: insertError };
     }
-
+    
     return { success: true };
   } catch (error) {
-    console.error("Erro inesperado ao configurar pipeline:", error);
+    console.error("Erro ao configurar pipeline:", error);
     return { success: false, error };
   }
 }
