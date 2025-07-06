@@ -1,72 +1,17 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { KanbanColumn } from "./KanbanColumn";
 import type { Lead } from "./PipelineCard";
 import { Button } from "@/components/ui/button";
-import { Plus, FileBarChart } from "lucide-react";
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { LeadDetailDialog } from "./LeadDetailDialog";
 import { supabase } from "@/integrations/supabase/client";
-import { StageTransitionDialog } from "./StageTransitionDialog";
-import { LeadFormDialog } from "@/components/leads/LeadFormDialog";
 import { DndContext, DragOverlay, closestCorners, useSensor, useSensors, PointerSensor, DragStartEvent, DragOverEvent, DragEndEvent } from '@dnd-kit/core';
 import { PipelineCard } from "./PipelineCard";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-
-export type StageColor = "blue" | "purple" | "amber" | "green" | "red" | "pink" | "indigo" | "cyan" | "gray";
-
-// Interface para etapa de pipeline
-interface Stage {
-  id: string;
-  name: string;
-  order: number;
-  color: StageColor;
-  pipeline_id: string;
-}
-
-// Interface para Negócio (Deal)
-interface Deal {
-  id: string;
-  name: string;
-  value: number;
-  pipeline_stage_id: string;
-  user_id: string;
-  created_at: string;
-  lead_id: string;
-  leads: { // Dados da tabela 'leads'
-    name: string;
-    company: string | null;
-  } | null;
-}
-
-interface KanbanBoardProps {
-  pipelineId: string;
-}
-
-// Função para buscar etapas do pipeline
-const fetchStages = async (pipelineId: string): Promise<Stage[]> => {
-  const { data, error } = await supabase
-    .from("pipeline_stages")
-    .select("*")
-    .eq("pipeline_id", pipelineId)
-    .order("order", { ascending: true });
-  if (error) throw new Error(error.message);
-  return data as Stage[];
-};
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { usePipelineStages } from "@/hooks/use-pipeline-stages";
+import { Deal } from "@/types/pipeline";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Função para buscar negócios (deals)
 const fetchDeals = async (pipelineId: string): Promise<Deal[]> => {
@@ -78,24 +23,21 @@ const fetchDeals = async (pipelineId: string): Promise<Deal[]> => {
   return data as Deal[];
 };
 
+interface KanbanBoardProps {
+  pipelineId: string;
+}
+
 export function KanbanBoard({ pipelineId }: KanbanBoardProps) {
   const queryClient = useQueryClient();
 
   // Estados do componente
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
-  const [isNewLeadDialogOpen, setIsNewLeadDialogOpen] = useState(false);
-  const [activeNewLeadStage, setActiveNewLeadStage] = useState<string | null>(null);
   const [draggedDeal, setDraggedDeal] = useState<Deal | null>(null);
   const [targetStageId, setTargetStageId] = useState<string | null>(null);
-  const [isTransitionDialogOpen, setIsTransitionDialogOpen] = useState(false);
 
   // Buscando dados com React Query
-  const { data: stages = [], isLoading: isLoadingStages } = useQuery<Stage[]>({
-    queryKey: ["pipelineStages", pipelineId],
-    queryFn: () => fetchStages(pipelineId),
-    enabled: !!pipelineId,
-  });
+  const { data: stages = [], isLoading: isLoadingStages } = usePipelineStages(pipelineId);
 
   const { data: deals = [], isLoading: isLoadingDeals } = useQuery<Deal[]>({
     queryKey: ["deals", pipelineId],
@@ -108,7 +50,7 @@ export function KanbanBoard({ pipelineId }: KanbanBoardProps) {
     mutationFn: async ({ dealId, newStageId }: { dealId: string, newStageId: string }) => {
       const { error } = await supabase
         .from("deals")
-        .update({ pipeline_stage_id: newStageId })
+        .update({ pipeline_stage_id: newStageId, updated_at: new Date().toISOString() })
         .eq("id", dealId);
       if (error) throw new Error(error.message);
     },
@@ -139,17 +81,17 @@ export function KanbanBoard({ pipelineId }: KanbanBoardProps) {
   );
 
   const handleCardClick = (deal: Deal) => {
-    // Mapeia o Deal para o tipo Lead esperado pelo diálogo
     const leadForDialog: Lead = {
       id: deal.id,
       name: deal.leads?.name || deal.name,
       company: deal.leads?.company,
-      phone: "N/A", // Este dado viria de um join mais completo
+      phone: "N/A",
       salesperson: "N/A",
       tags: [],
       value: deal.value,
       date: new Date(deal.created_at).toLocaleDateString(),
       activities: false,
+      stageUpdatedAt: deal.updated_at,
     };
     setSelectedLead(leadForDialog);
     setIsDetailDialogOpen(true);
@@ -157,7 +99,9 @@ export function KanbanBoard({ pipelineId }: KanbanBoardProps) {
 
   const handleDragStart = (event: DragStartEvent) => {
     if (event.active.data.current?.type === 'lead') {
-      setDraggedDeal(event.active.data.current.lead as Deal);
+      const dealId = event.active.id;
+      const deal = deals.find(d => d.id === dealId);
+      if (deal) setDraggedDeal(deal);
     }
   };
 
@@ -165,17 +109,20 @@ export function KanbanBoard({ pipelineId }: KanbanBoardProps) {
     const { over } = event;
     if (over?.data.current?.type === 'column') {
       setTargetStageId(over.id as string);
+    } else {
+      setTargetStageId(null);
     }
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    const { over } = event;
+    const { active, over } = event;
+    
+    if (draggedDeal && over && over.id && draggedDeal.pipeline_stage_id !== over.id) {
+      updateDealStageMutation.mutate({ dealId: draggedDeal.id, newStageId: over.id as string });
+    }
+    
     setDraggedDeal(null);
     setTargetStageId(null);
-
-    if (over && draggedDeal && targetStageId && draggedDeal.pipeline_stage_id !== targetStageId) {
-      updateDealStageMutation.mutate({ dealId: draggedDeal.id, newStageId: targetStageId });
-    }
   };
   
   const mapDealToLead = (deal: Deal): Lead => ({
@@ -188,10 +135,21 @@ export function KanbanBoard({ pipelineId }: KanbanBoardProps) {
     phone: "Não definido",
     tags: [],
     activities: false,
+    stageUpdatedAt: deal.updated_at,
   });
 
-  if (isLoadingStages || isLoadingDeals) {
-    return <div className="flex items-center justify-center h-full"><p>Carregando pipeline...</p></div>;
+  if (isLoadingStages) {
+    return (
+      <div className="flex overflow-x-auto pb-6 gap-5">
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="flex-shrink-0 w-80 space-y-2">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+          </div>
+        ))}
+      </div>
+    );
   }
 
   return (
@@ -209,13 +167,13 @@ export function KanbanBoard({ pipelineId }: KanbanBoardProps) {
               key={stage.id} 
               id={stage.id}
               title={stage.name} 
-              leads={dealsByStage[stage.id]?.map(mapDealToLead) || []}
+              leads={(dealsByStage[stage.id] || []).map(mapDealToLead)}
               totalValue={(dealsByStage[stage.id] || []).reduce((sum, deal) => sum + deal.value, 0)}
               count={(dealsByStage[stage.id] || []).length}
               color={stage.color}
-              onColorChange={() => {}} // Implementar mutação de cor
+              onColorChange={() => {}}
               onCardClick={(lead) => handleCardClick(deals.find(d => d.id === lead.id)!)}
-              onAddClick={() => {}} // Implementar criação de negócio
+              onAddClick={() => {}}
             />
           ))}
           <div className="flex-shrink-0 w-80 h-16 flex items-center justify-center">
@@ -229,7 +187,7 @@ export function KanbanBoard({ pipelineId }: KanbanBoardProps) {
         <DragOverlay>
           {draggedDeal ? (
             <div className="w-80">
-              <PipelineCard lead={mapDealToLead(draggedDeal)} onCardClick={() => {}} />
+              <PipelineCard lead={mapDealToLead(draggedDeal)} onCardClick={() => {}} isDragging />
             </div>
           ) : null}
         </DragOverlay>
