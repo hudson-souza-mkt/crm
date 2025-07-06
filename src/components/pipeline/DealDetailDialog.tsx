@@ -42,8 +42,8 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Deal } from "@/types/pipeline"; // Importando o tipo Deal
 
-interface LeadDetailDialogProps {
-  deal: Deal | null; // Alterado de 'lead' para 'deal'
+interface DealDetailDialogProps {
+  deal: Deal | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -112,7 +112,7 @@ const InfoField = ({ label, value, placeholder, link }: { label: string, value?:
   </div>
 );
 
-export function LeadDetailDialog({ deal, open, onOpenChange }: LeadDetailDialogProps) {
+export function DealDetailDialog({ deal, open, onOpenChange }: DealDetailDialogProps) {
   const [currentStage, setCurrentStage] = useState("Perdido");
   
   if (!deal) return null;
