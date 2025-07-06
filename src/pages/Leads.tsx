@@ -7,25 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Upload, Filter, Users, UserPlus, UserCheck, DollarSign, Calendar } from "lucide-react";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { LeadDetailDialog } from "@/components/pipeline/LeadDetailDialog";
-import { Lead as ListLead } from "@/types/lead";
-import { Lead as DetailLead } from "@/components/pipeline/PipelineCard";
-
-// Função para mapear o tipo de lead da lista para o tipo de lead do diálogo de detalhes
-const mapListLeadToDetailLead = (listLead: ListLead): DetailLead => {
-  return {
-    id: listLead.id,
-    name: listLead.name,
-    company: listLead.company,
-    phone: listLead.phone,
-    salesperson: listLead.assignedTo || "Não atribuído",
-    tags: listLead.tags,
-    value: listLead.value || 0,
-    date: listLead.createdAt.toLocaleDateString('pt-BR'),
-    activities: false, // Este campo não existe no tipo ListLead, então definimos um padrão
-    utms: listLead.utms, // Mapeia os dados UTM
-    // O campo 'priority' também não existe, então será omitido
-  };
-};
+import { Lead } from "@/types/lead";
 
 export default function Leads() {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -33,12 +15,11 @@ export default function Leads() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [activeSegment, setActiveSegment] = useState("all");
 
-  const [selectedLead, setSelectedLead] = useState<DetailLead | null>(null);
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
 
-  const handleLeadClick = (lead: ListLead) => {
-    const detailLead = mapListLeadToDetailLead(lead);
-    setSelectedLead(detailLead);
+  const handleLeadClick = (lead: Lead) => {
+    setSelectedLead(lead);
     setIsDetailDialogOpen(true);
   };
 
