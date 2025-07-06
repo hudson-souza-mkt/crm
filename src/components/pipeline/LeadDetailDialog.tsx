@@ -3,9 +3,6 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogClose,
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -40,13 +37,13 @@ import {
   Send,
   Smile,
 } from "lucide-react";
-import type { Lead } from "./PipelineCard";
 import { ChatMessage } from "@/components/chat/ChatMessage";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { Deal } from "@/types/pipeline"; // Importando o tipo Deal
 
 interface LeadDetailDialogProps {
-  lead: Lead | null;
+  deal: Deal | null; // Alterado de 'lead' para 'deal'
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -54,23 +51,8 @@ interface LeadDetailDialogProps {
 const historyMock = [
   {
     type: "tag_add",
-    content: 'Tag "Morno" adicionada ao lead.',
-    date: "27/06/2025 14:46",
-  },
-  {
-    type: "tag_add",
     content: 'Tag "Quente" adicionada ao lead.',
     date: "26/06/2025 16:30",
-  },
-  {
-    type: "tag_remove",
-    content: 'Tag "Morno" removida do lead.',
-    date: "26/06/2025 16:30",
-  },
-  {
-    type: "tag_add",
-    content: 'Tag "Morno" adicionada ao lead.',
-    date: "25/06/2025 11:30",
   },
   {
     type: "lead_update",
@@ -81,8 +63,7 @@ const historyMock = [
 
 const chatMessagesMock = [
     { isOutgoing: false, message: "Olá! Gostaria de saber mais sobre seus produtos.", time: "10:25" },
-    { isOutgoing: true, message: "Olá João! Claro, ficarei feliz em ajudar. Que tipo de produto você está procurando?", time: "10:26" },
-    { isOutgoing: false, message: "Estou interessado em soluções para automação de vendas.", time: "10:28" },
+    { isOutgoing: true, message: "Olá! Claro, ficarei feliz em ajudar.", time: "10:26" },
 ];
 
 const TimelineItem = ({ icon, children, isLast = false }: { icon: React.ReactNode, children: React.ReactNode, isLast?: boolean }) => (
@@ -113,7 +94,7 @@ const getIconForHistory = (type: string) => {
   }
 };
 
-const InfoField = ({ label, value, placeholder, link }: { label: string, value?: string, placeholder: string, link?: string }) => (
+const InfoField = ({ label, value, placeholder, link }: { label: string, value?: string | null, placeholder: string, link?: string }) => (
   <div>
     <p className="text-xs font-medium text-gray-500 mb-1">{label}</p>
     {value ? (
@@ -131,10 +112,13 @@ const InfoField = ({ label, value, placeholder, link }: { label: string, value?:
   </div>
 );
 
-export function LeadDetailDialog({ lead, open, onOpenChange }: LeadDetailDialogProps) {
+export function LeadDetailDialog({ deal, open, onOpenChange }: LeadDetailDialogProps) {
   const [currentStage, setCurrentStage] = useState("Perdido");
   
-  if (!lead) return null;
+  if (!deal) return null;
+
+  const leadName = deal.leads?.name || deal.name;
+  const leadCompany = deal.leads?.company;
 
   const stages = ["Novo Lead", "Qualificação", "Conversando", "Proposta", "Ganho", "Perdido"];
 
@@ -164,15 +148,15 @@ export function LeadDetailDialog({ lead, open, onOpenChange }: LeadDetailDialogP
               <div className="relative w-24 h-24 mx-auto">
                 <Avatar className="h-24 w-24 border-4 border-white shadow-md">
                   <AvatarFallback className="text-4xl bg-primary text-primary-foreground">
-                    {lead.name.charAt(0)}
+                    {leadName.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
                 <Button size="icon" className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full">
                   <Edit className="h-4 w-4" />
                 </Button>
               </div>
-              <h2 className="text-xl font-bold text-center mt-4">{lead.name}</h2>
-              <p className="text-sm text-muted-foreground text-center">{lead.company || "Marketing Digital"}</p>
+              <h2 className="text-xl font-bold text-center mt-4">{leadName}</h2>
+              <p className="text-sm text-muted-foreground text-center">{leadCompany || "Sem empresa"}</p>
               
               <div className="mt-4 flex gap-2">
                 <Button className="flex-1 bg-green-500 hover:bg-green-600 text-white">
@@ -195,40 +179,29 @@ export function LeadDetailDialog({ lead, open, onOpenChange }: LeadDetailDialogP
               </div>
               <div className="mt-4 flex items-center text-sm text-muted-foreground">
                 <User className="h-4 w-4 mr-2" />
-                <span>{lead.salesperson}</span>
+                <span>Responsável não definido</span>
               </div>
             </div>
 
             <Tabs defaultValue="perfil" className="flex-1 flex flex-col overflow-hidden">
-              <TabsList className="grid w-full grid-cols-4 px-4 flex-shrink-0">
+              <TabsList className="grid w-full grid-cols-3 px-4 flex-shrink-0">
                 <TabsTrigger value="perfil">Perfil</TabsTrigger>
                 <TabsTrigger value="endereco">Endereço</TabsTrigger>
                 <TabsTrigger value="campos">Campos</TabsTrigger>
-                <TabsTrigger value="utms">UTMs</TabsTrigger>
               </TabsList>
               <div className="flex-1 overflow-y-auto p-6">
                 <TabsContent value="perfil" className="space-y-4 mt-0">
-                  <InfoField label="Nome" value={`${lead.name} | Marketing Digital`} placeholder="Informe o nome" />
-                  <InfoField label="Empresa" value={lead.company} placeholder="Informe a empresa do lead" />
-                  <InfoField label="E-mail" value="exemplo@meulead.com" placeholder="Informe o e-mail" />
-                  <InfoField label="Telefone" value={lead.phone} placeholder="Informe o telefone" />
-                  <InfoField label="Instagram" value="hudson_souza_mkt" placeholder="Informe o Instagram" link="https://instagram.com/hudson_souza_mkt" />
-                  <InfoField label="Documento (CPF/CNPJ)" value={lead.document} placeholder="Informe o CPF ou CPNJ" />
-                  <InfoField label="Origem" value="Site" placeholder="Como o lead ficou sabendo?" />
-                  <InfoField label="Site" value="www.meulead.com.br" placeholder="Informe o site" link="https://www.meulead.com.br" />
+                  <InfoField label="Nome" value={leadName} placeholder="Informe o nome" />
+                  <InfoField label="Empresa" value={leadCompany} placeholder="Informe a empresa do lead" />
+                  <InfoField label="E-mail" value={null} placeholder="Informe o e-mail" />
+                  <InfoField label="Telefone" value={null} placeholder="Informe o telefone" />
+                  <InfoField label="Documento (CPF/CNPJ)" value={null} placeholder="Não informado" />
                 </TabsContent>
                 <TabsContent value="endereco" className="mt-0">
                   <p className="text-sm text-muted-foreground text-center py-8">Nenhum endereço informado.</p>
                 </TabsContent>
                 <TabsContent value="campos" className="mt-0">
                   <p className="text-sm text-muted-foreground text-center py-8">Nenhum campo adicional.</p>
-                </TabsContent>
-                <TabsContent value="utms" className="space-y-4 mt-0">
-                  <InfoField label="utm_source" value={lead.utms?.utm_source} placeholder="Não informado" />
-                  <InfoField label="utm_medium" value={lead.utms?.utm_medium} placeholder="Não informado" />
-                  <InfoField label="utm_campaign" value={lead.utms?.utm_campaign} placeholder="Não informado" />
-                  <InfoField label="utm_term" value={lead.utms?.utm_term} placeholder="Não informado" />
-                  <InfoField label="utm_content" value={lead.utms?.utm_content} placeholder="Não informado" />
                 </TabsContent>
               </div>
             </Tabs>
@@ -238,7 +211,10 @@ export function LeadDetailDialog({ lead, open, onOpenChange }: LeadDetailDialogP
           <div className="flex-1 flex flex-col bg-white overflow-hidden">
             <DialogHeader className="p-4 border-b flex-row justify-between items-center flex-shrink-0">
               <div className="flex items-center gap-2">
-                <h3 className="font-semibold">Negócio #3</h3>
+                <h3 className="font-semibold">Negócio #{deal.id.substring(0, 6)}...</h3>
+                <Badge variant="secondary">
+                  R$ {deal.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </Badge>
                 <Select value={currentStage} onValueChange={handleStageChange}>
                   <SelectTrigger className={cn(
                     "w-auto h-auto border-none px-2.5 py-0.5 rounded-md text-xs font-semibold focus:ring-0 focus:ring-offset-0",
@@ -259,10 +235,8 @@ export function LeadDetailDialog({ lead, open, onOpenChange }: LeadDetailDialogP
                 <TabsList>
                   <TabsTrigger value="historico">Histórico</TabsTrigger>
                   <TabsTrigger value="atividades">Atividades</TabsTrigger>
-                  <TabsTrigger value="negocios">Negócios</TabsTrigger>
                   <TabsTrigger value="chat">Chat</TabsTrigger>
                   <TabsTrigger value="arquivos">Arquivos</TabsTrigger>
-                  <TabsTrigger value="info">Informações do Negócio</TabsTrigger>
                 </TabsList>
                 <TabsContent value="historico" className="pt-6">
                   <div className="flex justify-between items-center mb-4">
@@ -271,16 +245,6 @@ export function LeadDetailDialog({ lead, open, onOpenChange }: LeadDetailDialogP
                       <p className="text-sm text-muted-foreground">Veja o histórico do seu lead</p>
                     </div>
                     <div className="flex gap-2">
-                      <Select>
-                        <SelectTrigger className="w-[180px]">
-                          <SelectValue placeholder="Todos os Tipos" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">Todos os Tipos</SelectItem>
-                          <SelectItem value="tags">Tags</SelectItem>
-                          <SelectItem value="updates">Atualizações</SelectItem>
-                        </SelectContent>
-                      </Select>
                       <Button variant="outline">
                         <Plus className="h-4 w-4 mr-2" />
                         Comentário
@@ -300,12 +264,6 @@ export function LeadDetailDialog({ lead, open, onOpenChange }: LeadDetailDialogP
                   <div className="text-center py-12 text-muted-foreground">
                     <Briefcase className="mx-auto h-10 w-10 mb-2" />
                     <p>Nenhuma atividade encontrada.</p>
-                  </div>
-                </TabsContent>
-                <TabsContent value="negocios">
-                  <div className="text-center py-12 text-muted-foreground">
-                    <Briefcase className="mx-auto h-10 w-10 mb-2" />
-                    <p>Nenhum negócio encontrado.</p>
                   </div>
                 </TabsContent>
                 <TabsContent value="chat" className="pt-6">
@@ -339,12 +297,6 @@ export function LeadDetailDialog({ lead, open, onOpenChange }: LeadDetailDialogP
                   <div className="text-center py-12 text-muted-foreground">
                     <FileText className="mx-auto h-10 w-10 mb-2" />
                     <p>Nenhum arquivo encontrado.</p>
-                  </div>
-                </TabsContent>
-                <TabsContent value="info">
-                  <div className="text-center py-12 text-muted-foreground">
-                    <Briefcase className="mx-auto h-10 w-10 mb-2" />
-                    <p>Nenhuma informação do negócio.</p>
                   </div>
                 </TabsContent>
               </Tabs>

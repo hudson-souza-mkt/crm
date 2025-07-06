@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 // Função para buscar negócios (deals)
 const fetchDeals = async (pipelineId: string): Promise<Deal[]> => {
+  if (!pipelineId) return [];
   const { data, error } = await supabase
     .from("deals")
     .select("*, leads(name, company)")
@@ -31,10 +32,9 @@ export function KanbanBoard({ pipelineId }: KanbanBoardProps) {
   const queryClient = useQueryClient();
 
   // Estados do componente
-  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [draggedDeal, setDraggedDeal] = useState<Deal | null>(null);
-  const [targetStageId, setTargetStageId] = useState<string | null>(null);
 
   // Buscando dados com React Query
   const { data: stages = [], isLoading: isLoadingStages } = usePipelineStages(pipelineId);
@@ -81,48 +81,31 @@ export function KanbanBoard({ pipelineId }: KanbanBoardProps) {
   );
 
   const handleCardClick = (deal: Deal) => {
-    const leadForDialog: Lead = {
-      id: deal.id,
-      name: deal.leads?.name || deal.name,
-      company: deal.leads?.company,
-      phone: "N/A",
-      salesperson: "N/A",
-      tags: [],
-      value: deal.value,
-      date: new Date(deal.created_at).toLocaleDateString(),
-      activities: false,
-      stageUpdatedAt: deal.updated_at,
-    };
-    setSelectedLead(leadForDialog);
+    setSelectedDeal(deal);
     setIsDetailDialogOpen(true);
   };
 
   const handleDragStart = (event: DragStartEvent) => {
     if (event.active.data.current?.type === 'lead') {
-      const dealId = event.active.id;
+      const dealId = event.active.id as string;
       const deal = deals.find(d => d.id === dealId);
       if (deal) setDraggedDeal(deal);
     }
   };
 
-  const handleDragOver = (event: DragOverEvent) => {
-    const { over } = event;
-    if (over?.data.current?.type === 'column') {
-      setTargetStageId(over.id as string);
-    } else {
-      setTargetStageId(null);
-    }
-  };
-
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    
-    if (draggedDeal && over && over.id && draggedDeal.pipeline_stage_id !== over.id) {
-      updateDealStageMutation.mutate({ dealId: draggedDeal.id, newStageId: over.id as string });
-    }
-    
     setDraggedDeal(null);
-    setTargetStageId(null);
+
+    if (active && over && active.id !== over.id) {
+      const dealId = active.id as string;
+      const newStageId = over.id as string;
+      const originalStageId = (active.data.current?.lead as Deal)?.pipeline_stage_id;
+
+      if (newStageId !== originalStageId) {
+        updateDealStageMutation.mutate({ dealId, newStageId });
+      }
+    }
   };
   
   const mapDealToLead = (deal: Deal): Lead => ({
@@ -138,12 +121,13 @@ export function KanbanBoard({ pipelineId }: KanbanBoardProps) {
     stageUpdatedAt: deal.updated_at,
   });
 
-  if (isLoadingStages) {
+  if (isLoadingStages || isLoadingDeals) {
     return (
       <div className="flex overflow-x-auto pb-6 gap-5">
         {[...Array(5)].map((_, i) => (
           <div key={i} className="flex-shrink-0 w-80 space-y-2">
             <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-24 w-full" />
             <Skeleton className="h-24 w-full" />
             <Skeleton className="h-24 w-full" />
           </div>
@@ -158,7 +142,6 @@ export function KanbanBoard({ pipelineId }: KanbanBoardProps) {
         sensors={sensors}
         collisionDetection={closestCorners}
         onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
         <div className="flex overflow-x-auto pb-6 gap-5">
@@ -167,7 +150,7 @@ export function KanbanBoard({ pipelineId }: KanbanBoardProps) {
               key={stage.id} 
               id={stage.id}
               title={stage.name} 
-              leads={(dealsByStage[stage.id] || []).map(mapDealToLead)}
+              leads={(dealsByStage[stage.id] || []).map(d => mapDealToLead(d))}
               totalValue={(dealsByStage[stage.id] || []).reduce((sum, deal) => sum + deal.value, 0)}
               count={(dealsByStage[stage.id] || []).length}
               color={stage.color}
@@ -194,7 +177,7 @@ export function KanbanBoard({ pipelineId }: KanbanBoardProps) {
       </DndContext>
       
       <LeadDetailDialog 
-        lead={selectedLead}
+        deal={selectedDeal}
         open={isDetailDialogOpen}
         onOpenChange={setIsDetailDialogOpen}
       />
