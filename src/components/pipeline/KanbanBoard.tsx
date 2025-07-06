@@ -12,17 +12,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { usePipelineStages } from "@/hooks/use-pipeline-stages";
 import { Deal } from "@/types/pipeline";
 import { Skeleton } from "@/components/ui/skeleton";
-
-// Função para buscar negócios (deals)
-const fetchDeals = async (pipelineId: string): Promise<Deal[]> => {
-  if (!pipelineId) return [];
-  const { data, error } = await supabase
-    .from("deals")
-    .select("*, leads(name, company)")
-    .eq("pipeline_id", pipelineId);
-  if (error) throw new Error(error.message);
-  return data as Deal[];
-};
+import { LeadFormDialog } from "@/components/leads/LeadFormDialog"; // Importando o formulário
 
 interface KanbanBoardProps {
   pipelineId: string;
@@ -34,6 +24,8 @@ export function KanbanBoard({ pipelineId }: KanbanBoardProps) {
   // Estados do componente
   const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
+  const [newDealStageId, setNewDealStageId] = useState<string | null>(null);
   const [draggedDeal, setDraggedDeal] = useState<Deal | null>(null);
 
   // Buscando dados com React Query
@@ -45,6 +37,47 @@ export function KanbanBoard({ pipelineId }: KanbanBoardProps) {
     enabled: !!pipelineId,
   });
 
+  // Mutação para criar Lead e Deal
+  const createLeadAndDealMutation = useMutation({
+    mutationFn: async (formData: any) => {
+      // 1. Criar o Lead
+      const { data: leadData, error: leadError } = await supabase
+        .from("leads")
+        .insert({
+          name: formData.name,
+          phone: formData.phone,
+          email: formData.email,
+          company: formData.company,
+          source: formData.source,
+          user_id: (await supabase.auth.getUser()).data.user?.id, // Adiciona o user_id
+        })
+        .select()
+        .single();
+
+      if (leadError) throw leadError;
+
+      // 2. Criar o Deal associado
+      const { error: dealError } = await supabase.from("deals").insert({
+        name: `${formData.name} - Deal`,
+        value: formData.value || 0,
+        lead_id: leadData.id,
+        pipeline_id: pipelineId,
+        pipeline_stage_id: newDealStageId,
+        user_id: (await supabase.auth.getUser()).data.user?.id, // Adiciona o user_id
+      });
+
+      if (dealError) throw dealError;
+    },
+    onSuccess: () => {
+      toast.success("Novo negócio criado com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ["deals", pipelineId] });
+      setIsFormDialogOpen(false);
+    },
+    onError: (error: any) => {
+      toast.error(`Falha ao criar negócio: ${error.message}`);
+    },
+  });
+
   // Mutação para atualizar a etapa de um negócio
   const updateDealStageMutation = useMutation({
     mutationFn: async ({ dealId, newStageId }: { dealId: string, newStageId: string }) => {
@@ -52,18 +85,17 @@ export function KanbanBoard({ pipelineId }: KanbanBoardProps) {
         .from("deals")
         .update({ pipeline_stage_id: newStageId, updated_at: new Date().toISOString() })
         .eq("id", dealId);
-      if (error) throw new Error(error.message);
+      if (error) throw error;
     },
     onSuccess: () => {
       toast.success("Negócio movido com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["deals", pipelineId] });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(`Falha ao mover negócio: ${error.message}`);
     },
   });
 
-  // Agrupando negócios por etapa
   const dealsByStage = useMemo(() => {
     return stages.reduce((acc, stage) => {
       acc[stage.id] = deals.filter(deal => deal.pipeline_stage_id === stage.id);
@@ -71,7 +103,6 @@ export function KanbanBoard({ pipelineId }: KanbanBoardProps) {
     }, {} as Record<string, Deal[]>);
   }, [deals, stages]);
 
-  // Sensores para o DND kit
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -83,6 +114,11 @@ export function KanbanBoard({ pipelineId }: KanbanBoardProps) {
   const handleCardClick = (deal: Deal) => {
     setSelectedDeal(deal);
     setIsDetailDialogOpen(true);
+  };
+
+  const handleAddClick = (stageId: string) => {
+    setNewDealStageId(stageId);
+    setIsFormDialogOpen(true);
   };
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -97,14 +133,10 @@ export function KanbanBoard({ pipelineId }: KanbanBoardProps) {
     const { active, over } = event;
     setDraggedDeal(null);
 
-    if (active && over && active.id !== over.id) {
+    if (active && over && over.data.current?.type === 'column' && active.id !== over.id) {
       const dealId = active.id as string;
       const newStageId = over.id as string;
-      const originalStageId = (active.data.current?.lead as Deal)?.pipeline_stage_id;
-
-      if (newStageId !== originalStageId) {
-        updateDealStageMutation.mutate({ dealId, newStageId });
-      }
+      updateDealStageMutation.mutate({ dealId, newStageId });
     }
   };
   
@@ -150,13 +182,13 @@ export function KanbanBoard({ pipelineId }: KanbanBoardProps) {
               key={stage.id} 
               id={stage.id}
               title={stage.name} 
-              leads={(dealsByStage[stage.id] || []).map(d => mapDealToLead(d))}
+              leads={(dealsByStage[stage.id] || []).map(mapDealToLead)}
               totalValue={(dealsByStage[stage.id] || []).reduce((sum, deal) => sum + deal.value, 0)}
               count={(dealsByStage[stage.id] || []).length}
               color={stage.color}
               onColorChange={() => {}}
               onCardClick={(lead) => handleCardClick(deals.find(d => d.id === lead.id)!)}
-              onAddClick={() => {}}
+              onAddClick={() => handleAddClick(stage.id)}
             />
           ))}
           <div className="flex-shrink-0 w-80 h-16 flex items-center justify-center">
@@ -181,6 +213,23 @@ export function KanbanBoard({ pipelineId }: KanbanBoardProps) {
         open={isDetailDialogOpen}
         onOpenChange={setIsDetailDialogOpen}
       />
+
+      <LeadFormDialog
+        open={isFormDialogOpen}
+        onOpenChange={setIsFormDialogOpen}
+        onSubmit={(values) => createLeadAndDealMutation.mutate(values)}
+      />
     </div>
   );
 }
+
+// Função para buscar negócios (deals) - movida para o topo para melhor organização
+const fetchDeals = async (pipelineId: string): Promise<Deal[]> => {
+  if (!pipelineId) return [];
+  const { data, error } = await supabase
+    .from("deals")
+    .select("*, leads(name, company)")
+    .eq("pipeline_id", pipelineId);
+  if (error) throw new Error(error.message);
+  return data as Deal[];
+};
