@@ -1,5 +1,5 @@
-import { DraggableLeadCard } from "./DraggableLeadCard";
-import { type Lead } from "./PipelineCard";
+import { DraggableDealCard } from "./DraggableDealCard";
+import { type Deal } from "@/types/deal";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal, Plus } from "lucide-react";
 import { ColorPicker } from "./ColorPicker";
@@ -11,19 +11,19 @@ import { cn } from "@/lib/utils";
 interface KanbanColumnProps {
   id: string;
   title: string;
-  leads: Lead[];
+  deals: Deal[];
   totalValue: number;
   count: number;
   color: StageColor;
-  onColorChange: (color: string) => void;
-  onCardClick: (lead: Lead) => void;
+  onColorChange: (id: string, color: string) => void;
+  onCardClick: (deal: Deal) => void;
   onAddClick?: () => void;
 }
 
 export function KanbanColumn({ 
   id,
   title, 
-  leads, 
+  deals, 
   totalValue, 
   count, 
   color, 
@@ -45,13 +45,12 @@ export function KanbanColumn({
 
   const columnStyle = getColumnStyle();
 
-  // Configuração para o droppable
   const { setNodeRef, isOver } = useDroppable({
     id,
     data: {
       type: 'column',
-      accepts: ['lead'],
-      stage: title
+      accepts: ['deal'],
+      stageId: id
     }
   });
 
@@ -84,7 +83,7 @@ export function KanbanColumn({
           )}
           <ColorPicker
             selectedColor={color}
-            onColorChange={onColorChange}
+            onColorChange={(newColor) => onColorChange(id, newColor)}
           />
           <Button variant="ghost" size="icon" className="h-6 w-6">
             <MoreHorizontal className="h-4 w-4" />
@@ -92,11 +91,11 @@ export function KanbanColumn({
         </div>
       </div>
       <div className="p-2 space-y-2 max-h-[calc(100vh-220px)] overflow-y-auto">
-        <SortableContext items={leads.map(lead => lead.id)} strategy={verticalListSortingStrategy}>
-          {leads.map((lead) => (
-            <DraggableLeadCard
-              key={lead.id}
-              lead={lead}
+        <SortableContext items={deals.map(deal => deal.id)} strategy={verticalListSortingStrategy}>
+          {deals.map((deal) => (
+            <DraggableDealCard
+              key={deal.id}
+              deal={deal}
               onCardClick={onCardClick}
             />
           ))}
