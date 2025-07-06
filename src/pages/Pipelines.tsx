@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { KanbanBoard } from "@/components/pipeline/KanbanBoard";
 import { PipelineFilters } from "@/components/pipeline/PipelineFilters";
 import { PipelineGroupList } from "@/components/pipeline/PipelineGroupList";
 import { Button } from "@/components/ui/button";
-import { Filter, ArrowUpDown, ChevronLeft, ChevronRight, Calendar, Timer } from "lucide-react";
+import { Filter, ArrowUpDown, ChevronLeft, ChevronRight, Timer } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Select,
@@ -12,28 +14,43 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { SetupButton } from "@/components/pipeline/SetupButton"; // Importando o novo componente
+import { SetupButton } from "@/components/pipeline/SetupButton";
+
+// Função para buscar os pipelines do usuário
+const fetchPipelines = async () => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+  const { data, error } = await supabase
+    .from("pipelines")
+    .select("id, name")
+    .eq("user_id", user.id)
+    .order("order");
+  if (error) {
+    console.error("Erro ao buscar pipelines:", error);
+    return [];
+  }
+  return data;
+};
 
 export default function Pipelines() {
   const [filterOpen, setFilterOpen] = useState(false);
-  const [activeGroupId, setActiveGroupId] = useState("group1");
-  const [activePipelineId, setActivePipelineId] = useState("pipeline1");
+  const [activePipelineId, setActivePipelineId] = useState<string>("");
   const [pipelineMenuCollapsed, setPipelineMenuCollapsed] = useState(false);
   const [sortOption, setSortOption] = useState("date-desc");
-  
-  // Mapeamento de nomes de pipelines (em um app real, isso viria de uma API)
-  const pipelineNames: Record<string, string> = {
-    "pipeline1": "Funil de Qualificação",
-    "pipeline2": "Funil de Conversão",
-    "pipeline3": "Produtos Digitais",
-    "pipeline4": "Consultoria",
-    "pipeline5": "Onboarding",
-    "pipeline6": "Fidelização"
-  };
-  
-  const togglePipelineMenu = () => {
-    setPipelineMenuCollapsed(!pipelineMenuCollapsed);
-  };
+
+  const { data: pipelines = [] } = useQuery({
+    queryKey: ["pipelines"],
+    queryFn: fetchPipelines,
+  });
+
+  // Define o primeiro pipeline como ativo quando os dados são carregados
+  useEffect(() => {
+    if (pipelines.length > 0 && !activePipelineId) {
+      setActivePipelineId(pipelines[0].id);
+    }
+  }, [pipelines, activePipelineId]);
+
+  const activePipelineName = pipelines.find(p => p.id === activePipelineId)?.name || "Pipeline";
   
   return (
     <div className="flex h-[calc(100vh-theme(spacing.16))] relative">
@@ -44,9 +61,7 @@ export default function Pipelines() {
         )}
       >
         <PipelineGroupList 
-          activeGroupId={activeGroupId}
           activePipelineId={activePipelineId}
-          setActiveGroupId={setActiveGroupId}
           setActivePipelineId={setActivePipelineId}
         />
       </aside>
@@ -58,12 +73,9 @@ export default function Pipelines() {
           "absolute top-[70px] z-50 h-10 w-10 rounded-full border shadow-sm bg-background transition-all duration-300",
           pipelineMenuCollapsed ? "left-2" : "left-[230px]"
         )}
-        onClick={togglePipelineMenu}
+        onClick={() => setPipelineMenuCollapsed(!pipelineMenuCollapsed)}
       >
-        {pipelineMenuCollapsed ? 
-          <ChevronRight className="h-4 w-4" /> : 
-          <ChevronLeft className="h-4 w-4" />
-        }
+        {pipelineMenuCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
       </Button>
       
       <div className={cn(
@@ -72,8 +84,8 @@ export default function Pipelines() {
       )}>
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold">{pipelineNames[activePipelineId] || "Pipeline"}</h1>
-            <SetupButton pipelineId={activePipelineId} />
+            <h1 className="text-2xl font-bold">{activePipelineName}</h1>
+            {activePipelineId && <SetupButton pipelineId={activePipelineId} />}
           </div>
           <div className="flex gap-2">
             <Select value={sortOption} onValueChange={setSortOption}>
@@ -87,10 +99,7 @@ export default function Pipelines() {
                 <SelectItem value="value-desc">Valor (maior primeiro)</SelectItem>
                 <SelectItem value="value-asc">Valor (menor primeiro)</SelectItem>
                 <SelectItem value="time-desc">
-                  <div className="flex items-center">
-                    <Timer className="h-4 w-4 mr-1" />
-                    <span>Mais tempo na etapa</span>
-                  </div>
+                  <div className="flex items-center"><Timer className="h-4 w-4 mr-1" /><span>Mais tempo na etapa</span></div>
                 </SelectItem>
                 <SelectItem value="name-asc">Nome (A-Z)</SelectItem>
               </SelectContent>
@@ -113,7 +122,14 @@ export default function Pipelines() {
           </div>
         )}
         
-        <KanbanBoard pipelineId={activePipelineId} />
+        {activePipelineId ? (
+          <KanbanBoard pipelineId={activePipelineId} />
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full text-center">
+            <p className="text-lg font-medium">Nenhum pipeline selecionado.</p>
+            <p className="text-muted-foreground">Crie um grupo e um pipeline na barra lateral para começar.</p>
+          </div>
+        )}
       </div>
     </div>
   );
