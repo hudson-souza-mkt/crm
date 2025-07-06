@@ -3,7 +3,7 @@ import { KanbanBoard } from "@/components/pipeline/KanbanBoard";
 import { PipelineFilters } from "@/components/pipeline/PipelineFilters";
 import { PipelineGroupList } from "@/components/pipeline/PipelineGroupList";
 import { Button } from "@/components/ui/button";
-import { Filter, ArrowUpDown, ChevronLeft, ChevronRight, Timer } from "lucide-react";
+import { Filter, ArrowUpDown, ChevronLeft, ChevronRight, Calendar, Timer } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Select,
@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { SetupButton } from "@/components/pipeline/SetupButton";
+import { SetupButton } from "@/components/pipeline/SetupButton"; // Importando o novo componente
 
 export default function Pipelines() {
   const [filterOpen, setFilterOpen] = useState(false);
@@ -21,6 +21,7 @@ export default function Pipelines() {
   const [pipelineMenuCollapsed, setPipelineMenuCollapsed] = useState(false);
   const [sortOption, setSortOption] = useState("date-desc");
   
+  // Mapeamento de nomes de pipelines (em um app real, isso viria de uma API)
   const pipelineNames: Record<string, string> = {
     "pipeline1": "Funil de Qualificação",
     "pipeline2": "Funil de Conversão",

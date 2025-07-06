@@ -1,14 +1,13 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { PipelineCard } from "./PipelineCard";
-import type { Deal } from "@/types/deal";
+import { PipelineCard, type Lead } from "./PipelineCard";
 
-interface DraggableDealCardProps {
-  deal: Deal;
-  onCardClick: (deal: Deal) => void;
+interface DraggableLeadCardProps {
+  lead: Lead;
+  onCardClick: (lead: Lead) => void;
 }
 
-export function DraggableDealCard({ deal, onCardClick }: DraggableDealCardProps) {
+export function DraggableLeadCard({ lead, onCardClick }: DraggableLeadCardProps) {
   const {
     attributes,
     listeners,
@@ -17,10 +16,10 @@ export function DraggableDealCard({ deal, onCardClick }: DraggableDealCardProps)
     transition,
     isDragging,
   } = useSortable({
-    id: deal.id,
+    id: lead.id,
     data: {
-      type: 'deal',
-      deal,
+      type: 'lead',
+      lead,
     }
   });
 
@@ -39,7 +38,7 @@ export function DraggableDealCard({ deal, onCardClick }: DraggableDealCardProps)
       {...listeners}
     >
       <PipelineCard 
-        deal={deal} 
+        lead={lead} 
         onCardClick={onCardClick} 
         isDragging={isDragging}
       />
