@@ -4,7 +4,7 @@ import type { Lead } from "./PipelineCard";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
-import { LeadDetailDialog } from "./LeadDetailDialog";
+import { DealDetailDialog } from "./DealDetailDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { DndContext, DragOverlay, closestCorners, useSensor, useSensors, PointerSensor, DragStartEvent, DragOverEvent, DragEndEvent } from '@dnd-kit/core';
 import { PipelineCard } from "./PipelineCard";
@@ -208,7 +208,7 @@ export function KanbanBoard({ pipelineId }: KanbanBoardProps) {
         </DragOverlay>
       </DndContext>
       
-      <LeadDetailDialog 
+      <DealDetailDialog 
         deal={selectedDeal}
         open={isDetailDialogOpen}
         onOpenChange={setIsDetailDialogOpen}
