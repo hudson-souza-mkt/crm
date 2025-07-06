@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { LeadList } from "@/components/leads/LeadList";
 import { LeadFormDialog } from "@/components/leads/LeadFormDialog";
 import { LeadImportDialog } from "@/components/leads/LeadImportDialog";
@@ -10,28 +13,8 @@ import { DealDetailDialog } from "@/components/pipeline/DealDetailDialog";
 import { Lead as ListLead } from "@/types/lead";
 import { Deal } from "@/types/pipeline";
 
-// Função para mapear o tipo de lead da lista para o tipo de lead do diálogo de detalhes
-const mapListLeadToDetailLead = (listLead: ListLead): Deal => {
-  // Esta função se torna um pouco mais complexa, pois precisamos criar um objeto Deal
-  // a partir de um Lead. Em um app real, provavelmente buscaríamos o deal associado.
-  return {
-    id: listLead.id, // Usando o ID do lead como placeholder
-    name: listLead.name,
-    value: listLead.value || 0,
-    pipeline_stage_id: '', // Não temos essa info aqui
-    pipeline_id: '', // Nem essa
-    user_id: '', // Nem essa
-    created_at: listLead.createdAt.toISOString(),
-    updated_at: listLead.updatedAt.toISOString(),
-    lead_id: listLead.id,
-    leads: {
-      name: listLead.name,
-      company: listLead.company || null,
-    }
-  };
-};
-
 export default function Leads() {
+  const queryClient = useQueryClient();
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -40,14 +23,44 @@ export default function Leads() {
   const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
 
+  const createLeadMutation = useMutation({
+    mutationFn: async (formData: any) => {
+      const { data: userResponse } = await supabase.auth.getUser();
+      const user = userResponse.user;
+
+      const { error } = await supabase.from("leads").insert({
+        name: formData.name,
+        phone: formData.phone,
+        email: formData.email,
+        company: formData.company,
+        source: formData.source,
+        value: formData.value,
+        notes: formData.notes,
+        status: 'new', // Status padrão para novos leads
+        user_id: user?.id,
+      });
+
+      if (error) {
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      toast.success("Lead criado com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ["leads"] });
+      setAddDialogOpen(false);
+    },
+    onError: (error: any) => {
+      toast.error(`Falha ao criar lead: ${error.message}`);
+    },
+  });
+
   const handleLeadClick = (lead: ListLead) => {
-    // Por enquanto, vamos apenas logar. A lógica de abrir detalhes de um lead
-    // a partir daqui pode ser refinada depois.
     console.log("Lead clicado:", lead);
-    toast.info("Visualização de detalhes do lead a ser implementada.");
-    // const detailDeal = mapListLeadToDetailLead(lead);
-    // setSelectedDeal(detailDeal);
-    // setIsDetailDialogOpen(true);
+    toast.info("A visualização de detalhes do lead será implementada em breve.");
+  };
+
+  const handleFormSubmit = (values: any) => {
+    createLeadMutation.mutate(values);
   };
 
   return (
@@ -130,7 +143,7 @@ export default function Leads() {
         <LeadFormDialog 
           open={addDialogOpen} 
           onOpenChange={setAddDialogOpen} 
-          onSubmit={() => {}} // Será conectado em breve
+          onSubmit={handleFormSubmit}
         />
         
         <LeadImportDialog 
