@@ -13,36 +13,47 @@ const fetchDashboardMetrics = async () => {
     .eq("name", "Ganho")
     .limit(1)
     .single();
-
-  if (stageError) {
-    console.error("Erro ao buscar etapa 'Ganho':", stageError);
-  }
+  if (stageError) console.error("Erro ao buscar etapa 'Ganho':", stageError);
   const wonStageId = stageData?.id;
 
   // 2. Calcular o total de vendas (deals na etapa "Ganho")
   let totalSales = 0;
+  let wonDealsCount = 0;
   if (wonStageId) {
     const { data: salesData, error: salesError } = await supabase
       .from("deals")
-      .select("value")
+      .select("value", { count: "exact" })
       .eq("pipeline_stage_id", wonStageId);
 
     if (salesError) throw new Error(salesError.message);
     totalSales = salesData.reduce((sum, deal) => sum + deal.value, 0);
+    wonDealsCount = salesData.length;
   }
 
   // 3. Calcular novos leads nos últimos 30 dias
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
   const { count: newLeadsCount, error: leadsError } = await supabase
     .from("leads")
     .select("*", { count: "exact", head: true })
     .gte("created_at", thirtyDaysAgo.toISOString());
-
   if (leadsError) throw new Error(leadsError.message);
 
-  return { totalSales, newLeadsCount };
+  // 4. Calcular taxa de conversão
+  const { count: totalDealsCount, error: totalDealsError } = await supabase
+    .from("deals")
+    .select("*", { count: "exact", head: true });
+  if (totalDealsError) throw new Error(totalDealsError.message);
+  const conversionRate = totalDealsCount > 0 ? (wonDealsCount / totalDealsCount) * 100 : 0;
+
+  // 5. Contar atendimentos ativos
+  const { count: activeChatsCount, error: chatsError } = await supabase
+    .from("conversations")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "attending");
+  if (chatsError) throw new Error(chatsError.message);
+
+  return { totalSales, newLeadsCount, conversionRate, activeChatsCount };
 };
 
 export default function Dashboard() {
@@ -85,14 +96,14 @@ export default function Dashboard() {
             />
             <MetricCard
               title="Taxa de Conversão"
-              value="12,5%"
+              value={`${data?.conversionRate.toFixed(1) || '0.0'}%`}
               icon={TrendingUp}
               change="-2% vs. mês passado"
               changeType="decrease"
             />
             <MetricCard
               title="Atendimentos Ativos"
-              value="57"
+              value={`${data?.activeChatsCount || 0}`}
               icon={Activity}
               change="+12 desde ontem"
               changeType="increase"
