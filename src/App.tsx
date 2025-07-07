@@ -10,6 +10,7 @@ import Chat from "./pages/Chat";
 import Leads from "./pages/Leads";
 import Settings from "./pages/Settings";
 import Automations from "./pages/Automations";
+import Goals from "./pages/Goals"; // Nova página de metas
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/leads" element={<Leads />} />
             <Route path="/chat" element={<Chat />} />
             <Route path="/automations" element={<Automations />} />
+            <Route path="/goals" element={<Goals />} /> {/* Nova rota para metas */}
             <Route path="/settings" element={<Settings />} />
           </Route>
           <Route path="*" element={<NotFound />} />

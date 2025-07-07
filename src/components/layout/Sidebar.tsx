@@ -8,6 +8,7 @@ import {
   Settings,
   Rocket,
   Bot,
+  Target, // Ícone para metas
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -22,6 +23,7 @@ const navItems = [
   { to: "/leads", icon: Users, label: "Leads/Clientes" },
   { to: "/chat", icon: MessageSquare, label: "Atendimentos" },
   { to: "/automations", icon: Bot, label: "Automações" },
+  { to: "/goals", icon: Target, label: "Metas" }, // Novo item de navegação
 ];
 
 export const NavContent = ({ collapsed }: SidebarProps) => (
