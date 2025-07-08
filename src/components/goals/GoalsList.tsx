@@ -31,8 +31,10 @@ import {
   ShoppingCart,
   RefreshCcw,
   BarChart,
+  Database,
+  HandCoins,
 } from "lucide-react";
-import type { Goal, GoalCategory, GoalStatus } from "@/pages/Goals";
+import type { Goal, GoalCategory, GoalStatus, DataSource } from "@/pages/Goals";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,14 +45,21 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface GoalsListProps {
   goals: Goal[];
   onEdit: (goal: Goal) => void;
   onDelete: (goalId: string) => void;
+  dataSources: DataSource[];
 }
 
-export function GoalsList({ goals, onEdit, onDelete }: GoalsListProps) {
+export function GoalsList({ goals, onEdit, onDelete, dataSources }: GoalsListProps) {
   const [goalToDelete, setGoalToDelete] = useState<string | null>(null);
 
   const formatValue = (value: number, category: GoalCategory) => {
@@ -95,6 +104,12 @@ export function GoalsList({ goals, onEdit, onDelete }: GoalsListProps) {
     return `${start.toLocaleDateString('pt-BR')} - ${end.toLocaleDateString('pt-BR')}`;
   };
 
+  const getDataSourceName = (goal: Goal) => {
+    if (!goal.isAutoCalculated || !goal.dataSourceId) return null;
+    const source = dataSources.find(ds => ds.id === goal.dataSourceId);
+    return source ? source.name : null;
+  };
+
   const confirmDelete = (goalId: string) => {
     setGoalToDelete(goalId);
   };
@@ -131,6 +146,7 @@ export function GoalsList({ goals, onEdit, onDelete }: GoalsListProps) {
           <TableBody>
             {goals.map((goal) => {
               const progress = calculateProgress(goal.currentValue, goal.targetValue);
+              const dataSourceName = getDataSourceName(goal);
               
               return (
                 <TableRow key={goal.id}>
@@ -159,7 +175,39 @@ export function GoalsList({ goals, onEdit, onDelete }: GoalsListProps) {
                   </TableCell>
                   <TableCell>{formatDateRange(goal.startDate, goal.endDate)}</TableCell>
                   <TableCell className="text-right font-medium">
-                    {formatValue(goal.currentValue, goal.category)}
+                    <div className="flex items-center justify-end gap-1">
+                      {formatValue(goal.currentValue, goal.category)}
+                      
+                      {goal.isAutoCalculated && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span>
+                                <Database className="h-3.5 w-3.5 text-blue-500 ml-1" />
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="text-xs">Valor automático de: {dataSourceName}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                      
+                      {!goal.isAutoCalculated && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span>
+                                <HandCoins className="h-3.5 w-3.5 text-gray-400 ml-1" />
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="text-xs">Valor definido manualmente</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className="text-right">
                     {formatValue(goal.targetValue, goal.category)}

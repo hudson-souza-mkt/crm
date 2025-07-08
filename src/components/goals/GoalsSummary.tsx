@@ -12,8 +12,10 @@ import {
   Timer,
   ArrowUp,
   ArrowDown,
+  Database,
 } from "lucide-react";
 import type { Goal } from "@/pages/Goals";
+import { Badge } from "@/components/ui/badge";
 
 interface GoalsSummaryProps {
   goals: Goal[];
@@ -26,6 +28,7 @@ export function GoalsSummary({ goals }: GoalsSummaryProps) {
     const activeGoals = goals.filter(goal => goal.status === "active").length;
     const completedGoals = goals.filter(goal => goal.status === "completed").length;
     const overdueGoals = goals.filter(goal => goal.status === "overdue").length;
+    const autoCalculatedGoals = goals.filter(goal => goal.isAutoCalculated).length;
     
     const avgProgress = goals.length > 0
       ? goals.reduce((sum, goal) => sum + (goal.currentValue / goal.targetValue) * 100, 0) / totalGoals
@@ -55,6 +58,7 @@ export function GoalsSummary({ goals }: GoalsSummaryProps) {
       avgProgress,
       nearCompletionGoals,
       atRiskGoals,
+      autoCalculatedGoals,
     };
   };
 
@@ -174,66 +178,49 @@ export function GoalsSummary({ goals }: GoalsSummaryProps) {
         <CardContent className="p-6">
           <div className="flex justify-between items-center mb-4">
             <div className="space-y-1">
-              <p className="text-sm font-medium text-muted-foreground">
-                Próximos Vencimentos
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-medium text-muted-foreground">
+                  Fontes Automáticas
+                </p>
+                <Badge 
+                  variant="outline" 
+                  className="bg-blue-50 text-blue-600 border-blue-200"
+                >
+                  <Database className="h-3 w-3 mr-1" />
+                  {stats.autoCalculatedGoals}/{stats.totalGoals}
+                </Badge>
+              </div>
               <div className="text-2xl font-bold">
-                {goals.filter(g => {
-                  const now = new Date();
-                  const daysUntilEnd = Math.ceil((g.endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-                  return g.status === "active" && daysUntilEnd <= 7;
-                }).length}
+                {stats.totalGoals ? Math.round((stats.autoCalculatedGoals / stats.totalGoals) * 100) : 0}%
               </div>
             </div>
-            <div className="h-12 w-12 rounded-full bg-amber-100 flex items-center justify-center">
-              <Timer className="h-6 w-6 text-amber-600" />
+            <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
+              <Database className="h-6 w-6 text-blue-600" />
             </div>
           </div>
           
-          {/* Lista de próximos vencimentos */}
-          <div className="space-y-2">
-            {goals
-              .filter(g => {
-                const now = new Date();
-                const daysUntilEnd = Math.ceil((g.endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-                return g.status === "active" && daysUntilEnd <= 7;
-              })
-              .slice(0, 3)
-              .map((goal, index) => {
-                const now = new Date();
-                const daysUntilEnd = Math.ceil((goal.endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-                const progress = (goal.currentValue / goal.targetValue) * 100;
-                
-                return (
-                  <div key={index} className="flex justify-between items-center text-sm border-b pb-2 last:border-0">
-                    <div className="flex items-center gap-2">
-                      {progress >= 85 ? (
-                        <ArrowUp className="h-3 w-3 text-green-500" />
-                      ) : (
-                        <ArrowDown className="h-3 w-3 text-red-500" />
-                      )}
-                      <span className="truncate max-w-[140px]">{goal.title}</span>
-                    </div>
-                    <div className={cn(
-                      "text-xs font-medium",
-                      daysUntilEnd <= 2 ? "text-red-600" : "text-amber-600"
-                    )}>
-                      {daysUntilEnd} dia{daysUntilEnd !== 1 ? 's' : ''}
-                    </div>
-                  </div>
-                );
-              })
-            }
-            
-            {goals.filter(g => {
-              const now = new Date();
-              const daysUntilEnd = Math.ceil((g.endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-              return g.status === "active" && daysUntilEnd <= 7;
-            }).length === 0 && (
-              <div className="text-center text-sm text-muted-foreground py-2">
-                Nenhuma meta vencendo em breve
+          <div className="space-y-2 mt-4">
+            <p className="text-sm text-muted-foreground mb-1">Principais fontes de dados:</p>
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs">
+                <span>Novos leads (mês atual)</span>
+                <span className="font-medium">
+                  {goals.filter(g => g.dataSourceId === "new_leads_current_month").length} metas
+                </span>
               </div>
-            )}
+              <div className="flex justify-between text-xs">
+                <span>Valor total de vendas</span>
+                <span className="font-medium">
+                  {goals.filter(g => g.dataSourceId === "total_sales_current_month").length} metas
+                </span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span>Taxa de conversão</span>
+                <span className="font-medium">
+                  {goals.filter(g => g.dataSourceId === "conversion_rate").length} metas
+                </span>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
