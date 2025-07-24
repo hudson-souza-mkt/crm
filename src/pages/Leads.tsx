@@ -12,15 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Upload, Filter, Users, UserPlus, UserCheck, DollarSign, Calendar } from "lucide-react";
 import { MetricCard } from "@/components/dashboard/MetricCard";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DealInfo } from "@/components/deals/DealInfo";
+import { LeadDetailDialog } from "@/components/pipeline/LeadDetailDialog";
 
 // Interface unificada para Lead
 export interface Lead {
@@ -228,35 +220,12 @@ export default function Leads() {
         </div>
       </div>
 
-      {/* Painel Lateral de Detalhes */}
-      <Sheet open={!!selectedLead} onOpenChange={() => setSelectedLead(null)}>
-        <SheetContent className="sm:max-w-3xl w-full">
-          <SheetHeader>
-            <SheetTitle>{selectedLead?.name}</SheetTitle>
-            <SheetDescription>
-              Gerencie todos os detalhes deste negócio.
-            </SheetDescription>
-          </SheetHeader>
-          <div className="py-4">
-            <Tabs defaultValue="info" className="w-full">
-              <TabsList>
-                <TabsTrigger value="info">Informações do Negócio</TabsTrigger>
-                <TabsTrigger value="activities">Atividades</TabsTrigger>
-                <TabsTrigger value="history">Histórico</TabsTrigger>
-              </TabsList>
-              <TabsContent value="info" className="mt-4">
-                {selectedLead && <DealInfo deal={selectedLead} />}
-              </TabsContent>
-              <TabsContent value="activities" className="mt-4">
-                <p>Aqui ficarão as atividades relacionadas ao negócio.</p>
-              </TabsContent>
-              <TabsContent value="history" className="mt-4">
-                <p>Aqui ficará o histórico de alterações do negócio.</p>
-              </TabsContent>
-            </Tabs>
-          </div>
-        </SheetContent>
-      </Sheet>
+      {/* Diálogo de Detalhes do Lead */}
+      <LeadDetailDialog
+        lead={selectedLead}
+        open={!!selectedLead}
+        onOpenChange={() => setSelectedLead(null)}
+      />
     </div>
   );
 }
