@@ -1,120 +1,171 @@
 import { useState } from "react";
-import { KanbanBoard } from "@/components/pipeline/KanbanBoard";
-import { PipelineFilters } from "@/components/pipeline/PipelineFilters";
-import { PipelineGroupList } from "@/components/pipeline/PipelineGroupList";
-import { Button } from "@/components/ui/button";
-import { Filter, ArrowUpDown, ChevronLeft, ChevronRight, Calendar, Timer } from "lucide-react";
-import { cn } from "@/lib/utils";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { SetupButton } from "@/components/pipeline/SetupButton"; // Importando o novo componente
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  rectSortingStrategy,
+} from "@dnd-kit/sortable";
+import { PipelineColumn } from "@/components/pipelines/PipelineColumn";
+import { DealCard } from "@/components/pipelines/DealCard";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DealInfo } from "@/components/deals/DealInfo"; // Importar o novo componente
+
+// Dados de exemplo
+const initialColumns = {
+  lead: {
+    id: "lead",
+    title: "Lead",
+    deals: [
+      { id: "deal-1", title: "Novo site para Café Saboroso", value: 15000 },
+      { id: "deal-2", title: "App de delivery para Pizzaria Delícia", value: 30000 },
+    ],
+  },
+  qualified: {
+    id: "qualified",
+    title: "Qualificado",
+    deals: [
+      { id: "deal-3", title: "Sistema de gestão para Academia Foco", value: 45000 },
+    ],
+  },
+  proposal: {
+    id: "proposal",
+    title: "Proposta Enviada",
+    deals: [
+      { id: "deal-4", title: "Desenvolvimento de E-commerce para TechCorp", value: 75000 },
+      { id: "deal-5", title: "Manutenção de software para Logística Rápida", value: 12000 },
+    ],
+  },
+  negotiation: {
+    id: "negotiation",
+    title: "Em Negociação",
+    deals: [
+      { id: "deal-6", title: "Consultoria de SEO para Marketing Criativo", value: 8000 },
+    ],
+  },
+};
 
 export default function Pipelines() {
-  const [filterOpen, setFilterOpen] = useState(false);
-  const [activeGroupId, setActiveGroupId] = useState("group1");
-  const [activePipelineId, setActivePipelineId] = useState("pipeline1");
-  const [pipelineMenuCollapsed, setPipelineMenuCollapsed] = useState(false);
-  const [sortOption, setSortOption] = useState("date-desc");
-  
-  // Mapeamento de nomes de pipelines (em um app real, isso viria de uma API)
-  const pipelineNames: Record<string, string> = {
-    "pipeline1": "Funil de Qualificação",
-    "pipeline2": "Funil de Conversão",
-    "pipeline3": "Produtos Digitais",
-    "pipeline4": "Consultoria",
-    "pipeline5": "Onboarding",
-    "pipeline6": "Fidelização"
+  const [columns, setColumns] = useState(initialColumns);
+  const [selectedDeal, setSelectedDeal] = useState<any>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over) return;
+
+    const activeContainer = active.data.current?.sortable.containerId;
+    const overContainer = over.data.current?.sortable.containerId;
+
+    if (activeContainer !== overContainer) {
+      setColumns((prev) => {
+        const activeItems = prev[activeContainer].deals;
+        const overItems = prev[overContainer].deals;
+
+        const activeIndex = activeItems.findIndex((item) => item.id === active.id);
+        const [movedItem] = activeItems.splice(activeIndex, 1);
+
+        return {
+          ...prev,
+          [activeContainer]: {
+            ...prev[activeContainer],
+            deals: activeItems,
+          },
+          [overContainer]: {
+            ...prev[overContainer],
+            deals: [...overItems, movedItem],
+          },
+        };
+      });
+    }
   };
-  
-  const togglePipelineMenu = () => {
-    setPipelineMenuCollapsed(!pipelineMenuCollapsed);
+
+  const handleCardClick = (deal: any) => {
+    setSelectedDeal(deal);
   };
-  
+
   return (
-    <div className="flex h-[calc(100vh-theme(spacing.16))] relative">
-      <aside 
-        className={cn(
-          "border-r border-border bg-card relative transition-all duration-300 ease-in-out h-full overflow-y-auto",
-          pipelineMenuCollapsed ? "w-0 opacity-0" : "w-[240px] opacity-100"
-        )}
-      >
-        <PipelineGroupList 
-          activeGroupId={activeGroupId}
-          activePipelineId={activePipelineId}
-          setActiveGroupId={setActiveGroupId}
-          setActivePipelineId={setActivePipelineId}
-        />
-      </aside>
-      
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        className={cn(
-          "absolute top-[70px] z-50 h-10 w-10 rounded-full border shadow-sm bg-background transition-all duration-300",
-          pipelineMenuCollapsed ? "left-2" : "left-[230px]"
-        )}
-        onClick={togglePipelineMenu}
-      >
-        {pipelineMenuCollapsed ? 
-          <ChevronRight className="h-4 w-4" /> : 
-          <ChevronLeft className="h-4 w-4" />
-        }
-      </Button>
-      
-      <div className={cn(
-        "flex flex-col h-full overflow-hidden transition-all duration-300 ease-in-out",
-        pipelineMenuCollapsed ? "w-full pl-4" : "flex-1 p-4"
-      )}>
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold">{pipelineNames[activePipelineId] || "Pipeline"}</h1>
-            <SetupButton />
-          </div>
-          <div className="flex gap-2">
-            <Select value={sortOption} onValueChange={setSortOption}>
-              <SelectTrigger className="w-[200px] bg-white">
-                <ArrowUpDown className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Ordenar por..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="date-desc">Data (mais recente)</SelectItem>
-                <SelectItem value="date-asc">Data (mais antigo)</SelectItem>
-                <SelectItem value="value-desc">Valor (maior primeiro)</SelectItem>
-                <SelectItem value="value-asc">Valor (menor primeiro)</SelectItem>
-                <SelectItem value="time-desc">
-                  <div className="flex items-center">
-                    <Timer className="h-4 w-4 mr-1" />
-                    <span>Mais tempo na etapa</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="name-asc">Nome (A-Z)</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="flex items-center gap-1 bg-white"
-              onClick={() => setFilterOpen(!filterOpen)}
-            >
-              <Filter className="h-4 w-4" />
-              <span>Filtros</span>
-            </Button>
-          </div>
-        </div>
-        
-        {filterOpen && (
-          <div className="mb-6">
-            <PipelineFilters />
-          </div>
-        )}
-        
-        <KanbanBoard />
+    <div className="flex flex-col h-full">
+      <div className="p-4 border-b">
+        <h1 className="text-2xl font-bold">Pipeline de Vendas</h1>
       </div>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="flex-1 flex gap-4 p-4 overflow-x-auto">
+          {Object.values(columns).map((column) => (
+            <SortableContext
+              key={column.id}
+              items={column.deals.map((deal) => deal.id)}
+              strategy={rectSortingStrategy}
+            >
+              <PipelineColumn id={column.id} title={column.title}>
+                {column.deals.map((deal) => (
+                  <DealCard
+                    key={deal.id}
+                    id={deal.id}
+                    title={deal.title}
+                    value={deal.value}
+                    onClick={() => handleCardClick(deal)}
+                  />
+                ))}
+              </PipelineColumn>
+            </SortableContext>
+          ))}
+        </div>
+      </DndContext>
+
+      <Sheet open={!!selectedDeal} onOpenChange={() => setSelectedDeal(null)}>
+        <SheetContent className="sm:max-w-3xl w-full">
+          <SheetHeader>
+            <SheetTitle>{selectedDeal?.title}</SheetTitle>
+            <SheetDescription>
+              Gerencie todos os detalhes deste negócio.
+            </SheetDescription>
+          </SheetHeader>
+          <div className="py-4">
+            <Tabs defaultValue="info" className="w-full">
+              <TabsList>
+                <TabsTrigger value="info">Informações do Negócio</TabsTrigger>
+                <TabsTrigger value="activities">Atividades</TabsTrigger>
+                <TabsTrigger value="history">Histórico</TabsTrigger>
+              </TabsList>
+              <TabsContent value="info" className="mt-4">
+                <DealInfo />
+              </TabsContent>
+              <TabsContent value="activities" className="mt-4">
+                <p>Aqui ficarão as atividades relacionadas ao negócio.</p>
+              </TabsContent>
+              <TabsContent value="history" className="mt-4">
+                <p>Aqui ficará o histórico de alterações do negócio.</p>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
