@@ -25,6 +25,15 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DealInfo } from "@/components/deals/DealInfo";
 
 export type StageColor = "blue" | "purple" | "amber" | "green" | "red" | "pink" | "indigo" | "cyan" | "gray";
 
@@ -253,7 +262,6 @@ export default function Pipelines() {
   const [stages, setStages] = useState<Stage[]>(mockStages);
   const [loading, setLoading] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
-  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [isNewLeadDialogOpen, setIsNewLeadDialogOpen] = useState(false);
   const [activeNewLeadStage, setActiveNewLeadStage] = useState<string | null>(null);
   const [draggedLead, setDraggedLead] = useState<Lead | null>(null);
@@ -277,7 +285,6 @@ export default function Pipelines() {
 
   const handleCardClick = (lead: Lead) => {
     setSelectedLead(lead);
-    setIsDetailDialogOpen(true);
   };
   
   const getTotalValue = (leads: Lead[]) => {
@@ -515,12 +522,7 @@ export default function Pipelines() {
         </DragOverlay>
       </DndContext>
       
-      {/* Diálogo de detalhes do lead */}
-      <LeadDetailDialog 
-        lead={selectedLead}
-        open={isDetailDialogOpen}
-        onOpenChange={setIsDetailDialogOpen}
-      />
+      {/* Diálogo de detalhes do lead foi substituído pelo Sheet */}
       
       {/* Diálogo para criar novo lead */}
       <LeadFormDialog
@@ -555,6 +557,36 @@ export default function Pipelines() {
         isClosing={targetStage === "Ganho" || targetStage === "Perdido"}
         onConfirm={handleTransitionConfirm}
       />
+
+      {/* Sheet para detalhes do negócio */}
+      <Sheet open={!!selectedLead} onOpenChange={() => setSelectedLead(null)}>
+        <SheetContent className="sm:max-w-3xl w-full">
+          <SheetHeader>
+            <SheetTitle>{selectedLead?.name}</SheetTitle>
+            <SheetDescription>
+              Gerencie todos os detalhes deste negócio.
+            </SheetDescription>
+          </SheetHeader>
+          <div className="py-4">
+            <Tabs defaultValue="info" className="w-full">
+              <TabsList>
+                <TabsTrigger value="info">Informações do Negócio</TabsTrigger>
+                <TabsTrigger value="activities">Atividades</TabsTrigger>
+                <TabsTrigger value="history">Histórico</TabsTrigger>
+              </TabsList>
+              <TabsContent value="info" className="mt-4">
+                {selectedLead && <DealInfo deal={selectedLead} />}
+              </TabsContent>
+              <TabsContent value="activities" className="mt-4">
+                <p>Aqui ficarão as atividades relacionadas ao negócio.</p>
+              </TabsContent>
+              <TabsContent value="history" className="mt-4">
+                <p>Aqui ficará o histórico de alterações do negócio.</p>
+              </TabsContent>
+            </Tabs>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

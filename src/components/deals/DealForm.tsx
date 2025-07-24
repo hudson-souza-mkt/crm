@@ -4,7 +4,6 @@ import * as z from "zod";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -12,7 +11,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -20,34 +18,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon, Tag } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { Tag, X } from "lucide-react";
 import type { Deal } from "./DealInfo";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 
 const dealSchema = z.object({
-  title: z.string().min(3, "O título é obrigatório."),
-  value: z.coerce.number().positive("O valor deve ser positivo."),
-  stage: z.enum(["lead", "qualified", "proposal", "negotiation", "won", "lost"]),
-  expectedCloseDate: z.date(),
-  priority: z.enum(["low", "medium", "high"]),
-  description: z.string().optional(),
+  name: z.string().min(3, "O nome é obrigatório."),
+  value: z.coerce.number().min(0, "O valor não pode ser negativo."),
+  stage: z.string(),
+  salesperson: z.string().min(1, "O vendedor é obrigatório."),
+  priority: z.enum(["red", "green"]).optional(),
   tags: z.array(z.string()),
-  contactName: z.string().min(1, "Nome do contato é obrigatório."),
-  contactEmail: z.string().email("Email inválido."),
-  contactPhone: z.string().optional(),
-  companyName: z.string().min(1, "Nome da empresa é obrigatório."),
-  companyIndustry: z.string().optional(),
-  companyWebsite: z.string().url("URL inválida.").optional(),
+  phone: z.string().optional(),
+  document: z.string().optional(),
+  company: z.string().min(1, "O nome da empresa é obrigatório."),
 });
 
 type DealFormValues = z.infer<typeof dealSchema>;
@@ -64,19 +49,15 @@ export function DealForm({ deal, onSave, onCancel }: DealFormProps) {
   const form = useForm<DealFormValues>({
     resolver: zodResolver(dealSchema),
     defaultValues: {
-      title: deal.title,
-      value: deal.value,
+      name: deal.name,
+      value: deal.value || 0,
       stage: deal.stage,
-      expectedCloseDate: deal.expectedCloseDate,
+      salesperson: deal.salesperson,
       priority: deal.priority,
-      description: deal.description || "",
       tags: deal.tags || [],
-      contactName: deal.contact.name,
-      contactEmail: deal.contact.email,
-      contactPhone: deal.contact.phone,
-      companyName: deal.company.name,
-      companyIndustry: deal.company.industry,
-      companyWebsite: deal.company.website,
+      phone: deal.phone,
+      document: deal.document,
+      company: deal.company,
     },
   });
 
@@ -97,25 +78,15 @@ export function DealForm({ deal, onSave, onCancel }: DealFormProps) {
   const onSubmit = (values: DealFormValues) => {
     const updatedDeal: Deal = {
       ...deal,
-      title: values.title,
+      name: values.name,
       value: values.value,
       stage: values.stage,
-      expectedCloseDate: values.expectedCloseDate,
+      salesperson: values.salesperson,
       priority: values.priority,
-      description: values.description,
       tags: values.tags,
-      contact: {
-        ...deal.contact,
-        name: values.contactName,
-        email: values.contactEmail,
-        phone: values.contactPhone || "",
-      },
-      company: {
-        ...deal.company,
-        name: values.companyName,
-        industry: values.companyIndustry || "",
-        website: values.companyWebsite || "",
-      },
+      phone: values.phone,
+      document: values.document,
+      company: values.company,
     };
     onSave(updatedDeal);
   };
@@ -127,10 +98,23 @@ export function DealForm({ deal, onSave, onCancel }: DealFormProps) {
           <div className="space-y-4">
             <FormField
               control={form.control}
-              name="title"
+              name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Título do Negócio</FormLabel>
+                  <FormLabel>Nome do Contato</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="company"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nome da Empresa</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -164,52 +148,38 @@ export function DealForm({ deal, onSave, onCancel }: DealFormProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="lead">Lead</SelectItem>
-                      <SelectItem value="qualified">Qualificado</SelectItem>
-                      <SelectItem value="proposal">Proposta Enviada</SelectItem>
-                      <SelectItem value="negotiation">Em Negociação</SelectItem>
-                      <SelectItem value="won">Ganho</SelectItem>
-                      <SelectItem value="lost">Perdido</SelectItem>
+                      <SelectItem value="Novo Lead">Novo Lead</SelectItem>
+                      <SelectItem value="Qualificação">Qualificação</SelectItem>
+                      <SelectItem value="Apresentação">Apresentação</SelectItem>
+                      <SelectItem value="Proposta">Proposta</SelectItem>
+                      <SelectItem value="Negociação">Negociação</SelectItem>
+                      <SelectItem value="Ganho">Ganho</SelectItem>
+                      <SelectItem value="Perdido">Perdido</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
+          </div>
+          <div className="space-y-4">
             <FormField
               control={form.control}
-              name="expectedCloseDate"
+              name="salesperson"
               render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Data de Fechamento Esperada</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "P", { locale: ptBR })
-                          ) : (
-                            <span>Escolha uma data</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
+                <FormItem>
+                  <FormLabel>Vendedor Responsável</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Amanda Vendas">Amanda Vendas</SelectItem>
+                      <SelectItem value="Carlos Almeida">Carlos Almeida</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
@@ -227,23 +197,20 @@ export function DealForm({ deal, onSave, onCancel }: DealFormProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="low">Baixa</SelectItem>
-                      <SelectItem value="medium">Média</SelectItem>
-                      <SelectItem value="high">Alta</SelectItem>
+                      <SelectItem value="green">Normal</SelectItem>
+                      <SelectItem value="red">Urgente</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
-          </div>
-          <div className="space-y-4">
             <FormField
               control={form.control}
-              name="contactName"
+              name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nome do Contato</FormLabel>
+                  <FormLabel>Telefone</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -253,49 +220,10 @@ export function DealForm({ deal, onSave, onCancel }: DealFormProps) {
             />
             <FormField
               control={form.control}
-              name="contactEmail"
+              name="document"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email do Contato</FormLabel>
-                  <FormControl>
-                    <Input type="email" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="contactPhone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Telefone do Contato</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="companyName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nome da Empresa</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="companyIndustry"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Setor da Empresa</FormLabel>
+                  <FormLabel>Documento (CPF/CNPJ)</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -305,19 +233,6 @@ export function DealForm({ deal, onSave, onCancel }: DealFormProps) {
             />
           </div>
         </div>
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Descrição</FormLabel>
-              <FormControl>
-                <Textarea rows={4} {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
         <FormField
           control={form.control}
           name="tags"

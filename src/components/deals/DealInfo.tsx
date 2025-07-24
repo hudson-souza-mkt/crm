@@ -1,68 +1,32 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DealDetails } from "./DealDetails";
 import { DealForm } from "./DealForm";
 import { Button } from "@/components/ui/button";
 import { Edit, X } from "lucide-react";
+import type { Lead } from "@/components/pipeline/PipelineCard";
 
-export interface Contact {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
+// A interface Deal agora é um alias para Lead para consistência
+export type Deal = Lead;
+
+interface DealInfoProps {
+  deal: Deal;
 }
 
-export interface Company {
-  id: string;
-  name: string;
-  industry: string;
-  website: string;
-}
-
-export interface Deal {
-  id: string;
-  title: string;
-  value: number;
-  stage: "lead" | "qualified" | "proposal" | "negotiation" | "won" | "lost";
-  expectedCloseDate: Date;
-  description?: string;
-  priority: "low" | "medium" | "high";
-  tags: string[];
-  contact: Contact;
-  company: Company;
-}
-
-// Dados de exemplo para um negócio específico
-const initialDeal: Deal = {
-  id: "deal-001",
-  title: "Desenvolvimento de E-commerce para TechCorp",
-  value: 75000,
-  stage: "proposal",
-  expectedCloseDate: new Date("2025-07-30"),
-  description: "Projeto completo de desenvolvimento de uma nova plataforma de e-commerce para a TechCorp, incluindo integração com sistemas de pagamento e logística.",
-  priority: "high",
-  tags: ["e-commerce", "react", "pagamentos"],
-  contact: {
-    id: "contact-123",
-    name: "Ana Silva",
-    email: "ana.silva@techcorp.com",
-    phone: "(11) 98765-4321",
-  },
-  company: {
-    id: "company-456",
-    name: "TechCorp",
-    industry: "Tecnologia",
-    website: "www.techcorp.com",
-  },
-};
-
-export function DealInfo() {
-  const [deal, setDeal] = useState<Deal>(initialDeal);
+export function DealInfo({ deal }: DealInfoProps) {
+  const [currentDeal, setCurrentDeal] = useState<Deal>(deal);
   const [isEditing, setIsEditing] = useState(false);
 
+  // Atualiza o estado interno se o negócio selecionado mudar
+  useEffect(() => {
+    setCurrentDeal(deal);
+    setIsEditing(false); // Sai do modo de edição ao selecionar um novo negócio
+  }, [deal]);
+
   const handleSave = (updatedDeal: Deal) => {
-    setDeal(updatedDeal);
+    setCurrentDeal(updatedDeal);
     setIsEditing(false);
     // Aqui você adicionaria a lógica para salvar no backend
+    // Ex: updateDealInDatabase(updatedDeal);
   };
 
   return (
@@ -93,12 +57,12 @@ export function DealInfo() {
 
       {isEditing ? (
         <DealForm 
-          deal={deal} 
+          deal={currentDeal} 
           onSave={handleSave} 
           onCancel={() => setIsEditing(false)} 
         />
       ) : (
-        <DealDetails deal={deal} />
+        <DealDetails deal={currentDeal} />
       )}
     </div>
   );
