@@ -145,25 +145,25 @@ export default function Leads() {
         <MetricCard 
           title="Total de Leads" 
           value={leads.length.toString()} 
-          icon={<Users className="h-5 w-5 text-muted-foreground" />} 
+          icon={Users} 
           change="+12% vs mês passado" 
         />
         <MetricCard 
           title="Novos Leads (Mês)" 
           value="32" 
-          icon={<UserPlus className="h-5 w-5 text-muted-foreground" />} 
+          icon={UserPlus} 
           change="+8% vs mês passado" 
         />
         <MetricCard 
           title="Leads Convertidos" 
           value="18" 
-          icon={<UserCheck className="h-5 w-5 text-muted-foreground" />} 
+          icon={UserCheck} 
           change="-2% vs mês passado" 
         />
         <MetricCard 
           title="Valor em Aberto" 
           value={`R$ ${leads.reduce((acc, l) => acc + l.value, 0).toLocaleString()}`} 
-          icon={<DollarSign className="h-5 w-5 text-muted-foreground" />} 
+          icon={DollarSign} 
           change="+20% vs mês passado" 
         />
       </div>
