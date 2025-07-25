@@ -8,7 +8,8 @@ import {
   MoreHorizontal,
   Pencil,
   Trash2,
-  GripVertical
+  GripVertical,
+  FolderKanban
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -113,23 +114,29 @@ function SortablePipeline({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex items-center justify-between rounded-md p-2",
-        isActive ? "bg-muted text-primary font-medium" : "hover:bg-muted/30",
-        isDragging && "border border-dashed border-primary"
+        "flex items-center justify-between rounded-sm border transition-colors",
+        isActive 
+          ? "bg-primary/5 border-primary/20 text-primary" 
+          : "bg-white border-transparent hover:bg-secondary/40",
+        isDragging && "border border-dashed border-primary/50"
       )}
       {...attributes}
     >
       <button
         onClick={onClick}
-        className="flex items-center gap-2 flex-1 text-sm text-left"
+        className="flex items-center gap-2 flex-1 text-sm text-left p-2"
       >
-        <Columns className="h-4 w-4" />
-        {pipeline.name}
+        <Columns className="h-4 w-4 text-inherit opacity-70" />
+        <span className={cn(
+          isActive ? "font-medium" : "text-muted-foreground"
+        )}>
+          {pipeline.name}
+        </span>
       </button>
-      <div className="flex items-center">
+      <div className="flex items-center pr-1">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground">
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -151,7 +158,7 @@ function SortablePipeline({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 cursor-grab"
+          className="h-7 w-7 cursor-grab text-muted-foreground hover:text-foreground"
           {...listeners}
         >
           <GripVertical className="h-4 w-4" />
@@ -164,9 +171,9 @@ function SortablePipeline({
 // Componente para o overlay de arrasto
 function DraggingPipelineOverlay({ pipeline }: { pipeline: Pipeline }) {
   return (
-    <div className="flex items-center gap-2 bg-background border rounded-md p-2 shadow-md w-[200px]">
-      <Columns className="h-4 w-4" />
-      <span className="text-sm">{pipeline.name}</span>
+    <div className="flex items-center gap-2 bg-white border rounded-sm p-2 shadow-md w-[200px]">
+      <Columns className="h-4 w-4 text-primary" />
+      <span className="text-sm font-medium">{pipeline.name}</span>
     </div>
   );
 }
@@ -518,117 +525,137 @@ export function PipelineGroupList({
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      <div className="space-y-4 p-4">
-        <div className="flex justify-between items-center">
-          <h2 className="text-lg font-medium">Pipelines</h2>
-          <Button size="sm" onClick={() => setNewGroupDialogOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Novo Grupo
-          </Button>
-        </div>
-
-        <div className="space-y-1">
-          {groups.map((group) => (
-            <div 
-              key={group.id} 
-              className={cn(
-                "space-y-1",
-                activeDropZone === group.id && "bg-muted/80 rounded-md"
-              )}
-              data-type="group"
-              data-id={group.id}
+      <div className="flex flex-col h-full">
+        <div className="p-4 border-b">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center">
+              <FolderKanban className="h-5 w-5 text-primary mr-2" />
+              <h2 className="text-lg font-bold">Pipelines</h2>
+            </div>
+            <Button 
+              size="sm" 
+              onClick={() => setNewGroupDialogOpen(true)}
+              className="h-8 gap-1"
             >
+              <Plus className="h-4 w-4" />
+              <span>Novo Grupo</span>
+            </Button>
+          </div>
+
+          <div className="space-y-3">
+            {groups.map((group) => (
               <div 
-                className="flex items-center justify-between rounded-md hover:bg-muted/50 p-2"
-                data-type="group-header"
+                key={group.id} 
+                className={cn(
+                  "border rounded-sm overflow-hidden",
+                  activeDropZone === group.id && "border-primary/30 bg-primary/5"
+                )}
+                data-type="group"
                 data-id={group.id}
               >
-                <button
-                  onClick={() => toggleGroupExpansion(group.id)}
-                  className="flex items-center gap-2 flex-1 text-sm font-medium text-left"
+                <div 
+                  className={cn(
+                    "flex items-center justify-between py-2 px-3 bg-secondary/30",
+                    activeGroupId === group.id && "bg-primary/5"
+                  )}
+                  data-type="group-header"
+                  data-id={group.id}
                 >
-                  <ChevronRight
-                    className={cn(
-                      "h-4 w-4 transition-transform",
-                      expandedGroups[group.id] && "transform rotate-90"
-                    )}
-                  />
-                  {group.name}
-                  <span className="text-xs text-muted-foreground ml-1">
-                    ({group.pipelines.length})
-                  </span>
-                </button>
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openNewPipelineDialog(group.id);
-                    }}
+                  <button
+                    onClick={() => toggleGroupExpansion(group.id)}
+                    className="flex items-center gap-2 flex-1 text-sm font-medium text-left"
                   >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => openEditGroupDialog(group)}>
-                        <Pencil className="mr-2 h-4 w-4" />
-                        Editar grupo
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem 
-                        className="text-red-600"
-                        onClick={() => handleDeleteGroup(group.id)}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Excluir grupo
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
-
-              {expandedGroups[group.id] && (
-                <div className="ml-6 space-y-1">
-                  <SortableContext 
-                    items={group.pipelines.map(p => p.id)} 
-                    strategy={verticalListSortingStrategy}
-                  >
-                    {group.pipelines.map((pipeline) => (
-                      <SortablePipeline
-                        key={pipeline.id}
-                        pipeline={pipeline}
-                        groupId={group.id}
-                        isActive={activePipelineId === pipeline.id}
-                        onClick={() => {
-                          setActiveGroupId(group.id);
-                          setActivePipelineId(pipeline.id);
-                        }}
-                        onEdit={() => openEditPipelineDialog(group.id, pipeline)}
-                        onDelete={() => handleDeletePipeline(group.id, pipeline.id)}
-                      />
-                    ))}
-                  </SortableContext>
-
-                  {group.pipelines.length === 0 && (
-                    <button
-                      onClick={() => openNewPipelineDialog(group.id)}
-                      className="flex items-center gap-2 w-full text-sm text-left text-muted-foreground p-2 rounded-md hover:bg-muted/30"
+                    <ChevronRight
+                      className={cn(
+                        "h-4 w-4 text-muted-foreground transition-transform",
+                        expandedGroups[group.id] && "transform rotate-90"
+                      )}
+                    />
+                    <span className={cn(
+                      activeGroupId === group.id ? "text-primary font-medium" : "text-foreground"
+                    )}>
+                      {group.name}
+                    </span>
+                    <span className="text-xs text-muted-foreground ml-1">
+                      ({group.pipelines.length})
+                    </span>
+                  </button>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openNewPipelineDialog(group.id);
+                      }}
                     >
                       <Plus className="h-4 w-4" />
-                      Adicionar pipeline
-                    </button>
-                  )}
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => openEditGroupDialog(group)}>
+                          <Pencil className="mr-2 h-4 w-4" />
+                          Editar grupo
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          className="text-red-600"
+                          onClick={() => handleDeleteGroup(group.id)}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Excluir grupo
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
-              )}
-            </div>
-          ))}
+
+                {expandedGroups[group.id] && (
+                  <div className="px-3 py-2 space-y-2 bg-white">
+                    <SortableContext 
+                      items={group.pipelines.map(p => p.id)} 
+                      strategy={verticalListSortingStrategy}
+                    >
+                      {group.pipelines.map((pipeline) => (
+                        <SortablePipeline
+                          key={pipeline.id}
+                          pipeline={pipeline}
+                          groupId={group.id}
+                          isActive={activePipelineId === pipeline.id}
+                          onClick={() => {
+                            setActiveGroupId(group.id);
+                            setActivePipelineId(pipeline.id);
+                          }}
+                          onEdit={() => openEditPipelineDialog(group.id, pipeline)}
+                          onDelete={() => handleDeletePipeline(group.id, pipeline.id)}
+                        />
+                      ))}
+                    </SortableContext>
+
+                    {group.pipelines.length === 0 && (
+                      <button
+                        onClick={() => openNewPipelineDialog(group.id)}
+                        className="flex items-center gap-2 w-full text-sm text-left text-muted-foreground p-2 rounded-sm hover:bg-secondary/30 border border-dashed border-border"
+                      >
+                        <Plus className="h-4 w-4" />
+                        <span>Adicionar pipeline</span>
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Overlay para o elemento sendo arrastado */}

@@ -39,8 +39,8 @@ export default function Pipelines() {
     <div className="flex h-[calc(100vh-theme(spacing.16))] relative">
       <aside 
         className={cn(
-          "border-r border-border bg-card relative transition-all duration-300 ease-in-out h-full overflow-y-auto",
-          pipelineMenuCollapsed ? "w-0 opacity-0" : "w-[240px] opacity-100"
+          "border-r border-border bg-white relative transition-all duration-300 ease-in-out h-full overflow-y-auto",
+          pipelineMenuCollapsed ? "w-0 opacity-0" : "w-[280px] opacity-100"
         )}
       >
         <PipelineGroupList 
@@ -52,11 +52,11 @@ export default function Pipelines() {
       </aside>
       
       <Button 
-        variant="ghost" 
+        variant="outline" 
         size="icon" 
         className={cn(
-          "absolute top-[70px] z-50 h-10 w-10 rounded-full border shadow-sm bg-background transition-all duration-300",
-          pipelineMenuCollapsed ? "left-2" : "left-[230px]"
+          "absolute top-[70px] z-50 h-8 w-8 rounded-sm border shadow-sm bg-white transition-all duration-300",
+          pipelineMenuCollapsed ? "left-2" : "left-[270px]"
         )}
         onClick={togglePipelineMenu}
       >
@@ -67,19 +67,21 @@ export default function Pipelines() {
       </Button>
       
       <div className={cn(
-        "flex flex-col h-full overflow-hidden transition-all duration-300 ease-in-out",
+        "flex flex-col h-full overflow-hidden transition-all duration-300 ease-in-out bg-white",
         pipelineMenuCollapsed ? "w-full pl-4" : "flex-1 p-4"
       )}>
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold">{pipelineNames[activePipelineId] || "Pipeline"}</h1>
+            <h1 className="text-xl font-bold">{pipelineNames[activePipelineId] || "Pipeline"}</h1>
             <SetupButton />
           </div>
           <div className="flex gap-2">
             <Select value={sortOption} onValueChange={setSortOption}>
-              <SelectTrigger className="w-[200px] bg-white">
-                <ArrowUpDown className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Ordenar por..." />
+              <SelectTrigger className="w-[200px] bg-white h-9">
+                <div className="flex items-center gap-2">
+                  <ArrowUpDown className="h-4 w-4" />
+                  <SelectValue placeholder="Ordenar por..." />
+                </div>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="date-desc">Data (mais recente)</SelectItem>
@@ -98,7 +100,7 @@ export default function Pipelines() {
             <Button 
               variant="outline" 
               size="sm" 
-              className="flex items-center gap-1 bg-white"
+              className="flex items-center gap-1 h-9"
               onClick={() => setFilterOpen(!filterOpen)}
             >
               <Filter className="h-4 w-4" />
