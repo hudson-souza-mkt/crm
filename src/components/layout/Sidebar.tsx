@@ -56,51 +56,55 @@ export function Sidebar({ collapsed, toggleSidebar }: SidebarProps) {
       {/* Navegação */}
       <nav className="flex-1 overflow-y-auto py-4">
         <ul className="space-y-1 px-2">
-          {navItems.map((item) => (
-            collapsed ? (
-              <TooltipProvider key={item.to}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <li>
-                      <NavLink
-                        to={item.to}
-                        className={({ isActive }) =>
-                          cn(
-                            "flex items-center justify-center p-2 rounded-sm transition-colors",
-                            isActive 
-                              ? "bg-primary/10 text-primary" 
-                              : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
-                          )
-                        }
-                      >
-                        <item.icon className="h-5 w-5" />
-                      </NavLink>
-                    </li>
-                  </TooltipTrigger>
-                  <TooltipContent side="right" className="border border-border bg-white">
-                    <p className="font-medium text-sm">{item.label}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            ) : (
-              <li key={item.to}>
-                <NavLink
-                  to={item.to}
-                  className={({ isActive }) =>
-                    cn(
-                      "flex items-center px-3 py-2 text-sm font-medium rounded-sm transition-colors",
-                      isActive 
-                        ? "nav-item-active pl-[11px]" 
-                        : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground pl-3"
-                    )
-                  }
-                >
-                  <item.icon className="h-5 w-5 mr-3" />
-                  <span>{item.label}</span>
-                </NavLink>
-              </li>
-            )
-          )}
+          {navItems.map((item) => {
+            if (collapsed) {
+              return (
+                <TooltipProvider key={item.to}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <li>
+                        <NavLink
+                          to={item.to}
+                          className={({ isActive }) =>
+                            cn(
+                              "flex items-center justify-center p-2 rounded-sm transition-colors",
+                              isActive 
+                                ? "bg-primary/10 text-primary" 
+                                : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
+                            )
+                          }
+                        >
+                          <item.icon className="h-5 w-5" />
+                        </NavLink>
+                      </li>
+                    </TooltipTrigger>
+                    <TooltipContent side="right" className="border border-border bg-white">
+                      <p className="font-medium text-sm">{item.label}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              );
+            } else {
+              return (
+                <li key={item.to}>
+                  <NavLink
+                    to={item.to}
+                    className={({ isActive }) =>
+                      cn(
+                        "flex items-center px-3 py-2 text-sm font-medium rounded-sm transition-colors",
+                        isActive 
+                          ? "nav-item-active pl-[11px]" 
+                          : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground pl-3"
+                      )
+                    }
+                  >
+                    <item.icon className="h-5 w-5 mr-3" />
+                    <span>{item.label}</span>
+                  </NavLink>
+                </li>
+              );
+            }
+          })}
         </ul>
       </nav>
       
