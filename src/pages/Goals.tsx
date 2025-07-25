@@ -3,6 +3,7 @@ import { GoalsList } from "@/components/goals/GoalsList";
 import { GoalForm } from "@/components/goals/GoalForm";
 import { GoalsSummary } from "@/components/goals/GoalsSummary";
 import { GoalFilter } from "@/components/goals/GoalFilter";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import {
   Tabs,
   TabsContent,
@@ -10,7 +11,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Plus, Filter } from "lucide-react";
+import { Plus, Filter, Sliders, ChevronDown, BarChartHorizontal } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 
@@ -18,13 +19,13 @@ export type GoalPeriod = "monthly" | "quarterly" | "yearly";
 export type GoalStatus = "active" | "completed" | "overdue";
 export type GoalCategory = "revenue" | "leads" | "conversion" | "retention" | "ticket" | "deals" | "custom";
 
-// Nova interface para fonte de dados
+// Interface para fonte de dados
 export interface DataSource {
   id: string;
   name: string;
   description: string;
   category: GoalCategory[];
-  value: number; // Valor simulado atual da métrica
+  value: number;
 }
 
 export interface Goal {
@@ -42,7 +43,6 @@ export interface Goal {
   team?: string;
   createdAt: Date;
   updatedAt: Date;
-  // Novos campos para fonte de dados
   dataSourceId?: string;
   isAutoCalculated: boolean;
 }
@@ -313,27 +313,29 @@ export default function Goals() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Gestão de Metas</h1>
-          <p className="text-muted-foreground mt-1">
-            Crie e acompanhe metas para sua equipe de vendas
+          <h1 className="text-2xl font-bold">Gestão de Metas</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Gerencie e acompanhe suas metas de vendas, leads e conversão
           </p>
         </div>
         <div className="flex gap-2">
           <Button 
             variant="outline" 
+            size="sm"
             onClick={() => setIsFilterOpen(!isFilterOpen)}
-            className="gap-1"
+            className="h-9 gap-1"
           >
             <Filter className="h-4 w-4" />
-            Filtros
+            <span>Filtros</span>
+            <ChevronDown className="h-3 w-3 ml-1" />
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
+              <Button size="sm" className="h-9 gap-1">
+                <Plus className="h-4 w-4" />
                 Nova Meta
               </Button>
             </DialogTrigger>
@@ -351,39 +353,115 @@ export default function Goals() {
 
       {isFilterOpen && <GoalFilter />}
 
-      <GoalsSummary goals={goals} />
+      {/* Resumo de cards com números principais */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="stat-card">
+          <CardContent className="p-4 flex flex-col items-center justify-center">
+            <h3 className="text-sm font-medium text-muted-foreground mb-3">Total de metas concluídas</h3>
+            <p className="text-4xl font-bold">
+              {goals.filter(goal => goal.status === "completed").length}
+            </p>
+            <div className="text-xs text-muted-foreground mt-1">1 filtro aplicado</div>
+          </CardContent>
+        </Card>
+        
+        <Card className="stat-card">
+          <CardContent className="p-4 flex flex-col items-center justify-center">
+            <h3 className="text-sm font-medium text-muted-foreground mb-3">Metas em andamento</h3>
+            <p className="text-4xl font-bold">
+              {goals.filter(goal => goal.status === "active").length}
+            </p>
+            <div className="text-xs text-muted-foreground mt-1">1 filtro aplicado</div>
+          </CardContent>
+        </Card>
+        
+        <Card className="stat-card">
+          <CardContent className="p-4 flex flex-col items-center justify-center">
+            <h3 className="text-sm font-medium text-muted-foreground mb-3">Metas atrasadas</h3>
+            <p className="text-4xl font-bold text-red-500">
+              {goals.filter(goal => goal.status === "overdue").length}
+            </p>
+            <div className="text-xs text-muted-foreground mt-1">1 filtro aplicado</div>
+          </CardContent>
+        </Card>
+        
+        <Card className="stat-card">
+          <CardContent className="p-4 flex flex-col items-center justify-center">
+            <h3 className="text-sm font-medium text-muted-foreground mb-3">Total de metas</h3>
+            <p className="text-4xl font-bold">
+              {goals.length}
+            </p>
+            <div className="text-xs text-muted-foreground mt-1">Sem filtros</div>
+          </CardContent>
+        </Card>
+      </div>
 
-      <Tabs defaultValue="monthly" value={activeTab} onValueChange={handleTabChange}>
-        <TabsList className="mb-4">
-          <TabsTrigger value="monthly">Metas Mensais</TabsTrigger>
-          <TabsTrigger value="quarterly">Metas Trimestrais</TabsTrigger>
-          <TabsTrigger value="yearly">Metas Anuais</TabsTrigger>
-        </TabsList>
-        <TabsContent value="monthly">
-          <GoalsList 
-            goals={filteredGoals} 
-            onEdit={handleEditGoal} 
-            onDelete={handleDeleteGoal}
-            dataSources={dataSources}
-          />
-        </TabsContent>
-        <TabsContent value="quarterly">
-          <GoalsList 
-            goals={filteredGoals} 
-            onEdit={handleEditGoal} 
-            onDelete={handleDeleteGoal}
-            dataSources={dataSources}
-          />
-        </TabsContent>
-        <TabsContent value="yearly">
-          <GoalsList 
-            goals={filteredGoals} 
-            onEdit={handleEditGoal} 
-            onDelete={handleDeleteGoal}
-            dataSources={dataSources} 
-          />
-        </TabsContent>
-      </Tabs>
+      <Card className="corporate-card overflow-hidden">
+        <CardHeader className="bg-secondary/30 px-4 py-3 border-b">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm font-medium">Metas</CardTitle>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <Sliders className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <BarChartHorizontal className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Tabs defaultValue="monthly" value={activeTab} onValueChange={handleTabChange}>
+            <div className="border-b">
+              <TabsList className="p-0 h-10 bg-transparent border-b">
+                <TabsTrigger 
+                  value="monthly" 
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent h-10"
+                >
+                  Metas Mensais
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="quarterly" 
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent h-10"
+                >
+                  Metas Trimestrais
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="yearly" 
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent h-10"
+                >
+                  Metas Anuais
+                </TabsTrigger>
+              </TabsList>
+            </div>
+            
+            <TabsContent value="monthly" className="m-0">
+              <GoalsList 
+                goals={filteredGoals} 
+                onEdit={handleEditGoal} 
+                onDelete={handleDeleteGoal}
+                dataSources={dataSources}
+              />
+            </TabsContent>
+            <TabsContent value="quarterly" className="m-0">
+              <GoalsList 
+                goals={filteredGoals} 
+                onEdit={handleEditGoal} 
+                onDelete={handleDeleteGoal}
+                dataSources={dataSources}
+              />
+            </TabsContent>
+            <TabsContent value="yearly" className="m-0">
+              <GoalsList 
+                goals={filteredGoals} 
+                onEdit={handleEditGoal} 
+                onDelete={handleDeleteGoal}
+                dataSources={dataSources} 
+              />
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
 }

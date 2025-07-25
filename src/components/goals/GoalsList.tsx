@@ -2,7 +2,6 @@ import { useState } from "react";
 import { 
   Table, 
   TableBody, 
-  TableCaption, 
   TableCell, 
   TableHead, 
   TableHeader, 
@@ -22,9 +21,6 @@ import {
   Edit, 
   Trash2, 
   MoreHorizontal, 
-  TrendingUp, 
-  TrendingDown, 
-  ChevronUp,
   DollarSign,
   Users,
   Target,
@@ -87,11 +83,11 @@ export function GoalsList({ goals, onEdit, onDelete, dataSources }: GoalsListPro
   const getStatusBadge = (status: GoalStatus) => {
     switch (status) {
       case "active":
-        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Em andamento</Badge>;
+        return <Badge variant="outline" className="bg-blue-50 text-blue-500 border-blue-200 font-normal">Em andamento</Badge>;
       case "completed":
-        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Concluída</Badge>;
+        return <Badge variant="outline" className="bg-green-50 text-green-500 border-green-200 font-normal">Concluída</Badge>;
       case "overdue":
-        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">Atrasada</Badge>;
+        return <Badge variant="outline" className="bg-red-50 text-red-500 border-red-200 font-normal">Atrasada</Badge>;
     }
   };
 
@@ -123,19 +119,13 @@ export function GoalsList({ goals, onEdit, onDelete, dataSources }: GoalsListPro
 
   return (
     <>
-      <div className="rounded-md border">
-        <Table>
-          <TableCaption>
-            {goals.length === 0 
-              ? "Nenhuma meta encontrada para este período."
-              : `Mostrando ${goals.length} meta${goals.length > 1 ? 's' : ''}`
-            }
-          </TableCaption>
+      <div className="overflow-x-auto">
+        <Table className="table-corporate">
           <TableHeader>
             <TableRow>
               <TableHead className="w-[180px]">Meta</TableHead>
               <TableHead>Categoria</TableHead>
-              <TableHead className="w-[150px]">Período</TableHead>
+              <TableHead>Período</TableHead>
               <TableHead className="text-right">Valor Atual</TableHead>
               <TableHead className="text-right">Meta</TableHead>
               <TableHead>Progresso</TableHead>
@@ -144,109 +134,117 @@ export function GoalsList({ goals, onEdit, onDelete, dataSources }: GoalsListPro
             </TableRow>
           </TableHeader>
           <TableBody>
-            {goals.map((goal) => {
-              const progress = calculateProgress(goal.currentValue, goal.targetValue);
-              const dataSourceName = getDataSourceName(goal);
-              
-              return (
-                <TableRow key={goal.id}>
-                  <TableCell className="font-medium">
-                    <div className="flex flex-col">
-                      <span>{goal.title}</span>
-                      {goal.description && (
-                        <span className="text-xs text-muted-foreground truncate max-w-[180px]">
-                          {goal.description}
+            {goals.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                  Nenhuma meta encontrada para este período.
+                </TableCell>
+              </TableRow>
+            ) : (
+              goals.map((goal) => {
+                const progress = calculateProgress(goal.currentValue, goal.targetValue);
+                const dataSourceName = getDataSourceName(goal);
+                
+                return (
+                  <TableRow key={goal.id}>
+                    <TableCell className="font-medium">
+                      <div className="flex flex-col">
+                        <span>{goal.title}</span>
+                        {goal.description && (
+                          <span className="text-xs text-muted-foreground truncate max-w-[180px]">
+                            {goal.description}
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {getCategoryIcon(goal.category)}
+                        <span className="capitalize">
+                          {goal.category === "revenue" ? "Receita" :
+                           goal.category === "leads" ? "Leads" :
+                           goal.category === "conversion" ? "Conversão" :
+                           goal.category === "retention" ? "Retenção" :
+                           goal.category === "ticket" ? "Ticket médio" :
+                           goal.category === "deals" ? "Negócios" : "Personalizada"}
                         </span>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {getCategoryIcon(goal.category)}
-                      <span className="capitalize">
-                        {goal.category === "revenue" ? "Receita" :
-                         goal.category === "leads" ? "Leads" :
-                         goal.category === "conversion" ? "Conversão" :
-                         goal.category === "retention" ? "Retenção" :
-                         goal.category === "ticket" ? "Ticket médio" :
-                         goal.category === "deals" ? "Negócios" : "Personalizada"}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{formatDateRange(goal.startDate, goal.endDate)}</TableCell>
-                  <TableCell className="text-right font-medium">
-                    <div className="flex items-center justify-end gap-1">
-                      {formatValue(goal.currentValue, goal.category)}
-                      
-                      {goal.isAutoCalculated && (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <span>
-                                <Database className="h-3.5 w-3.5 text-blue-500 ml-1" />
-                              </span>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p className="text-xs">Valor automático de: {dataSourceName}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      )}
-                      
-                      {!goal.isAutoCalculated && (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <span>
-                                <HandCoins className="h-3.5 w-3.5 text-gray-400 ml-1" />
-                              </span>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p className="text-xs">Valor definido manualmente</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {formatValue(goal.targetValue, goal.category)}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Progress value={progress} className="h-2" />
-                      <span className="text-xs font-medium whitespace-nowrap">
-                        {progress.toFixed(1)}%
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{getStatusBadge(goal.status)}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onEdit(goal)}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() => confirmDelete(goal.id)}
-                          className="text-red-600"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
+                      </div>
+                    </TableCell>
+                    <TableCell>{formatDateRange(goal.startDate, goal.endDate)}</TableCell>
+                    <TableCell className="text-right font-medium">
+                      <div className="flex items-center justify-end gap-1">
+                        {formatValue(goal.currentValue, goal.category)}
+                        
+                        {goal.isAutoCalculated && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span>
+                                  <Database className="h-3.5 w-3.5 text-blue-500 ml-1" />
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-xs">Valor automático de: {dataSourceName}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                        
+                        {!goal.isAutoCalculated && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span>
+                                  <HandCoins className="h-3.5 w-3.5 text-gray-400 ml-1" />
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-xs">Valor definido manualmente</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {formatValue(goal.targetValue, goal.category)}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Progress value={progress} className="h-1.5" />
+                        <span className="text-xs font-medium whitespace-nowrap">
+                          {progress.toFixed(1)}%
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>{getStatusBadge(goal.status)}</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-40">
+                          <DropdownMenuItem onClick={() => onEdit(goal)}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => confirmDelete(goal.id)}
+                            className="text-red-500 focus:text-red-500"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
           </TableBody>
         </Table>
       </div>
@@ -261,7 +259,7 @@ export function GoalsList({ goals, onEdit, onDelete, dataSources }: GoalsListPro
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDelete} className="bg-red-600 hover:bg-red-700">
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-red-500 hover:bg-red-600">
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>

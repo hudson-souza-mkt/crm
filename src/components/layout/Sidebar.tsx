@@ -1,182 +1,151 @@
 import { NavLink } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
   Columns,
   Users,
   MessageSquare,
   Settings,
-  Rocket,
+  ChevronLeft,
+  ChevronRight,
   Bot,
   Target,
-  Sparkles,
+  FolderKanban,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
 
 interface SidebarProps {
   collapsed?: boolean;
+  toggleSidebar: () => void;
 }
 
 const navItems = [
-  { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard", gradient: "from-blue-500 to-blue-600" },
-  { to: "/pipelines", icon: Columns, label: "Pipelines", gradient: "from-purple-500 to-purple-600" },
-  { to: "/leads", icon: Users, label: "Leads/Clientes", gradient: "from-green-500 to-green-600" },
-  { to: "/chat", icon: MessageSquare, label: "Atendimentos", gradient: "from-amber-500 to-amber-600" },
-  { to: "/automations", icon: Bot, label: "Automações", gradient: "from-cyan-500 to-cyan-600" },
-  { to: "/goals", icon: Target, label: "Metas", gradient: "from-pink-500 to-pink-600" },
+  { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+  { to: "/pipelines", icon: Columns, label: "Pipelines" },
+  { to: "/leads", icon: Users, label: "Leads/Clientes" },
+  { to: "/chat", icon: MessageSquare, label: "Atendimentos" },
+  { to: "/automations", icon: Bot, label: "Automações" },
+  { to: "/goals", icon: Target, label: "Metas" },
 ];
 
-export const NavContent = ({ collapsed }: SidebarProps) => (
-  <div className="flex flex-col h-full">
-    <div className={cn(
-      "border-b border-white/20 backdrop-blur-sm",
-      collapsed ? "p-3" : "p-6"
-    )}>
-      <div className={cn(
-        "flex items-center transition-all duration-300",
-        collapsed ? "justify-center" : "gap-3"
-      )}>
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl blur opacity-75"></div>
-          <div className="relative bg-white/90 backdrop-blur-sm p-2 rounded-xl">
-            <Rocket className="w-6 h-6 text-transparent bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text" />
+export function Sidebar({ collapsed, toggleSidebar }: SidebarProps) {
+  return (
+    <div className="flex flex-col h-full">
+      {/* Logo e botão de toggle */}
+      <div className="flex items-center justify-between p-4 border-b border-border">
+        {!collapsed ? (
+          <div className="flex items-center">
+            <FolderKanban className="h-6 w-6 text-primary mr-2" />
+            <span className="font-bold text-lg">Space Sales</span>
           </div>
-        </div>
-        {!collapsed && (
-          <div className="flex flex-col">
-            <h1 className="text-xl font-bold gradient-text">Space Sales</h1>
-            <div className="flex items-center gap-1 text-xs text-white/70">
-              <Sparkles className="w-3 h-3" />
-              <span>CRM Moderno</span>
-            </div>
-          </div>
+        ) : (
+          <FolderKanban className="h-6 w-6 text-primary mx-auto" />
         )}
+        
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="h-7 w-7 rounded-sm p-0 ml-auto"
+          onClick={toggleSidebar}
+        >
+          {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+        </Button>
       </div>
-    </div>
-    
-    <nav className="flex-1 px-3 py-6 space-y-2">
-      {navItems.map((item, index) => (
-        collapsed ? (
-          <TooltipProvider key={item.to}>
-            <Tooltip>
-              <TooltipTrigger asChild>
+      
+      {/* Navegação */}
+      <nav className="flex-1 overflow-y-auto py-4">
+        <ul className="space-y-1 px-2">
+          {navItems.map((item) => (
+            collapsed ? (
+              <TooltipProvider key={item.to}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <li>
+                      <NavLink
+                        to={item.to}
+                        className={({ isActive }) =>
+                          cn(
+                            "flex items-center justify-center p-2 rounded-sm transition-colors",
+                            isActive 
+                              ? "bg-primary/10 text-primary" 
+                              : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
+                          )
+                        }
+                      >
+                        <item.icon className="h-5 w-5" />
+                      </NavLink>
+                    </li>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="border border-border bg-white">
+                    <p className="font-medium text-sm">{item.label}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
+              <li key={item.to}>
                 <NavLink
                   to={item.to}
                   className={({ isActive }) =>
                     cn(
-                      "group flex items-center justify-center p-3 rounded-xl transition-all duration-300 hover-lift",
-                      "hover:bg-white/10 hover:backdrop-blur-sm",
-                      isActive
-                        ? "bg-white/20 backdrop-blur-sm shadow-lg"
-                        : "hover:bg-white/5"
+                      "flex items-center px-3 py-2 text-sm font-medium rounded-sm transition-colors",
+                      isActive 
+                        ? "nav-item-active pl-[11px]" 
+                        : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground pl-3"
                     )
                   }
-                  style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  <div className={cn(
-                    "relative p-2 rounded-lg transition-all duration-300",
-                    "group-hover:scale-110"
-                  )}>
-                    <item.icon className="h-5 w-5 text-white/90" />
-                  </div>
+                  <item.icon className="h-5 w-5 mr-3" />
+                  <span>{item.label}</span>
+                </NavLink>
+              </li>
+            )
+          )}
+        </ul>
+      </nav>
+      
+      {/* Configurações */}
+      <div className="border-t border-border p-2">
+        {collapsed ? (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <NavLink
+                  to="/settings"
+                  className={({ isActive }) =>
+                    cn(
+                      "flex items-center justify-center p-2 rounded-sm transition-colors",
+                      isActive 
+                        ? "bg-primary/10 text-primary" 
+                        : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
+                    )
+                  }
+                >
+                  <Settings className="h-5 w-5" />
                 </NavLink>
               </TooltipTrigger>
-              <TooltipContent side="right" className="glass border border-white/20">
-                <p className="font-medium">{item.label}</p>
+              <TooltipContent side="right" className="border border-border bg-white">
+                <p className="font-medium text-sm">Configurações</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         ) : (
           <NavLink
-            key={item.to}
-            to={item.to}
+            to="/settings"
             className={({ isActive }) =>
               cn(
-                "group flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover-lift",
-                "hover:bg-white/10 hover:backdrop-blur-sm micro-bounce",
-                isActive
-                  ? "bg-white/20 backdrop-blur-sm shadow-lg text-white"
-                  : "text-white/80 hover:text-white hover:bg-white/5"
+                "flex items-center px-3 py-2 text-sm font-medium rounded-sm transition-colors w-full",
+                isActive 
+                  ? "nav-item-active pl-[11px]" 
+                  : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground pl-3"
               )
             }
-            style={{ animationDelay: `${index * 0.1}s` }}
           >
-            <div className={cn(
-              "relative p-2 rounded-lg mr-3 transition-all duration-300",
-              "group-hover:scale-110"
-            )}>
-              <div className={cn(
-                "absolute inset-0 bg-gradient-to-r rounded-lg opacity-0 transition-opacity duration-300",
-                item.gradient,
-                "group-hover:opacity-20"
-              )} />
-              <item.icon className="relative h-5 w-5" />
-            </div>
-            <span className="relative">{item.label}</span>
+            <Settings className="h-5 w-5 mr-3" />
+            <span>Configurações</span>
           </NavLink>
-        )
-      ))}
-    </nav>
-    
-    <div className={cn(
-      "border-t border-white/20 backdrop-blur-sm", 
-      collapsed ? "p-3" : "p-4"
-    )}>
-      {collapsed ? (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <NavLink
-                to="/settings"
-                className={({ isActive }) =>
-                  cn(
-                    "group flex items-center justify-center p-3 rounded-xl transition-all duration-300 hover-lift",
-                    "hover:bg-white/10 hover:backdrop-blur-sm",
-                    isActive
-                      ? "bg-white/20 backdrop-blur-sm shadow-lg"
-                      : "hover:bg-white/5"
-                  )
-                }
-              >
-                <div className="relative p-2 rounded-lg transition-all duration-300 group-hover:scale-110">
-                  <Settings className="h-5 w-5 text-white/90" />
-                </div>
-              </NavLink>
-            </TooltipTrigger>
-            <TooltipContent side="right" className="glass border border-white/20">
-              <p className="font-medium">Configurações</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      ) : (
-        <NavLink
-          to="/settings"
-          className={({ isActive }) =>
-            cn(
-              "group flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover-lift w-full",
-              "hover:bg-white/10 hover:backdrop-blur-sm",
-              isActive
-                ? "bg-white/20 backdrop-blur-sm shadow-lg text-white"
-                : "text-white/80 hover:text-white hover:bg-white/5"
-            )
-          }
-        >
-          <div className="relative p-2 rounded-lg mr-3 transition-all duration-300 group-hover:scale-110">
-            <div className="absolute inset-0 bg-gradient-to-r from-gray-500 to-gray-600 rounded-lg opacity-0 transition-opacity duration-300 group-hover:opacity-20" />
-            <Settings className="relative h-5 w-5" />
-          </div>
-          <span className="relative">Configurações</span>
-        </NavLink>
-      )}
-    </div>
-  </div>
-);
-
-export function Sidebar({ collapsed }: SidebarProps) {
-  return (
-    <div className="h-full flex flex-col">
-      <NavContent collapsed={collapsed} />
+        )}
+      </div>
     </div>
   );
 }

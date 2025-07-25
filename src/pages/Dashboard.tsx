@@ -1,144 +1,307 @@
-import { EnhancedMetricCard } from "@/components/dashboard/EnhancedMetricCard";
-import { SalesChart } from "@/components/dashboard/SalesChart";
-import { FunnelAnalysis } from "@/components/dashboard/FunnelAnalysis";
-import { TopPerformers } from "@/components/dashboard/TopPerformers";
-import { RecentActivities } from "@/components/dashboard/RecentActivities";
-import { GoalsProgress } from "@/components/dashboard/GoalsProgress";
-import { DollarSign, Users, Activity, TrendingUp, Target, MessageCircle, UserCheck, Calendar, Sparkles } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { DollarSign, Users, Activity, TrendingUp, Target, MessageCircle, Calendar } from "lucide-react";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell } from 'recharts';
+
+const salesData = [
+  { name: 'Jan', valor: 32000 },
+  { name: 'Fev', valor: 28000 },
+  { name: 'Mar', valor: 41000 },
+  { name: 'Abr', valor: 38000 },
+  { name: 'Mai', valor: 45000 },
+  { name: 'Jun', valor: 52000 },
+];
+
+const statusData = [
+  { name: 'Por concluir', value: 9, color: '#818cf8' },
+  { name: 'Concluídas', value: 12, color: '#10b981' },
+  { name: 'Atrasadas', value: 2, color: '#f87171' },
+];
 
 export default function Dashboard() {
   return (
-    <div className="flex flex-col gap-8 min-h-full">
-      {/* Header com gradiente */}
-      <div className="relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-3xl blur-xl" />
-        <div className="relative space-y-4 p-8 glass rounded-3xl border border-white/20">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600">
-              <Sparkles className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-4xl font-bold gradient-text">
-                Dashboard de Vendas
-              </h1>
-              <p className="text-muted-foreground text-lg mt-1">
-                Visão geral do desempenho da sua equipe de vendas
-              </p>
-            </div>
-          </div>
-          
-          {/* Indicadores rápidos */}
-          <div className="flex items-center gap-6 pt-4">
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/20 border border-green-500/30">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-              <span className="text-sm text-green-700 font-medium">86% da meta mensal</span>
-            </div>
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-500/30">
-              <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
-              <span className="text-sm text-blue-700 font-medium">1.247 leads ativos</span>
-            </div>
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/30">
-              <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse" />
-              <span className="text-sm text-purple-700 font-medium">57 atendimentos</span>
-            </div>
-          </div>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <div className="flex gap-2">
+          <Tabs defaultValue="dia">
+            <TabsList className="grid grid-cols-4 h-8">
+              <TabsTrigger value="dia" className="text-xs px-3">Hoje</TabsTrigger>
+              <TabsTrigger value="semana" className="text-xs px-3">Semana</TabsTrigger>
+              <TabsTrigger value="mes" className="text-xs px-3">Mês</TabsTrigger>
+              <TabsTrigger value="ano" className="text-xs px-3">Ano</TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
       </div>
-
-      {/* Métricas Principais */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <EnhancedMetricCard
-          title="Receita Total"
-          value="R$ 387.500"
-          subtitle="Meta: R$ 450.000"
-          icon={DollarSign}
-          change="+23.5% vs. mês passado"
-          changeType="increase"
-          gradient="from-green-500 to-emerald-600"
-        />
-        <EnhancedMetricCard
-          title="Novos Leads"
-          value="1.247"
-          subtitle="Meta: 1.500"
-          icon={Users}
-          change="+18.2% vs. mês passado"
-          changeType="increase"
-          gradient="from-blue-500 to-cyan-600"
-        />
-        <EnhancedMetricCard
-          title="Taxa de Conversão"
-          value="12,5%"
-          subtitle="Meta: 15%"
-          icon={TrendingUp}
-          change="-2.1% vs. mês passado"
-          changeType="decrease"
-          gradient="from-purple-500 to-pink-600"
-        />
-        <EnhancedMetricCard
-          title="Ticket Médio"
-          value="R$ 2.850"
-          subtitle="Meta: R$ 3.000"
-          icon={Target}
-          change="+8.7% vs. mês passado"
-          changeType="increase"
-          gradient="from-amber-500 to-orange-600"
-        />
+      
+      {/* Cards de métricas */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="stat-card">
+          <CardHeader className="pb-2 pt-4 px-4">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total de Vendas</CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-4">
+            <div className="flex items-baseline justify-between">
+              <span className="text-2xl font-bold">R$ 387.500</span>
+              <div className="flex items-center text-green-500 text-sm">
+                <TrendingUp className="h-3 w-3 mr-1" />
+                <span>+23,5%</span>
+              </div>
+            </div>
+            <div className="mt-4">
+              <div className="flex justify-between items-center text-xs mb-1">
+                <span className="text-muted-foreground">Progresso</span>
+                <span className="font-medium">86%</span>
+              </div>
+              <Progress value={86} className="h-1.5" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="stat-card">
+          <CardHeader className="pb-2 pt-4 px-4">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Novos Leads</CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-4">
+            <div className="flex items-baseline justify-between">
+              <span className="text-2xl font-bold">1.247</span>
+              <div className="flex items-center text-green-500 text-sm">
+                <TrendingUp className="h-3 w-3 mr-1" />
+                <span>+18,2%</span>
+              </div>
+            </div>
+            <div className="mt-4">
+              <div className="flex justify-between items-center text-xs mb-1">
+                <span className="text-muted-foreground">Progresso</span>
+                <span className="font-medium">83%</span>
+              </div>
+              <Progress value={83} className="h-1.5" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="stat-card">
+          <CardHeader className="pb-2 pt-4 px-4">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Taxa de Conversão</CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-4">
+            <div className="flex items-baseline justify-between">
+              <span className="text-2xl font-bold">12,5%</span>
+              <div className="flex items-center text-red-500 text-sm">
+                <TrendingUp className="h-3 w-3 mr-1 rotate-180" />
+                <span>-2,1%</span>
+              </div>
+            </div>
+            <div className="mt-4">
+              <div className="flex justify-between items-center text-xs mb-1">
+                <span className="text-muted-foreground">Progresso</span>
+                <span className="font-medium">65%</span>
+              </div>
+              <Progress value={65} className="h-1.5" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="stat-card">
+          <CardHeader className="pb-2 pt-4 px-4">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Ticket Médio</CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-4">
+            <div className="flex items-baseline justify-between">
+              <span className="text-2xl font-bold">R$ 2.850</span>
+              <div className="flex items-center text-green-500 text-sm">
+                <TrendingUp className="h-3 w-3 mr-1" />
+                <span>+8,7%</span>
+              </div>
+            </div>
+            <div className="mt-4">
+              <div className="flex justify-between items-center text-xs mb-1">
+                <span className="text-muted-foreground">Progresso</span>
+                <span className="font-medium">95%</span>
+              </div>
+              <Progress value={95} className="h-1.5" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
-
-      {/* Métricas Secundárias */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <EnhancedMetricCard
-          title="Atendimentos Ativos"
-          value="57"
-          subtitle="12 aguardando"
-          icon={MessageCircle}
-          change="+12 desde ontem"
-          changeType="increase"
-          gradient="from-orange-500 to-red-500"
-        />
-        <EnhancedMetricCard
-          title="Clientes Ativos"
-          value="1.834"
-          subtitle="468 novos este mês"
-          icon={UserCheck}
-          change="+15.3% vs. mês passado"
-          changeType="increase"
-          gradient="from-cyan-500 to-blue-500"
-        />
-        <EnhancedMetricCard
-          title="Tempo Médio de Ciclo"
-          value="18 dias"
-          subtitle="Meta: 15 dias"
-          icon={Calendar}
-          change="+2 dias vs. mês passado"
-          changeType="decrease"
-          gradient="from-pink-500 to-rose-500"
-        />
-        <EnhancedMetricCard
-          title="Pipeline Value"
-          value="R$ 1.2M"
-          subtitle="234 oportunidades"
-          icon={Activity}
-          change="+31.2% vs. mês passado"
-          changeType="increase"
-          gradient="from-indigo-500 to-purple-500"
-        />
+      
+      {/* Resumo visual de tarefas */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        <Card className="corporate-card col-span-1">
+          <CardHeader className="pb-2 pt-4 px-4">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Tarefas concluídas</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center justify-center py-8 px-4">
+            <div className="text-4xl font-bold">12</div>
+            <div className="text-xs text-muted-foreground mt-1">de 23 tarefas</div>
+          </CardContent>
+        </Card>
+        
+        <Card className="corporate-card col-span-1">
+          <CardHeader className="pb-2 pt-4 px-4">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Tarefas pendentes</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center justify-center py-8 px-4">
+            <div className="text-4xl font-bold">9</div>
+            <div className="text-xs text-muted-foreground mt-1">1 filtro ativo</div>
+          </CardContent>
+        </Card>
+        
+        <Card className="corporate-card col-span-1">
+          <CardHeader className="pb-2 pt-4 px-4">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Tarefas atrasadas</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center justify-center py-8 px-4">
+            <div className="text-4xl font-bold text-red-500">2</div>
+            <div className="text-xs text-muted-foreground mt-1">1 filtro ativo</div>
+          </CardContent>
+        </Card>
+        
+        <Card className="corporate-card col-span-1">
+          <CardHeader className="pb-2 pt-4 px-4">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total de tarefas</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center justify-center py-8 px-4">
+            <div className="text-4xl font-bold">23</div>
+            <div className="text-xs text-muted-foreground mt-1">sem filtros</div>
+          </CardContent>
+        </Card>
       </div>
-
-      {/* Progresso das Metas */}
-      <GoalsProgress />
-
-      {/* Gráficos e Análises */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        <SalesChart />
-        <FunnelAnalysis />
+      
+      {/* Gráficos */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card className="corporate-card">
+          <CardHeader className="pb-2 pt-4 px-4">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Vendas por mês</CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-4">
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={salesData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fill: '#6b7280', fontSize: 12 }}
+                  />
+                  <YAxis 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fill: '#6b7280', fontSize: 12 }}
+                    tickFormatter={(value) => `R$${value / 1000}k`}
+                  />
+                  <Tooltip 
+                    formatter={(value) => [`R$${Number(value).toLocaleString('pt-BR')}`, 'Valor']}
+                    contentStyle={{
+                      backgroundColor: 'white',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '0.25rem',
+                      boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+                    }}
+                  />
+                  <Bar 
+                    dataKey="valor" 
+                    fill="#818cf8"
+                    radius={[4, 4, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="corporate-card">
+          <CardHeader className="pb-2 pt-4 px-4">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Tarefas por status</CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-4">
+            <div className="h-[300px] w-full flex items-center justify-center">
+              <ResponsiveContainer width="70%" height="70%">
+                <PieChart>
+                  <Pie
+                    data={statusData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    innerRadius={40}
+                    dataKey="value"
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    labelLine={false}
+                  >
+                    {statusData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    formatter={(value) => [value, 'Tarefas']}
+                    contentStyle={{
+                      backgroundColor: 'white',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '0.25rem',
+                      boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
       </div>
-
-      {/* Atividades e Performance */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <TopPerformers />
-        <RecentActivities />
-      </div>
+      
+      {/* Seção adicional - Tarefas por seção */}
+      <Card className="corporate-card">
+        <CardHeader className="pb-2 pt-4 px-4">
+          <CardTitle className="text-sm font-medium text-muted-foreground">Tarefas por seção</CardTitle>
+        </CardHeader>
+        <CardContent className="px-4 pb-4">
+          <div className="h-[250px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart 
+                layout="vertical" 
+                data={[
+                  { name: 'A fazer', valor: 2 },
+                  { name: 'Em execução', valor: 6 },
+                  { name: 'Feito', valor: 1 }
+                ]} 
+                margin={{ top: 20, right: 30, left: 50, bottom: 20 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f0f0f0" />
+                <XAxis 
+                  type="number" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: '#6b7280', fontSize: 12 }}
+                />
+                <YAxis 
+                  type="category"
+                  dataKey="name" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: '#6b7280', fontSize: 12 }}
+                />
+                <Tooltip 
+                  formatter={(value) => [value, 'Tarefas']}
+                  contentStyle={{
+                    backgroundColor: 'white',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '0.25rem',
+                    boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)'
+                  }}
+                />
+                <Bar 
+                  dataKey="valor" 
+                  fill="#818cf8"
+                  radius={[0, 4, 4, 0]}
+                  barSize={30}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

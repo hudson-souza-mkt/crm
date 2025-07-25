@@ -2,8 +2,6 @@ import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
-import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function MainLayout() {
@@ -14,38 +12,19 @@ export function MainLayout() {
   };
 
   return (
-    <div className="flex min-h-screen w-full relative">
-      {/* Background com gradiente animado e padrão SVG */}
-      <div className="fixed inset-0 bg-gradient-to-br from-indigo-50 via-white to-purple-50 -z-10" />
-      <div className="fixed inset-0 bg-pattern -z-10" />
-      
+    <div className="flex min-h-screen w-full bg-secondary/30">
       <div 
         className={cn(
-          "flex flex-col sidebar-modern relative transition-all duration-500 ease-in-out",
-          sidebarCollapsed ? "w-[70px]" : "w-72"
+          "sidebar-corporate h-screen flex-shrink-0 transition-all duration-300 ease-in-out overflow-hidden",
+          sidebarCollapsed ? "w-[70px]" : "w-64"
         )}
       >
-        <Sidebar collapsed={sidebarCollapsed} />
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className={cn(
-            "absolute -right-4 top-20 z-50 h-8 w-8 rounded-full",
-            "glass border border-white/30 hover:bg-white/20",
-            "transition-all duration-300 hover:scale-110 hover:shadow-lg"
-          )}
-          onClick={toggleSidebar}
-        >
-          {sidebarCollapsed ? 
-            <ChevronRight className="h-4 w-4" /> : 
-            <ChevronLeft className="h-4 w-4" />
-          }
-        </Button>
+        <Sidebar collapsed={sidebarCollapsed} toggleSidebar={toggleSidebar} />
       </div>
       
       <div className="flex flex-col flex-1 min-w-0">
         <Header />
-        <main className="flex-1 p-6 md:p-8 lg:p-10 animate-fade-in-up">
+        <main className="flex-1 p-4 md:p-6 overflow-auto">
           <div className="max-w-7xl mx-auto">
             <Outlet />
           </div>
