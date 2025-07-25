@@ -67,7 +67,7 @@ export const NavContent = ({ collapsed }: SidebarProps) => (
                     cn(
                       "group flex items-center justify-center p-3 rounded-xl transition-all duration-300 hover-lift",
                       "hover:bg-white/10 hover:backdrop-blur-sm",
-                      is Active
+                      isActive
                         ? "bg-white/20 backdrop-blur-sm shadow-lg"
                         : "hover:bg-white/5"
                     )
