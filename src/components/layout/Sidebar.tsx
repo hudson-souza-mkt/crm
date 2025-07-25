@@ -8,7 +8,8 @@ import {
   Settings,
   Rocket,
   Bot,
-  Target, // Ícone para metas
+  Target,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -18,30 +19,44 @@ interface SidebarProps {
 }
 
 const navItems = [
-  { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { to: "/pipelines", icon: Columns, label: "Pipelines" },
-  { to: "/leads", icon: Users, label: "Leads/Clientes" },
-  { to: "/chat", icon: MessageSquare, label: "Atendimentos" },
-  { to: "/automations", icon: Bot, label: "Automações" },
-  { to: "/goals", icon: Target, label: "Metas" }, // Novo item de navegação
+  { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard", gradient: "from-blue-500 to-blue-600" },
+  { to: "/pipelines", icon: Columns, label: "Pipelines", gradient: "from-purple-500 to-purple-600" },
+  { to: "/leads", icon: Users, label: "Leads/Clientes", gradient: "from-green-500 to-green-600" },
+  { to: "/chat", icon: MessageSquare, label: "Atendimentos", gradient: "from-amber-500 to-amber-600" },
+  { to: "/automations", icon: Bot, label: "Automações", gradient: "from-cyan-500 to-cyan-600" },
+  { to: "/goals", icon: Target, label: "Metas", gradient: "from-pink-500 to-pink-600" },
 ];
 
 export const NavContent = ({ collapsed }: SidebarProps) => (
   <div className="flex flex-col h-full">
     <div className={cn(
-      "border-b border-border",
-      collapsed ? "p-2" : "p-4"
+      "border-b border-white/20 backdrop-blur-sm",
+      collapsed ? "p-3" : "p-6"
     )}>
-      <h1 className={cn(
-        "text-2xl font-bold text-primary flex items-center",
-        collapsed ? "justify-center" : "gap-2"
+      <div className={cn(
+        "flex items-center transition-all duration-300",
+        collapsed ? "justify-center" : "gap-3"
       )}>
-        <Rocket className="w-7 h-7" />
-        {!collapsed && <span>Space Sales</span>}
-      </h1>
+        <div className="relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl blur opacity-75"></div>
+          <div className="relative bg-white/90 backdrop-blur-sm p-2 rounded-xl">
+            <Rocket className="w-6 h-6 text-transparent bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text" />
+          </div>
+        </div>
+        {!collapsed && (
+          <div className="flex flex-col">
+            <h1 className="text-xl font-bold gradient-text">Space Sales</h1>
+            <div className="flex items-center gap-1 text-xs text-white/70">
+              <Sparkles className="w-3 h-3" />
+              <span>CRM Moderno</span>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
-    <nav className="flex-1 px-2 py-4 space-y-1">
-      {navItems.map((item) => (
+    
+    <nav className="flex-1 px-3 py-6 space-y-2">
+      {navItems.map((item, index) => (
         collapsed ? (
           <TooltipProvider key={item.to}>
             <Tooltip>
@@ -50,18 +65,25 @@ export const NavContent = ({ collapsed }: SidebarProps) => (
                   to={item.to}
                   className={({ isActive }) =>
                     cn(
-                      "flex items-center justify-center p-2 rounded-md transition-colors",
-                      isActive
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                      "group flex items-center justify-center p-3 rounded-xl transition-all duration-300 hover-lift",
+                      "hover:bg-white/10 hover:backdrop-blur-sm",
+                      is Active
+                        ? "bg-white/20 backdrop-blur-sm shadow-lg"
+                        : "hover:bg-white/5"
                     )
                   }
+                  style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  <item.icon className="h-5 w-5" />
+                  <div className={cn(
+                    "relative p-2 rounded-lg transition-all duration-300",
+                    "group-hover:scale-110"
+                  )}>
+                    <item.icon className="h-5 w-5 text-white/90" />
+                  </div>
                 </NavLink>
               </TooltipTrigger>
-              <TooltipContent side="right">
-                {item.label}
+              <TooltipContent side="right" className="glass border border-white/20">
+                <p className="font-medium">{item.label}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -71,22 +93,35 @@ export const NavContent = ({ collapsed }: SidebarProps) => (
             to={item.to}
             className={({ isActive }) =>
               cn(
-                "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
+                "group flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover-lift",
+                "hover:bg-white/10 hover:backdrop-blur-sm micro-bounce",
                 isActive
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  ? "bg-white/20 backdrop-blur-sm shadow-lg text-white"
+                  : "text-white/80 hover:text-white hover:bg-white/5"
               )
             }
+            style={{ animationDelay: `${index * 0.1}s` }}
           >
-            <item.icon className="mr-3 h-5 w-5" />
-            {item.label}
+            <div className={cn(
+              "relative p-2 rounded-lg mr-3 transition-all duration-300",
+              "group-hover:scale-110"
+            )}>
+              <div className={cn(
+                "absolute inset-0 bg-gradient-to-r rounded-lg opacity-0 transition-opacity duration-300",
+                item.gradient,
+                "group-hover:opacity-20"
+              )} />
+              <item.icon className="relative h-5 w-5" />
+            </div>
+            <span className="relative">{item.label}</span>
           </NavLink>
         )
       ))}
     </nav>
+    
     <div className={cn(
-      "border-t border-border", 
-      collapsed ? "p-2" : "p-2"
+      "border-t border-white/20 backdrop-blur-sm", 
+      collapsed ? "p-3" : "p-4"
     )}>
       {collapsed ? (
         <TooltipProvider>
@@ -96,18 +131,21 @@ export const NavContent = ({ collapsed }: SidebarProps) => (
                 to="/settings"
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center justify-center p-2 rounded-md transition-colors",
+                    "group flex items-center justify-center p-3 rounded-xl transition-all duration-300 hover-lift",
+                    "hover:bg-white/10 hover:backdrop-blur-sm",
                     isActive
-                      ? "bg-accent text-accent-foreground"
-                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                      ? "bg-white/20 backdrop-blur-sm shadow-lg"
+                      : "hover:bg-white/5"
                   )
                 }
               >
-                <Settings className="h-5 w-5" />
+                <div className="relative p-2 rounded-lg transition-all duration-300 group-hover:scale-110">
+                  <Settings className="h-5 w-5 text-white/90" />
+                </div>
               </NavLink>
             </TooltipTrigger>
-            <TooltipContent side="right">
-              Configurações
+            <TooltipContent side="right" className="glass border border-white/20">
+              <p className="font-medium">Configurações</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -116,15 +154,19 @@ export const NavContent = ({ collapsed }: SidebarProps) => (
           to="/settings"
           className={({ isActive }) =>
             cn(
-              "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors w-full justify-start",
+              "group flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 hover-lift w-full",
+              "hover:bg-white/10 hover:backdrop-blur-sm",
               isActive
-                ? "bg-accent text-accent-foreground"
-                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                ? "bg-white/20 backdrop-blur-sm shadow-lg text-white"
+                : "text-white/80 hover:text-white hover:bg-white/5"
             )
           }
         >
-          <Settings className="mr-3 h-5 w-5" />
-          Configurações
+          <div className="relative p-2 rounded-lg mr-3 transition-all duration-300 group-hover:scale-110">
+            <div className="absolute inset-0 bg-gradient-to-r from-gray-500 to-gray-600 rounded-lg opacity-0 transition-opacity duration-300 group-hover:opacity-20" />
+            <Settings className="relative h-5 w-5" />
+          </div>
+          <span className="relative">Configurações</span>
         </NavLink>
       )}
     </div>
