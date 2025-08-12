@@ -70,24 +70,24 @@ export function GoalsList({ goals, onEdit, onDelete, dataSources }: GoalsListPro
 
   const getCategoryIcon = (category: GoalCategory) => {
     switch (category) {
-      case "revenue": return <DollarSign className="h-4 w-4 text-green-500" />;
-      case "leads": return <Users className="h-4 w-4 text-blue-500" />;
-      case "conversion": return <Target className="h-4 w-4 text-purple-500" />;
-      case "ticket": return <ShoppingCart className="h-4 w-4 text-amber-500" />;
-      case "deals": return <BarChart className="h-4 w-4 text-indigo-500" />;
-      case "retention": return <RefreshCcw className="h-4 w-4 text-cyan-500" />;
-      default: return <Target className="h-4 w-4 text-gray-500" />;
+      case "revenue": return <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />;
+      case "leads": return <Users className="h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />;
+      case "conversion": return <Target className="h-3 w-3 sm:h-4 sm:w-4 text-purple-500" />;
+      case "ticket": return <ShoppingCart className="h-3 w-3 sm:h-4 sm:w-4 text-amber-500" />;
+      case "deals": return <BarChart className="h-3 w-3 sm:h-4 sm:w-4 text-indigo-500" />;
+      case "retention": return <RefreshCcw className="h-3 w-3 sm:h-4 sm:w-4 text-cyan-500" />;
+      default: return <Target className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />;
     }
   };
 
   const getStatusBadge = (status: GoalStatus) => {
     switch (status) {
       case "active":
-        return <Badge variant="outline" className="bg-blue-50 text-blue-500 border-blue-200 font-normal">Em andamento</Badge>;
+        return <Badge variant="outline" className="bg-blue-50 text-blue-500 border-blue-200 font-normal text-xs">Em andamento</Badge>;
       case "completed":
-        return <Badge variant="outline" className="bg-green-50 text-green-500 border-green-200 font-normal">Concluída</Badge>;
+        return <Badge variant="outline" className="bg-green-50 text-green-500 border-green-200 font-normal text-xs">Concluída</Badge>;
       case "overdue":
-        return <Badge variant="outline" className="bg-red-50 text-red-500 border-red-200 font-normal">Atrasada</Badge>;
+        return <Badge variant="outline" className="bg-red-50 text-red-500 border-red-200 font-normal text-xs">Atrasada</Badge>;
     }
   };
 
@@ -123,20 +123,20 @@ export function GoalsList({ goals, onEdit, onDelete, dataSources }: GoalsListPro
         <Table className="table-corporate">
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[180px]">Meta</TableHead>
-              <TableHead>Categoria</TableHead>
-              <TableHead>Período</TableHead>
-              <TableHead className="text-right">Valor Atual</TableHead>
-              <TableHead className="text-right">Meta</TableHead>
-              <TableHead>Progresso</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="w-[80px]"></TableHead>
+              <TableHead className="w-[140px] sm:w-[180px] text-xs sm:text-sm">Meta</TableHead>
+              <TableHead className="hidden sm:table-cell text-xs sm:text-sm">Categoria</TableHead>
+              <TableHead className="hidden md:table-cell text-xs sm:text-sm">Período</TableHead>
+              <TableHead className="text-right text-xs sm:text-sm">Atual</TableHead>
+              <TableHead className="text-right text-xs sm:text-sm">Meta</TableHead>
+              <TableHead className="text-xs sm:text-sm">Progresso</TableHead>
+              <TableHead className="hidden sm:table-cell text-xs sm:text-sm">Status</TableHead>
+              <TableHead className="w-[60px] sm:w-[80px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {goals.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={8} className="text-center py-6 sm:py-8 text-muted-foreground text-sm">
                   Nenhuma meta encontrada para este período.
                 </TableCell>
               </TableRow>
@@ -149,18 +149,30 @@ export function GoalsList({ goals, onEdit, onDelete, dataSources }: GoalsListPro
                   <TableRow key={goal.id}>
                     <TableCell className="font-medium">
                       <div className="flex flex-col">
-                        <span>{goal.title}</span>
+                        <span className="text-xs sm:text-sm truncate">{goal.title}</span>
                         {goal.description && (
-                          <span className="text-xs text-muted-foreground truncate max-w-[180px]">
+                          <span className="text-xs text-muted-foreground truncate max-w-[120px] sm:max-w-[180px]">
                             {goal.description}
                           </span>
                         )}
+                        {/* Mostrar categoria em mobile */}
+                        <div className="flex items-center gap-1 mt-1 sm:hidden">
+                          {getCategoryIcon(goal.category)}
+                          <span className="text-xs text-muted-foreground">
+                            {goal.category === "revenue" ? "Receita" :
+                             goal.category === "leads" ? "Leads" :
+                             goal.category === "conversion" ? "Conversão" :
+                             goal.category === "retention" ? "Retenção" :
+                             goal.category === "ticket" ? "Ticket médio" :
+                             goal.category === "deals" ? "Negócios" : "Personalizada"}
+                          </span>
+                        </div>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       <div className="flex items-center gap-2">
                         {getCategoryIcon(goal.category)}
-                        <span className="capitalize">
+                        <span className="capitalize text-xs sm:text-sm">
                           {goal.category === "revenue" ? "Receita" :
                            goal.category === "leads" ? "Leads" :
                            goal.category === "conversion" ? "Conversão" :
@@ -170,17 +182,21 @@ export function GoalsList({ goals, onEdit, onDelete, dataSources }: GoalsListPro
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell>{formatDateRange(goal.startDate, goal.endDate)}</TableCell>
+                    <TableCell className="hidden md:table-cell text-xs sm:text-sm">
+                      {formatDateRange(goal.startDate, goal.endDate)}
+                    </TableCell>
                     <TableCell className="text-right font-medium">
                       <div className="flex items-center justify-end gap-1">
-                        {formatValue(goal.currentValue, goal.category)}
+                        <span className="text-xs sm:text-sm">
+                          {formatValue(goal.currentValue, goal.category)}
+                        </span>
                         
                         {goal.isAutoCalculated && (
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <span>
-                                  <Database className="h-3.5 w-3.5 text-blue-500 ml-1" />
+                                  <Database className="h-3 w-3 text-blue-500 ml-1" />
                                 </span>
                               </TooltipTrigger>
                               <TooltipContent>
@@ -195,7 +211,7 @@ export function GoalsList({ goals, onEdit, onDelete, dataSources }: GoalsListPro
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <span>
-                                  <HandCoins className="h-3.5 w-3.5 text-gray-400 ml-1" />
+                                  <HandCoins className="h-3 w-3 text-gray-400 ml-1" />
                                 </span>
                               </TooltipTrigger>
                               <TooltipContent>
@@ -206,37 +222,39 @@ export function GoalsList({ goals, onEdit, onDelete, dataSources }: GoalsListPro
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right text-xs sm:text-sm">
                       {formatValue(goal.targetValue, goal.category)}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Progress value={progress} className="h-1.5" />
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        <Progress value={progress} className="h-1.5 flex-1" />
                         <span className="text-xs font-medium whitespace-nowrap">
-                          {progress.toFixed(1)}%
+                          {progress.toFixed(0)}%
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell>{getStatusBadge(goal.status)}</TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      {getStatusBadge(goal.status)}
+                    </TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
+                          <Button variant="ghost" className="h-7 w-7 sm:h-8 sm:w-8 p-0">
+                            <MoreHorizontal className="h-3 w-3 sm:h-4 sm:w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-40">
+                        <DropdownMenuContent align="end" className="w-32 sm:w-40">
                           <DropdownMenuItem onClick={() => onEdit(goal)}>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Editar
+                            <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+                            <span className="text-xs sm:text-sm">Editar</span>
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             onClick={() => confirmDelete(goal.id)}
                             className="text-red-500 focus:text-red-500"
                           >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Excluir
+                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+                            <span className="text-xs sm:text-sm">Excluir</span>
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -250,16 +268,16 @@ export function GoalsList({ goals, onEdit, onDelete, dataSources }: GoalsListPro
       </div>
 
       <AlertDialog open={!!goalToDelete} onOpenChange={(open) => !open && setGoalToDelete(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="mx-4 sm:mx-0">
           <AlertDialogHeader>
-            <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-base sm:text-lg">Tem certeza?</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm">
               Esta ação não pode ser desfeita. Isso excluirá permanentemente esta meta.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDelete} className="bg-red-500 hover:bg-red-600">
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
+            <AlertDialogCancel className="text-sm">Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-red-500 hover:bg-red-600 text-sm">
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -103,6 +103,14 @@
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
+
+  /* Melhorar touch targets em mobile */
+  @media (max-width: 768px) {
+    button, a, [role="button"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+  }
 }
 
 /* Componentes corporativos */
@@ -155,20 +163,20 @@
   
   /* Card de estatísticas */
   .stat-card {
-    @apply p-6 rounded-md bg-white border border-border shadow-sm;
+    @apply p-4 sm:p-6 rounded-md bg-white border border-border shadow-sm;
   }
   
-  /* Tabela corporativa */
+  /* Tabela corporativa responsiva */
   .table-corporate {
     @apply w-full border-collapse;
   }
   
   .table-corporate th {
-    @apply bg-muted/50 font-medium text-sm text-muted-foreground text-left p-3 border-b border-border;
+    @apply bg-muted/50 font-medium text-xs sm:text-sm text-muted-foreground text-left p-2 sm:p-3 border-b border-border;
   }
   
   .table-corporate td {
-    @apply p-3 border-b border-border text-sm;
+    @apply p-2 sm:p-3 border-b border-border text-xs sm:text-sm;
   }
   
   .table-corporate tr:hover {
@@ -181,7 +189,7 @@
   }
   
   .tab-corporate {
-    @apply px-4 py-2 text-sm font-medium border-b-2 border-transparent;
+    @apply px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium border-b-2 border-transparent;
   }
   
   .tab-corporate.active {
@@ -191,6 +199,41 @@
   /* Badge corporativo */
   .badge-corporate {
     @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium;
+  }
+
+  /* Responsividade para grids */
+  .responsive-grid-1 {
+    @apply grid grid-cols-1;
+  }
+  
+  .responsive-grid-2 {
+    @apply grid grid-cols-1 sm:grid-cols-2;
+  }
+  
+  .responsive-grid-3 {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3;
+  }
+  
+  .responsive-grid-4 {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4;
+  }
+
+  /* Espaçamentos responsivos */
+  .responsive-padding {
+    @apply p-3 sm:p-4 lg:p-6;
+  }
+  
+  .responsive-margin {
+    @apply m-3 sm:m-4 lg:m-6;
+  }
+  
+  .responsive-gap {
+    @apply gap-3 sm:gap-4 lg:gap-6;
+  }
+
+  /* Touch targets melhorados */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
   }
 }
 
@@ -245,22 +288,9 @@
   color: hsl(var(--red-500));
 }
 
-/* Utilidades específicas para o dashboard */
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1rem;
-}
-
-.dashboard-grid-lg {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 1.5rem;
-}
-
 /* Customização de scrollbar mais discreta */
 .overflow-y-auto::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 
 .overflow-y-auto::-webkit-scrollbar-track {
@@ -269,11 +299,11 @@
 
 .overflow-y-auto::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.1);
-  border-radius: 3px;
+  border-radius: 2px;
 }
 
 .overflow-x-auto::-webkit-scrollbar {
-  height: 6px;
+  height: 4px;
 }
 
 .overflow-x-auto::-webkit-scrollbar-track {
@@ -282,5 +312,36 @@
 
 .overflow-x-auto::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.1);
-  border-radius: 3px;
+  border-radius: 2px;
+}
+
+/* Melhorias para mobile */
+@media (max-width: 640px) {
+  /* Reduzir espaçamentos em mobile */
+  .space-y-6 > * + * {
+    margin-top: 1rem;
+  }
+  
+  .space-y-4 > * + * {
+    margin-top: 0.75rem;
+  }
+  
+  /* Melhorar legibilidade em telas pequenas */
+  .text-2xl {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+  
+  .text-xl {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+  }
+}
+
+/* Melhorias para tablet */
+@media (min-width: 641px) and (max-width: 1024px) {
+  /* Ajustes específicos para tablet */
+  .sidebar-corporate {
+    width: 240px;
+  }
 }
