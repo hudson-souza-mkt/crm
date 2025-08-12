@@ -11,6 +11,7 @@ import {
   Target,
   FolderKanban,
   Calendar,
+  Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -28,7 +29,8 @@ const navItems = [
   { to: "/leads", icon: Users, label: "Leads/Clientes" },
   { to: "/chat", icon: MessageSquare, label: "Atendimentos" },
   { to: "/calendar", icon: Calendar, label: "Agenda" },
-  { to: "/automations", icon: Bot, label: "Automações" },
+  { to: "/ai-agents", icon: Bot, label: "Agentes de IA" },
+  { to: "/automations", icon: Zap, label: "Automações" },
   { to: "/goals", icon: Target, label: "Metas" },
 ];
 
