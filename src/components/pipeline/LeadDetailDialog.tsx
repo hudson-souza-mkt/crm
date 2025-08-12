@@ -49,7 +49,7 @@ import type { Lead } from "./PipelineCard";
 import { ChatMessage } from "@/components/chat/ChatMessage";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { AgendaManager } from "@/components/agenda/AgendaManager";
+import { useAgendaManager } from "@/hooks/useAgendaManager";
 import { AgendaList } from "@/components/agenda/AgendaList";
 import { AgendaModal } from "@/components/agenda/AgendaModal";
 import { AgendaItem, AgendaItemType } from "@/types/agenda";
@@ -146,17 +146,17 @@ export function LeadDetailDialog({ lead, open, onOpenChange }: LeadDetailDialogP
   const [editingAgendaItem, setEditingAgendaItem] = useState<AgendaItem | null>(null);
   const [defaultAgendaType, setDefaultAgendaType] = useState<AgendaItemType>("task");
   
-  if (!lead) return null;
-
-  const stages = ["Novo Lead", "Qualificação", "Conversando", "Proposta", "Ganho", "Perdido"];
-
-  // Inicializar o gerenciador de agenda
-  const agendaManager = AgendaManager({ 
-    leadId: lead.id,
+  // Usar o hook de agenda
+  const agendaManager = useAgendaManager({ 
+    leadId: lead?.id,
     onItemUpdate: (item) => {
       console.log("Agenda item updated:", item);
     }
   });
+  
+  if (!lead) return null;
+
+  const stages = ["Novo Lead", "Qualificação", "Conversando", "Proposta", "Ganho", "Perdido"];
 
   const handleStageChange = (newStage: string) => {
     setCurrentStage(newStage);
@@ -453,6 +453,7 @@ export function LeadDetailDialog({ lead, open, onOpenChange }: LeadDetailDialogP
                       </div>
                       <div className="p-3 bg-white border-t">
                         <div className="flex items-center gap-2">
+                
                             <div className="relative w-full">
                                 <Input
                                     placeholder="Digite sua mensagem..."
