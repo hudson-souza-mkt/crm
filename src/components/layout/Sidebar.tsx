@@ -12,6 +12,8 @@ import {
   FolderKanban,
   Calendar,
   Zap,
+  BookOpen,
+  CreditCard
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -30,8 +32,10 @@ const navItems = [
   { to: "/chat", icon: MessageSquare, label: "Atendimentos" },
   { to: "/calendar", icon: Calendar, label: "Agenda" },
   { to: "/ai-agents", icon: Bot, label: "Agentes de IA" },
+  { to: "/playbook", icon: BookOpen, label: "Playbook de Vendas" },
   { to: "/automations", icon: Zap, label: "Automações" },
   { to: "/goals", icon: Target, label: "Metas" },
+  { to: "/billing", icon: CreditCard, label: "Billing & Créditos" },
 ];
 
 export function Sidebar({ collapsed, toggleSidebar, onItemClick }: SidebarProps) {

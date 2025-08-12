@@ -1,37 +1,39 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { MainLayout } from "@/components/layout/MainLayout";
+import { Toaster } from "sonner";
+import { Layout } from "@/components/layout/Layout";
+import Index from "@/pages/Index";
 import Dashboard from "@/pages/Dashboard";
 import Pipelines from "@/pages/Pipelines";
 import Leads from "@/pages/Leads";
 import Chat from "@/pages/Chat";
-import Automations from "@/pages/Automations";
-import Goals from "@/pages/Goals";
 import Calendar from "@/pages/Calendar";
 import AIAgents from "@/pages/AIAgents";
+import Automations from "@/pages/Automations";
+import Goals from "@/pages/Goals";
 import Settings from "@/pages/Settings";
-import Index from "@/pages/Index";
-import { Toaster } from "@/components/ui/sonner";
+import Billing from "@/pages/Billing";
+import Playbook from "@/pages/Playbook";
 
 function App() {
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<MainLayout />}>
-          <Route index element={<Index />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="pipelines" element={<Pipelines />} />
-          <Route path="leads" element={<Leads />} />
-          <Route path="chat" element={<Chat />} />
-          <Route path="automations" element={<Automations />} />
-          <Route path="goals" element={<Goals />} />
-          <Route path="calendar" element={<Calendar />} />
-          <Route path="agenda" element={<Calendar />} />
-          <Route path="ai-agents" element={<AIAgents />} />
-          <Route path="agentes" element={<AIAgents />} />
-          <Route path="settings" element={<Settings />} />
-        </Route>
-      </Routes>
-      <Toaster />
+      <div className="min-h-screen bg-background">
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
+          <Route path="/pipelines" element={<Layout><Pipelines /></Layout>} />
+          <Route path="/leads" element={<Layout><Leads /></Layout>} />
+          <Route path="/chat" element={<Layout><Chat /></Layout>} />
+          <Route path="/calendar" element={<Layout><Calendar /></Layout>} />
+          <Route path="/ai-agents" element={<Layout><AIAgents /></Layout>} />
+          <Route path="/automations" element={<Layout><Automations /></Layout>} />
+          <Route path="/goals" element={<Layout><Goals /></Layout>} />
+          <Route path="/playbook" element={<Layout><Playbook /></Layout>} />
+          <Route path="/billing" element={<Layout><Billing /></Layout>} />
+          <Route path="/settings" element={<Layout><Settings /></Layout>} />
+        </Routes>
+        <Toaster />
+      </div>
     </Router>
   );
 }
