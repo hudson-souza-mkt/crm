@@ -7,6 +7,7 @@ import Chat from "@/pages/Chat";
 import Automations from "@/pages/Automations";
 import Goals from "@/pages/Goals";
 import Calendar from "@/pages/Calendar";
+import AIAgents from "@/pages/AIAgents";
 import Settings from "@/pages/Settings";
 import Index from "@/pages/Index";
 import { Toaster } from "@/components/ui/sonner";
@@ -25,6 +26,8 @@ function App() {
           <Route path="goals" element={<Goals />} />
           <Route path="calendar" element={<Calendar />} />
           <Route path="agenda" element={<Calendar />} />
+          <Route path="ai-agents" element={<AIAgents />} />
+          <Route path="agentes" element={<AIAgents />} />
           <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>
