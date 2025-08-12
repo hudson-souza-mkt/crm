@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { KanbanColumn } from "./KanbanColumn";
+import { ActionModals } from "./ActionModals";
 import type { Lead } from "./PipelineCard";
 import { Button } from "@/components/ui/button";
 import { Plus, FileBarChart } from "lucide-react";
 import { toast } from "sonner";
 import { LeadDetailDialog } from "./LeadDetailDialog";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { StageTransitionDialog } from "./StageTransitionDialog";
 import { LeadFormDialog } from "@/components/leads/LeadFormDialog";
 import { DndContext, DragOverlay, closestCorners, useSensor, useSensors, PointerSensor, DragStartEvent, DragOverEvent, DragEndEvent } from '@dnd-kit/core';
@@ -47,14 +48,15 @@ const mockStages: Stage[] = [
   { id: "stage7", name: "Perdido", order: 6, color: "red" }
 ];
 
-// Leads mockados para ilustração, com diferentes características e estados
+// Leads mockados com dados mais completos para as ações rápidas
 const mockLeads: Record<string, Lead[]> = {
   "Novo Lead": [
     { 
       id: "1", 
       name: "Hudson Souza", 
       company: "Acme Corp",
-      phone: "(11) 98765-4321", 
+      phone: "(11) 98765-4321",
+      email: "hudson@acmecorp.com",
       salesperson: "Amanda Vendas", 
       tags: ["potencial", "software"], 
       value: 0, 
@@ -64,6 +66,10 @@ const mockLeads: Record<string, Lead[]> = {
       document: "111.222.333-44",
       stage: "Novo Lead",
       stageUpdatedAt: "2025-06-10T10:00:00Z",
+      isFavorite: true,
+      lastContact: "Ontem",
+      tasksCount: 2,
+      notesCount: 1,
       utms: {
         utm_source: "google",
         utm_medium: "cpc",
@@ -74,15 +80,19 @@ const mockLeads: Record<string, Lead[]> = {
       id: "2", 
       name: "Maria Oliveira", 
       company: "Tech Solutions",
-      phone: "(21) 91234-5678", 
+      phone: "(21) 91234-5678",
+      email: "maria@techsolutions.com",
       salesperson: "Carlos Almeida", 
       tags: ["novo", "médio porte"], 
       value: 0, 
       date: "15/06/2025",
-      activities: false,
+      activities: true,
       document: "12.345.678/0001-99",
       stage: "Novo Lead",
       stageUpdatedAt: new Date().toISOString(),
+      lastContact: "2 dias atrás",
+      tasksCount: 1,
+      notesCount: 3,
     },
     { 
       id: "3", 
@@ -96,6 +106,9 @@ const mockLeads: Record<string, Lead[]> = {
       activities: false,
       stage: "Novo Lead",
       stageUpdatedAt: new Date().toISOString(),
+      priority: "green",
+      tasksCount: 0,
+      notesCount: 0,
     },
   ],
   "Qualificação": [
@@ -103,7 +116,8 @@ const mockLeads: Record<string, Lead[]> = {
       id: "4", 
       name: "João Pereira", 
       company: "Empresa Regional",
-      phone: "(31) 99999-8888", 
+      phone: "(31) 99999-8888",
+      email: "joao@empresaregional.com",
       salesperson: "Carlos Almeida", 
       tags: ["consultoria"], 
       value: 500, 
@@ -112,20 +126,28 @@ const mockLeads: Record<string, Lead[]> = {
       activities: false,
       stage: "Qualificação",
       stageUpdatedAt: "2025-06-01T09:15:00Z",
-      atRisk: true
+      atRisk: true,
+      lastContact: "1 semana atrás",
+      tasksCount: 3,
+      notesCount: 2,
     },
     { 
       id: "5", 
       name: "Ana Silva", 
       company: "Consultoria Silva",
-      phone: "(11) 95555-4444", 
+      phone: "(11) 95555-4444",
+      email: "ana@consultoriasilva.com",
       salesperson: "Amanda Vendas", 
       tags: ["consultoria", "pequeno porte"], 
       value: 750, 
       date: "10/06/2025",
       activities: false,
       stage: "Qualificação",
-      stageUpdatedAt: "2025-06-05T11:30:00Z"
+      stageUpdatedAt: "2025-06-05T11:30:00Z",
+      isFavorite: true,
+      lastContact: "Hoje",
+      tasksCount: 1,
+      notesCount: 4,
     },
   ],
   "Apresentação": [
@@ -133,7 +155,8 @@ const mockLeads: Record<string, Lead[]> = {
       id: "6", 
       name: "Carlos Mendes", 
       company: "Startup XYZ",
-      phone: "(21) 97777-8888", 
+      phone: "(21) 97777-8888",
+      email: "carlos@startupxyz.com",
       salesperson: "Amanda Vendas", 
       tags: ["tech", "startup"], 
       value: 1200, 
@@ -142,6 +165,9 @@ const mockLeads: Record<string, Lead[]> = {
       activities: false,
       stage: "Apresentação",
       stageUpdatedAt: "2025-06-18T16:45:00Z",
+      lastContact: "3 dias atrás",
+      tasksCount: 2,
+      notesCount: 1,
     },
   ],
   "Proposta": [
@@ -149,7 +175,8 @@ const mockLeads: Record<string, Lead[]> = {
       id: "7", 
       name: "Fernanda Lima", 
       company: "Empresa ABC",
-      phone: "(11) 96666-5555", 
+      phone: "(11) 96666-5555",
+      email: "fernanda@empresaabc.com",
       salesperson: "Carlos Almeida", 
       tags: ["software", "médio porte"], 
       value: 3500, 
@@ -157,12 +184,16 @@ const mockLeads: Record<string, Lead[]> = {
       activities: false,
       stage: "Proposta",
       stageUpdatedAt: "2025-06-20T11:20:00Z",
+      lastContact: "Ontem",
+      tasksCount: 1,
+      notesCount: 2,
     },
     { 
       id: "8", 
       name: "Roberto Ferreira", 
       company: "Indústria Nacional",
-      phone: "(21) 99876-5432", 
+      phone: "(21) 99876-5432",
+      email: "roberto@industrianacional.com",
       salesperson: "Amanda Vendas", 
       tags: ["indústria", "alto valor"], 
       value: 12000, 
@@ -171,6 +202,10 @@ const mockLeads: Record<string, Lead[]> = {
       activities: false,
       stage: "Proposta",
       stageUpdatedAt: "2025-06-22T09:10:00Z",
+      isFavorite: true,
+      lastContact: "2 horas atrás",
+      tasksCount: 4,
+      notesCount: 6,
     },
   ],
   "Negociação": [
@@ -178,7 +213,8 @@ const mockLeads: Record<string, Lead[]> = {
       id: "9", 
       name: "Luciana Martins", 
       company: "Comércio Digital",
-      phone: "(11) 97777-6666", 
+      phone: "(11) 97777-6666",
+      email: "luciana@comerciodigital.com",
       salesperson: "Carlos Almeida", 
       tags: ["e-commerce", "médio porte"], 
       value: 5800, 
@@ -186,6 +222,9 @@ const mockLeads: Record<string, Lead[]> = {
       activities: false,
       stage: "Negociação",
       stageUpdatedAt: "2025-06-18T14:25:00Z",
+      lastContact: "1 dia atrás",
+      tasksCount: 2,
+      notesCount: 3,
     },
   ],
   "Ganho": [
@@ -193,7 +232,8 @@ const mockLeads: Record<string, Lead[]> = {
       id: "10", 
       name: "Ricardo Santos", 
       company: "Santos Digital",
-      phone: "(47) 98888-7777", 
+      phone: "(47) 98888-7777",
+      email: "ricardo@santosdigital.com",
       salesperson: "Amanda Vendas", 
       tags: ["tech", "fidelizado"], 
       value: 7800, 
@@ -201,12 +241,16 @@ const mockLeads: Record<string, Lead[]> = {
       activities: false,
       stage: "Ganho",
       stageUpdatedAt: "2025-06-25T10:00:00Z",
+      lastContact: "1 semana atrás",
+      tasksCount: 0,
+      notesCount: 5,
     },
     { 
       id: "11", 
       name: "Gabriela Costa", 
       company: "Agência de Viagens",
-      phone: "(11) 99876-5432", 
+      phone: "(11) 99876-5432",
+      email: "gabriela@agenciaviagens.com",
       salesperson: "Carlos Almeida", 
       tags: ["serviços", "recorrente"], 
       value: 4200, 
@@ -214,6 +258,10 @@ const mockLeads: Record<string, Lead[]> = {
       activities: false,
       stage: "Ganho",
       stageUpdatedAt: "2025-06-27T15:20:00Z",
+      isFavorite: true,
+      lastContact: "3 dias atrás",
+      tasksCount: 1,
+      notesCount: 2,
     },
   ],
   "Perdido": [
@@ -229,6 +277,9 @@ const mockLeads: Record<string, Lead[]> = {
       activities: false,
       stage: "Perdido",
       stageUpdatedAt: "2025-06-15T17:30:00Z",
+      lastContact: "2 semanas atrás",
+      tasksCount: 0,
+      notesCount: 1,
     },
   ],
 };
@@ -249,7 +300,7 @@ const mockStats = {
 };
 
 export function KanbanBoard() {
-  // Usando dados mockados para ilustrar como o funil deve parecer
+  // Estados existentes
   const [stages, setStages] = useState<Stage[]>(mockStages);
   const [loading, setLoading] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -261,10 +312,12 @@ export function KanbanBoard() {
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const [validationMessage, setValidationMessage] = useState<string | null>(null);
   const [isTransitionDialogOpen, setIsTransitionDialogOpen] = useState(false);
-  
-  // Estado local para armazenar os leads e permitir arrastar entre colunas
   const [localLeads, setLocalLeads] = useState<Record<string, Lead[]>>(mockLeads);
   const [stats] = useState(mockStats);
+
+  // Novos estados para ações rápidas
+  const [activeModal, setActiveModal] = useState<string | null>(null);
+  const [selectedLeadForAction, setSelectedLeadForAction] = useState<Lead | null>(null);
 
   // Sensores para o DND kit
   const sensors = useSensors(
@@ -285,7 +338,6 @@ export function KanbanBoard() {
   };
   
   const handleColorChange = async (stageId: string, color: StageColor) => {
-    // Atualiza localmente para demo
     setStages(prev => 
       prev.map(stage => stage.id === stageId ? {...stage, color} : stage)
     );
@@ -298,12 +350,12 @@ export function KanbanBoard() {
   };
 
   const handleCreateLead = (leadData: any) => {
-    // Cria um novo lead para a demonstração
     const newLead: Lead = {
       id: `new-${Date.now()}`,
       name: leadData.name,
       company: leadData.company || "",
       phone: leadData.phone,
+      email: leadData.email || "",
       salesperson: leadData.assignedTo || "Carlos Almeida",
       tags: [],
       value: leadData.value || 0,
@@ -312,9 +364,10 @@ export function KanbanBoard() {
       document: leadData.document,
       stage: activeNewLeadStage || "Novo Lead",
       stageUpdatedAt: new Date().toISOString(),
+      tasksCount: 0,
+      notesCount: 0,
     };
 
-    // Adiciona o novo lead ao estado local
     setLocalLeads(prev => {
       const stageName = activeNewLeadStage || "Novo Lead";
       return {
@@ -326,12 +379,129 @@ export function KanbanBoard() {
     toast.success(`Lead ${leadData.name} criado com sucesso!`);
     setIsNewLeadDialogOpen(false);
   };
+
+  // Handlers para ações rápidas
+  const handleQuickAction = (action: string, lead: Lead) => {
+    setSelectedLeadForAction(lead);
+    
+    switch (action) {
+      case 'whatsapp':
+        handleWhatsAppAction(lead);
+        break;
+      case 'call':
+        handleCallAction(lead);
+        break;
+      case 'email':
+        handleEmailAction(lead);
+        break;
+      case 'schedule':
+        setActiveModal('schedule');
+        break;
+      case 'tasks':
+        setActiveModal('task');
+        break;
+      case 'notes':
+        setActiveModal('note');
+        break;
+      case 'favorite':
+        handleFavoriteAction(lead);
+        break;
+      case 'edit':
+        handleEditAction(lead);
+        break;
+      default:
+        console.log(`Ação ${action} não implementada`);
+    }
+  };
+
+  const handleWhatsAppAction = (lead: Lead) => {
+    const cleanPhone = lead.phone.replace(/\D/g, '');
+    const message = encodeURIComponent(`Olá ${lead.name}, tudo bem? Sou da ${lead.company || 'nossa empresa'} e gostaria de conversar com você sobre nossa proposta.`);
+    window.open(`https://wa.me/55${cleanPhone}?text=${message}`, '_blank');
+    toast.success(`WhatsApp aberto para ${lead.name}`);
+  };
+
+  const handleCallAction = (lead: Lead) => {
+    window.open(`tel:${lead.phone}`, '_self');
+    toast.success(`Ligação iniciada para ${lead.name}`);
+  };
+
+  const handleEmailAction = (lead: Lead) => {
+    if (lead.email) {
+      const subject = encodeURIComponent(`Proposta comercial - ${lead.company || lead.name}`);
+      const body = encodeURIComponent(`Olá ${lead.name},\n\nEspero que esteja bem. Gostaria de apresentar nossa proposta comercial...\n\nAtenciosamente,\n${lead.salesperson}`);
+      window.open(`mailto:${lead.email}?subject=${subject}&body=${body}`, '_self');
+      toast.success(`Email aberto para ${lead.name}`);
+    } else {
+      toast.error("Email não cadastrado para este lead");
+    }
+  };
+
+  const handleFavoriteAction = (lead: Lead) => {
+    setLocalLeads(prev => {
+      const stageName = lead.stage || "Novo Lead";
+      return {
+        ...prev,
+        [stageName]: prev[stageName]?.map(l => 
+          l.id === lead.id ? { ...l, isFavorite: !l.isFavorite } : l
+        ) || []
+      };
+    });
+    toast.success(lead.isFavorite ? "Removido dos favoritos" : "Adicionado aos favoritos");
+  };
+
+  const handleEditAction = (lead: Lead) => {
+    // Aqui você abriria um modal de edição
+    toast.success(`Editando ${lead.name}`);
+  };
+
+  const handleModalSubmit = (action: string, data: any) => {
+    switch (action) {
+      case 'schedule':
+        toast.success(`Reunião agendada para ${data.leadName} em ${data.date?.toLocaleDateString('pt-BR')} às ${data.time}`);
+        break;
+      case 'task':
+        toast.success(`Tarefa "${data.title}" criada para ${data.leadName}`);
+        // Atualizar contador de tarefas
+        if (selectedLeadForAction) {
+          setLocalLeads(prev => {
+            const stageName = selectedLeadForAction.stage || "Novo Lead";
+            return {
+              ...prev,
+              [stageName]: prev[stageName]?.map(l => 
+                l.id === selectedLeadForAction.id ? { ...l, tasksCount: (l.tasksCount || 0) + 1 } : l
+              ) || []
+            };
+          });
+        }
+        break;
+      case 'note':
+        toast.success(`Nota "${data.title}" adicionada para ${data.leadName}`);
+        // Atualizar contador de notas
+        if (selectedLeadForAction) {
+          setLocalLeads(prev => {
+            const stageName = selectedLeadForAction.stage || "Novo Lead";
+            return {
+              ...prev,
+              [stageName]: prev[stageName]?.map(l => 
+                l.id === selectedLeadForAction.id ? { ...l, notesCount: (l.notesCount || 0) + 1 } : l
+              ) || []
+            };
+          });
+        }
+        break;
+    }
+  };
+
+  const closeModal = () => {
+    setActiveModal(null);
+    setSelectedLeadForAction(null);
+  };
   
-  // Handlers para drag and drop
+  // Handlers para drag and drop (mantidos iguais)
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     
-    // Encontrar o lead que está sendo arrastado
     if (active.data.current?.type === 'lead') {
       setDraggedLead(active.data.current.lead);
     }
@@ -350,37 +520,30 @@ export function KanbanBoard() {
   const handleDragEnd = (event: DragEndEvent) => {
     const { over } = event;
     
-    // Resetar estados
     setDraggedLead(null);
     
-    // Se não dropou em nenhuma coluna, não faz nada
     if (!over || !targetStage) {
       setTargetStage(null);
       return;
     }
     
-    // Verificar se a etapa alvo é a mesma que a atual
     if (draggedLead?.stage === targetStage) {
       setTargetStage(null);
       return;
     }
     
-    // Validações específicas para demonstração
     if (draggedLead) {
-      // Exemplo de validação: precisa ter valor para mover para Proposta
       if (targetStage === "Proposta" && (!draggedLead.value || draggedLead.value === 0)) {
         setValidationMessage("O lead precisa ter um valor definido para avançar para a etapa de Proposta.");
         setIsConfirmDialogOpen(true);
         return;
       }
       
-      // Se a etapa alvo for "Ganho" ou "Perdido", abrir o diálogo de transição
       if (targetStage === "Ganho" || targetStage === "Perdido") {
         setIsTransitionDialogOpen(true);
         return;
       }
       
-      // Se não precisa de validação, mover o lead diretamente
       moveLead(draggedLead, targetStage);
     }
     
@@ -389,7 +552,7 @@ export function KanbanBoard() {
 
   const handleTransitionConfirm = (reason: string, comments: string) => {
     if (draggedLead && targetStage) {
-      const message = targetStage === "Ganho" 
+      const message = targetStage ===  "Ganho" 
         ? `Parabéns! Negócio ${draggedLead.name} foi ganho. Motivo: ${reason}`
         : `Negócio ${draggedLead.name} foi marcado como perdido. Motivo: ${reason}`;
         
@@ -401,14 +564,11 @@ export function KanbanBoard() {
   };
 
   const moveLead = (lead: Lead, toStage: string) => {
-    // Remove o lead da etapa atual
     const fromStage = lead.stage || "Novo Lead";
     
     setLocalLeads(prev => {
-      // Remove o lead da etapa atual
       const updatedFromStage = prev[fromStage]?.filter(l => l.id !== lead.id) || [];
       
-      // Adiciona o lead à nova etapa com timestamp atualizado
       const updatedLead = {
         ...lead,
         stage: toStage,
@@ -469,9 +629,8 @@ export function KanbanBoard() {
       {/* Dica para o usuário */}
       <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
         <p>
-          <strong>Nota:</strong> Esta é uma visualização ilustrativa do funil de vendas. Você pode interagir com os 
-          elementos para ver como funcionaria em um ambiente real. Experimente arrastar cards entre colunas, 
-          criar novos leads e visualizar os detalhes!
+          <strong>Novo:</strong> Agora você pode usar ações rápidas nos cards! Passe o mouse sobre um card para ver 
+          botões de WhatsApp, ligação, agendamento e mais. Experimente as novas funcionalidades!
         </p>
       </div>
       
@@ -495,6 +654,7 @@ export function KanbanBoard() {
               onColorChange={(color) => handleColorChange(stage.id, color as StageColor)}
               onCardClick={handleCardClick}
               onAddClick={() => handleNewLeadClick(stage.name)}
+              onQuickAction={handleQuickAction}
             />
           ))}
           <div className="flex-shrink-0 w-80 h-16 flex items-center justify-center">
@@ -505,7 +665,6 @@ export function KanbanBoard() {
           </div>
         </div>
         
-        {/* Overlay para arrastar */}
         <DragOverlay>
           {draggedLead ? (
             <div className="w-80">
@@ -515,21 +674,19 @@ export function KanbanBoard() {
         </DragOverlay>
       </DndContext>
       
-      {/* Diálogo de detalhes do lead */}
+      {/* Diálogos existentes */}
       <LeadDetailDialog 
         lead={selectedLead}
         open={isDetailDialogOpen}
         onOpenChange={setIsDetailDialogOpen}
       />
       
-      {/* Diálogo para criar novo lead */}
       <LeadFormDialog
         open={isNewLeadDialogOpen}
         onOpenChange={setIsNewLeadDialogOpen}
         onSubmit={handleCreateLead}
       />
       
-      {/* Diálogo de validação */}
       <AlertDialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -546,7 +703,6 @@ export function KanbanBoard() {
         </AlertDialogContent>
       </AlertDialog>
       
-      {/* Diálogo de transição de etapa */}
       <StageTransitionDialog
         open={isTransitionDialogOpen}
         onOpenChange={setIsTransitionDialogOpen}
@@ -554,6 +710,14 @@ export function KanbanBoard() {
         toStage={targetStage || ""}
         isClosing={targetStage === "Ganho" || targetStage === "Perdido"}
         onConfirm={handleTransitionConfirm}
+      />
+
+      {/* Novos modais para ações rápidas */}
+      <ActionModals
+        lead={selectedLeadForAction}
+        activeModal={activeModal}
+        onClose={closeModal}
+        onSubmit={handleModalSubmit}
       />
     </div>
   );

@@ -18,6 +18,7 @@ interface KanbanColumnProps {
   onColorChange: (color: string) => void;
   onCardClick: (lead: Lead) => void;
   onAddClick?: () => void;
+  onQuickAction?: (action: string, lead: Lead) => void;
 }
 
 export function KanbanColumn({ 
@@ -29,7 +30,8 @@ export function KanbanColumn({
   color, 
   onColorChange, 
   onCardClick,
-  onAddClick
+  onAddClick,
+  onQuickAction
 }: KanbanColumnProps) {
   const formatCurrency = (value: number) => {
     return `R$ ${value.toFixed(2).replace('.', ',')}`;
@@ -45,7 +47,6 @@ export function KanbanColumn({
 
   const columnStyle = getColumnStyle();
 
-  // Configuração para o droppable
   const { setNodeRef, isOver } = useDroppable({
     id,
     data: {
@@ -98,6 +99,7 @@ export function KanbanColumn({
               key={lead.id}
               lead={lead}
               onCardClick={onCardClick}
+              onQuickAction={onQuickAction}
             />
           ))}
         </SortableContext>

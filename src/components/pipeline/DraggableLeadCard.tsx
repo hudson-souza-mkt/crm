@@ -5,9 +5,10 @@ import { PipelineCard, type Lead } from "./PipelineCard";
 interface DraggableLeadCardProps {
   lead: Lead;
   onCardClick: (lead: Lead) => void;
+  onQuickAction?: (action: string, lead: Lead) => void;
 }
 
-export function DraggableLeadCard({ lead, onCardClick }: DraggableLeadCardProps) {
+export function DraggableLeadCard({ lead, onCardClick, onQuickAction }: DraggableLeadCardProps) {
   const {
     attributes,
     listeners,
