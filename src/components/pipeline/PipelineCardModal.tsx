@@ -7,7 +7,19 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { User } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { 
+  User, 
+  Phone, 
+  Mail, 
+  Building, 
+  DollarSign, 
+  Calendar,
+  Target,
+  ArrowRight,
+  ArrowLeft
+} from "lucide-react";
 import type { Lead } from "@/components/pipeline/PipelineCard";
 
 interface PipelineCardModalProps {
@@ -27,83 +39,299 @@ export function PipelineCardModal({
 }: PipelineCardModalProps) {
   const [activeTab, setActiveTab] = useState("info");
 
-  console.log('🔍 Modal Debug:');
-  console.log('- Modal aberto:', open);
-  console.log('- Lead:', lead);
-  console.log('- Tab ativa:', activeTab);
+  const formatDate = (date?: Date) => {
+    if (!date) return "Não informado";
+    return new Date(date).toLocaleDateString('pt-BR');
+  };
 
-  // Renderizar conteúdo baseado na aba ativa
-  const renderTabContent = () => {
-    console.log('🎯 Renderizando aba:', activeTab);
-    
-    switch (activeTab) {
-      case "info":
-        console.log('📋 Renderizando aba INFO');
-        return (
-          <div style={{ padding: '20px', backgroundColor: '#f0f0f0', border: '3px solid red' }}>
-            <h1 style={{ fontSize: '24px', color: 'red', fontWeight: 'bold' }}>
-              🎯 ABA INFORMAÇÕES FUNCIONANDO!
-            </h1>
-            <p style={{ fontSize: '18px', color: 'blue' }}>
-              Nome: {lead.name}
-            </p>
-            <p style={{ fontSize: '18px', color: 'green' }}>
-              Etapa: {lead.stage}
-            </p>
-            <div style={{ width: '100%', height: '50px', backgroundColor: 'yellow', marginTop: '10px' }}>
-              <p style={{ padding: '15px', fontSize: '16px', fontWeight: 'bold' }}>
-                BLOCO AMARELO - VOCÊ VÊ ISTO?
-              </p>
+  const formatCurrency = (value?: number) => {
+    if (!value) return "R$ 0,00";
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
+
+  // Aba de Informações do Negócio
+  const InfoTab = () => (
+    <div className="p-6 space-y-6">
+      {/* Resumo Executivo */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-green-600">
+              {formatCurrency(lead.value)}
+            </div>
+            <div className="text-sm text-muted-foreground">Valor do Negócio</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-blue-600">
+              {lead.stage}
+            </div>
+            <div className="text-sm text-muted-foreground">Etapa Atual</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-purple-600">
+              {lead.source || "Manual"}
+            </div>
+            <div className="text-sm text-muted-foreground">Origem</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Informações do Cliente */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Informações do Cliente
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Nome</label>
+                <p className="text-sm">{lead.name}</p>
+              </div>
+
+              {lead.company && (
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Empresa</label>
+                  <p className="text-sm flex items-center gap-2">
+                    <Building className="h-4 w-4" />
+                    {lead.company}
+                  </p>
+                </div>
+              )}
+
+              {lead.phone && (
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Telefone</label>
+                  <p className="text-sm flex items-center gap-2">
+                    <Phone className="h-4 w-4" />
+                    {lead.phone}
+                  </p>
+                </div>
+              )}
+
+              {lead.email && (
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Email</label>
+                  <p className="text-sm flex items-center gap-2">
+                    <Mail className="h-4 w-4" />
+                    {lead.email}
+                  </p>
+                </div>
+              )}
+
+              {lead.assignedTo && (
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Responsável</label>
+                  <p className="text-sm">{lead.assignedTo}</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Detalhes do Negócio */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5" />
+              Detalhes do Negócio
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Valor</label>
+                <p className="text-lg font-semibold text-green-600">
+                  {formatCurrency(lead.value)}
+                </p>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Etapa Atual</label>
+                <Badge variant="outline" className="ml-2">
+                  {lead.stage}
+                </Badge>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Status</label>
+                <p className="text-sm">{lead.status || "Ativo"}</p>
+              </div>
+
+              {lead.funnel && (
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Funil</label>
+                  <p className="text-sm">{lead.funnel}</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Datas Importantes */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
+            Datas Importantes
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="text-sm font-medium text-muted-foreground">Criado em</label>
+              <p className="text-sm">{formatDate(lead.createdAt)}</p>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-muted-foreground">Última atualização</label>
+              <p className="text-sm">{formatDate(lead.updatedAt)}</p>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-muted-foreground">Último contato</label>
+              <p className="text-sm">{formatDate(lead.lastContact)}</p>
             </div>
           </div>
-        );
+        </CardContent>
+      </Card>
 
+      {/* Tags e Observações */}
+      {(lead.tags?.length > 0 || lead.notes) && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Tags e Observações</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {lead.tags && lead.tags.length > 0 && (
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Tags</label>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {lead.tags.map((tag, index) => (
+                    <Badge key={index} variant="secondary">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {lead.notes && (
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Observações</label>
+                <div className="mt-2 p-3 bg-muted/50 rounded-lg">
+                  <p className="text-sm">{lead.notes}</p>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Ações */}
+      {onStageChange && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5" />
+              Ações Rápidas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => onStageChange(lead.id, "Qualificação")}
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Voltar Etapa
+              </Button>
+              <Button 
+                size="sm"
+                onClick={() => onStageChange(lead.id, "Proposta")}
+              >
+                Avançar Etapa
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+
+  // Outras abas simples
+  const HistoryTab = () => (
+    <div className="p-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Histórico</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">Histórico de mudanças do lead...</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const ActivitiesTab = () => (
+    <div className="p-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Atividades</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">Lista de atividades...</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const FilesTab = () => (
+    <div className="p-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Arquivos</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">Arquivos anexados...</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "info":
+        return <InfoTab />;
       case "history":
-        console.log('📋 Renderizando aba HISTORY');
-        return (
-          <div style={{ padding: '20px', backgroundColor: '#e0f0ff', border: '3px solid blue' }}>
-            <h1 style={{ fontSize: '24px', color: 'blue', fontWeight: 'bold' }}>
-              📋 ABA HISTÓRICO FUNCIONANDO!
-            </h1>
-            <p>Histórico de mudanças...</p>
-          </div>
-        );
-
+        return <HistoryTab />;
       case "activities":
-        console.log('📋 Renderizando aba ACTIVITIES');
-        return (
-          <div style={{ padding: '20px', backgroundColor: '#f0e0ff', border: '3px solid purple' }}>
-            <h1 style={{ fontSize: '24px', color: 'purple', fontWeight: 'bold' }}>
-              ⚡ ABA ATIVIDADES FUNCIONANDO!
-            </h1>
-            <p>Lista de atividades...</p>
-          </div>
-        );
-
+        return <ActivitiesTab />;
       case "files":
-        console.log('📋 Renderizando aba FILES');
-        return (
-          <div style={{ padding: '20px', backgroundColor: '#ffe0d0', border: '3px solid orange' }}>
-            <h1 style={{ fontSize: '24px', color: 'orange', fontWeight: 'bold' }}>
-              📁 ABA ARQUIVOS FUNCIONANDO!
-            </h1>
-            <p>Arquivos anexados...</p>
-          </div>
-        );
-
+        return <FilesTab />;
       default:
-        console.log('❌ Aba não encontrada:', activeTab);
-        return (
-          <div style={{ padding: '20px', backgroundColor: 'red', color: 'white' }}>
-            <h1>ERRO: Aba não encontrada</h1>
-          </div>
-        );
+        return <InfoTab />;
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <User className="h-5 w-5" />
@@ -114,20 +342,11 @@ export function PipelineCardModal({
           </DialogTitle>
         </DialogHeader>
 
-        {/* Debug Info */}
-        <div style={{ padding: '10px', backgroundColor: 'lightblue', border: '1px solid blue' }}>
-          <p><strong>Debug:</strong> Tab ativa = {activeTab}</p>
-          <p><strong>Lead:</strong> {lead.name}</p>
-        </div>
-
-        {/* Navegação Manual das Abas */}
+        {/* Navegação das Abas */}
         <div className="border-b">
           <div className="flex">
             <button
-              onClick={() => {
-                console.log('🔄 Clicou em INFO');
-                setActiveTab("info");
-              }}
+              onClick={() => setActiveTab("info")}
               className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === "info"
                   ? "border-primary text-primary"
@@ -137,10 +356,7 @@ export function PipelineCardModal({
               Informações do Negócio
             </button>
             <button
-              onClick={() => {
-                console.log('🔄 Clicou em HISTORY');
-                setActiveTab("history");
-              }}
+              onClick={() => setActiveTab("history")}
               className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === "history"
                   ? "border-primary text-primary"
@@ -150,10 +366,7 @@ export function PipelineCardModal({
               Histórico
             </button>
             <button
-              onClick={() => {
-                console.log('🔄 Clicou em ACTIVITIES');
-                setActiveTab("activities");
-              }}
+              onClick={() => setActiveTab("activities")}
               className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === "activities"
                   ? "border-primary text-primary"
@@ -163,10 +376,7 @@ export function PipelineCardModal({
               Atividades
             </button>
             <button
-              onClick={() => {
-                console.log('🔄 Clicou em FILES');
-                setActiveTab("files");
-              }}
+              onClick={() => setActiveTab("files")}
               className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
                 activeTab === "files"
                   ? "border-primary text-primary"
@@ -179,10 +389,7 @@ export function PipelineCardModal({
         </div>
 
         {/* Conteúdo da Aba */}
-        <div className="flex-1 overflow-y-auto" style={{ border: '2px solid green', minHeight: '200px' }}>
-          <div style={{ padding: '10px', backgroundColor: 'lightyellow' }}>
-            <p><strong>CONTAINER DO CONTEÚDO - Você vê isto?</strong></p>
-          </div>
+        <div className="flex-1 overflow-y-auto">
           {renderTabContent()}
         </div>
       </DialogContent>
