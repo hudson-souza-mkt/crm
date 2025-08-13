@@ -10,7 +10,7 @@ import {
   User,
   MessageSquare
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 export interface Lead {
@@ -60,6 +60,26 @@ export function PipelineCard({ lead, onCardClick, isDragging }: PipelineCardProp
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     });
+  };
+
+  const formatDate = (date?: Date) => {
+    if (!date || !isValid(date)) return null;
+    try {
+      return format(date, "dd/MM", { locale: ptBR });
+    } catch (error) {
+      console.error('Erro ao formatar data:', error);
+      return null;
+    }
+  };
+
+  const formatFullDate = (date?: Date) => {
+    if (!date || !isValid(date)) return null;
+    try {
+      return format(date, "dd/MM/yyyy", { locale: ptBR });
+    } catch (error) {
+      console.error('Erro ao formatar data completa:', error);
+      return null;
+    }
   };
 
   return (
@@ -155,7 +175,7 @@ export function PipelineCard({ lead, onCardClick, isDragging }: PipelineCardProp
         {lead.lastContact && (
           <div className="flex items-center gap-1">
             <MessageSquare className="h-3 w-3" />
-            <span>{format(lead.lastContact, "dd/MM", { locale: ptBR })}</span>
+            <span>{formatDate(lead.lastContact) || "—"}</span>
           </div>
         )}
       </div>
@@ -165,7 +185,7 @@ export function PipelineCard({ lead, onCardClick, isDragging }: PipelineCardProp
         <div className="mt-2 pt-2 border-t border-gray-100">
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <Calendar className="h-3 w-3" />
-            <span>Previsão: {format(lead.expectedCloseDate, "dd/MM", { locale: ptBR })}</span>
+            <span>Previsão: {formatDate(lead.expectedCloseDate) || "—"}</span>
           </div>
         </div>
       )}

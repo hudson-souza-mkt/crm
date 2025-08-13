@@ -40,7 +40,7 @@ import {
   Trash2,
   MoreHorizontal
 } from "lucide-react";
-import { format, differenceInDays } from "date-fns";
+import { format, differenceInDays, isValid } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { Lead } from "@/components/pipeline/PipelineCard";
 
@@ -107,7 +107,7 @@ export function PipelineCardModal({
   const nextStage = pipelineStages.find(stage => stage.order === currentStageIndex + 1);
   const previousStage = pipelineStages.find(stage => stage.order === currentStageIndex - 1);
 
-  const daysInCurrentStage = lead.stageUpdatedAt 
+  const daysInCurrentStage = lead.stageUpdatedAt && isValid(lead.stageUpdatedAt)
     ? differenceInDays(new Date(), lead.stageUpdatedAt)
     : 0;
 
@@ -148,6 +148,36 @@ export function PipelineCardModal({
       "Negociação": ["Ajustar proposta", "Resolver objeções", "Definir cronograma"],
     };
     return actions[lead.stage] || [];
+  };
+
+  const formatDate = (date?: Date) => {
+    if (!date || !isValid(date)) return "Não definida";
+    try {
+      return format(date, "dd 'de' MMMM", { locale: ptBR });
+    } catch (error) {
+      console.error('Erro ao formatar data:', error);
+      return "Data inválida";
+    }
+  };
+
+  const formatSimpleDate = (date?: Date) => {
+    if (!date || !isValid(date)) return "—";
+    try {
+      return format(date, "dd/MM/yyyy", { locale: ptBR });
+    } catch (error) {
+      console.error('Erro ao formatar data simples:', error);
+      return "—";
+    }
+  };
+
+  const formatHistoryDate = (date: Date) => {
+    if (!date || !isValid(date)) return "Data inválida";
+    try {
+      return format(date, "dd/MM/yyyy", { locale: ptBR });
+    } catch (error) {
+      console.error('Erro ao formatar data do histórico:', error);
+      return "Data inválida";
+    }
   };
 
   return (
@@ -325,10 +355,7 @@ export function PipelineCardModal({
                         <span className="text-sm font-medium text-green-900">Previsão de Fechamento</span>
                       </div>
                       <div className="text-sm font-medium text-green-600">
-                        {lead.expectedCloseDate 
-                          ? format(lead.expectedCloseDate, "dd 'de' MMMM", { locale: ptBR })
-                          : "Não definida"
-                        }
+                        {formatDate(lead.expectedCloseDate)}
                       </div>
                     </div>
 
@@ -384,9 +411,7 @@ export function PipelineCardModal({
                     </div>
                     <div>
                       <span className="text-xs text-muted-foreground">Criado em</span>
-                      <div className="text-sm">
-                        {lead.createdAt ? format(lead.createdAt, "dd/MM/yyyy", { locale: ptBR }) : "—"}
-                      </div>
+                      <div className="text-sm">{formatSimpleDate(lead.createdAt)}</div>
                     </div>
                   </div>
                 </div>
@@ -446,7 +471,7 @@ export function PipelineCardModal({
                         <div className="flex items-center gap-2 mb-1">
                           <span className="font-medium text-sm">{entry.stage}</span>
                           <span className="text-xs text-muted-foreground">
-                            {format(entry.date, "dd/MM/yyyy", { locale: ptBR })}
+                            {formatHistoryDate(entry.date)}
                           </span>
                         </div>
                         <p className="text-sm text-muted-foreground">{entry.notes}</p>
