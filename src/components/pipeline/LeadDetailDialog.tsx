@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -47,7 +47,22 @@ import {
   DollarSign,
   Target,
   Activity,
-  TrendingUp
+  TrendingUp,
+  Thermometer,
+  AlertTriangle,
+  ChevronRight,
+  Save,
+  BarChart,
+  Zap,
+  Flag,
+  Timer,
+  ArrowUp,
+  ArrowDown,
+  Percent,
+  Award,
+  AlertCircle,
+  CheckCircle,
+  Star
 } from "lucide-react";
 import type { Lead } from "./PipelineCard";
 import { ChatMessage } from "@/components/chat/ChatMessage";
@@ -57,7 +72,11 @@ import { useAgendaManager } from "@/hooks/useAgendaManager";
 import { AgendaList } from "@/components/agenda/AgendaList";
 import { AgendaModal } from "@/components/agenda/AgendaModal";
 import { AgendaItem, AgendaItemType } from "@/types/agenda";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface LeadDetailDialogProps {
   lead: Lead | null;
@@ -97,6 +116,77 @@ const chatMessagesMock = [
     { isOutgoing: false, message: "Olá! Gostaria de saber mais sobre seus produtos.", time: "10:25" },
     { isOutgoing: true, message: "Olá João! Claro, ficarei feliz em ajudar. Que tipo de produto você está procurando?", time: "10:26" },
     { isOutgoing: false, message: "Estou interessado em soluções para automação de vendas.", time: "10:28" },
+];
+
+// Lista de próximas ações sugeridas
+const suggestedActionsMock = [
+  {
+    id: 1,
+    title: "Enviar proposta comercial",
+    dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    priority: "high",
+    type: "email"
+  },
+  {
+    id: 2,
+    title: "Agendar demonstração do produto",
+    dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+    priority: "medium",
+    type: "meeting"
+  },
+  {
+    id: 3,
+    title: "Follow-up após envio da proposta",
+    dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+    priority: "medium",
+    type: "call"
+  }
+];
+
+// Alerta para o lead
+const alertsMock = [
+  {
+    id: 1,
+    type: "danger",
+    message: "Lead sem contato há 14 dias",
+    action: "Agende um contato"
+  },
+  {
+    id: 2,
+    type: "warning",
+    message: "Proposta enviada sem follow-up",
+    action: "Agendar ligação"
+  }
+];
+
+// Métricas de analytics
+const analyticsMock = {
+  tempoPipeline: 14, // dias
+  mediaEtapa: 7, // dias na etapa atual
+  probabilidade: 65, // % de chance de fechar
+  valorMedio: 5000, // ticket médio
+  tempoMedioFechar: 22, // dias para fechar
+  leadsAtivos: 6, // leads ativos do mesmo vendedor
+  scoreAtual: 78 // pontuação do lead de 0-100
+};
+
+// Componentes de score
+const scoreComponents = [
+  { name: "Engajamento", value: 85, color: "bg-green-500" },
+  { name: "Fit do Produto", value: 70, color: "bg-blue-500" },
+  { name: "Orçamento", value: 90, color: "bg-purple-500" },
+  { name: "Timing", value: 60, color: "bg-amber-500" }
+];
+
+// Lista de etapas da pipeline
+const pipelineStages = [
+  "Novo Lead",
+  "Qualificação",
+  "Apresentação",
+  "Proposta",
+  "Negociação",
+  "Ganho",
+  "Perdido"
 ];
 
 const TimelineItem = ({ icon, children, isLast = false }: { icon: React.ReactNode, children: React.ReactNode, isLast?: boolean }) => (
@@ -145,11 +235,516 @@ const InfoField = ({ label, value, placeholder, link }: { label: string, value?:
   </div>
 );
 
+// Componente para edição inline
+interface EditableFieldProps {
+  value: string | number;
+  onSave: (value: string | number) => void;
+  type?: "text" | "number" | "textarea" | "select";
+  label?: string;
+  options?: {value: string, label: string}[];
+  icon?: React.ReactNode;
+  className?: string;
+  placeholder?: string;
+  formatValue?: (value: any) => string;
+}
+
+const EditableField: React.FC<EditableFieldProps> = ({ 
+  value, 
+  onSave, 
+  type = "text", 
+  label,
+  options = [],
+  icon,
+  className,
+  placeholder = "Editar...",
+  formatValue = (v) => String(v)
+}) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentValue, setCurrentValue] = useState(value);
+  const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isEditing]);
+
+  const handleSave = () => {
+    onSave(currentValue);
+    setIsEditing(false);
+    toast.success("Informação atualizada com sucesso!");
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && type !== "textarea") {
+      handleSave();
+    } else if (e.key === "Escape") {
+      setCurrentValue(value);
+      setIsEditing(false);
+    }
+  };
+
+  return (
+    <div className={cn("group relative", className)}>
+      {label && <label className="text-sm font-medium text-muted-foreground mb-1 block">{label}</label>}
+      
+      {isEditing ? (
+        <div className="flex items-center gap-2">
+          {type === "textarea" ? (
+            <Textarea
+              ref={inputRef as React.RefObject<HTMLTextAreaElement>}
+              value={currentValue as string}
+              onChange={(e) => setCurrentValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              className="w-full"
+              placeholder={placeholder}
+            />
+          ) : type === "select" ? (
+            <Select 
+              value={String(currentValue)} 
+              onValueChange={(value) => setCurrentValue(value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={placeholder} />
+              </SelectTrigger>
+              <SelectContent>
+                {options.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <Input
+              ref={inputRef as React.RefObject<HTMLInputElement>}
+              type={type}
+              value={currentValue as string}
+              onChange={(e) => setCurrentValue(type === "number" ? Number(e.target.value) : e.target.value)}
+              onKeyDown={handleKeyDown}
+              className="w-full"
+              placeholder={placeholder}
+            />
+          )}
+          <Button size="sm" onClick={handleSave}>
+            <Save className="h-4 w-4" />
+          </Button>
+        </div>
+      ) : (
+        <div 
+          className="flex items-center gap-2 cursor-pointer p-2 rounded-md hover:bg-muted/50 transition-colors"
+          onClick={() => setIsEditing(true)}
+        >
+          {icon && <span className="text-muted-foreground">{icon}</span>}
+          <span className={cn(
+            value ? "text-foreground" : "text-muted-foreground italic",
+            "flex-1 truncate"
+          )}>
+            {value ? formatValue(value) : placeholder}
+          </span>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsEditing(true);
+            }}
+          >
+            <Edit className="h-3 w-3" />
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Componente de barra de progresso da pipeline
+interface PipelineProgressProps {
+  stages: string[];
+  currentStage: string;
+  onStageChange?: (stage: string) => void;
+}
+
+const PipelineProgress: React.FC<PipelineProgressProps> = ({ 
+  stages, 
+  currentStage,
+  onStageChange
+}) => {
+  const currentIndex = stages.indexOf(currentStage);
+  const stageCount = stages.length - 2; // Excluindo "Ganho" e "Perdido"
+  const progress = currentIndex >= 0 && currentIndex < stageCount 
+    ? Math.round((currentIndex / (stageCount - 1)) * 100) 
+    : currentStage === "Ganho" ? 100 : 0;
+
+  return (
+    <div className="space-y-2">
+      <div className="flex justify-between items-center">
+        <p className="text-sm font-medium">Progresso na Pipeline</p>
+        <Badge variant={currentStage === "Ganho" ? "success" : currentStage === "Perdido" ? "destructive" : "outline"}>
+          {currentStage}
+        </Badge>
+      </div>
+      
+      <Progress value={progress} className="h-3" />
+      
+      <div className="flex justify-between mt-1">
+        <TooltipProvider>
+          {stages
+            .filter(stage => stage !== "Perdido")
+            .map((stage, index) => {
+              const isActive = currentStage === stage;
+              const isPassed = stages.indexOf(currentStage) > index || currentStage === "Ganho";
+              const isEnd = index === stages.length - 2; // "Ganho" é o último
+              
+              return (
+                <Tooltip key={stage}>
+                  <TooltipTrigger asChild>
+                    <button 
+                      className={cn(
+                        "rounded-full h-3 w-3 transition-all",
+                        isActive ? "ring-2 ring-primary ring-offset-2" : "",
+                        isPassed ? "bg-primary" : "bg-muted",
+                        isEnd ? "ml-0" : ""
+                      )}
+                      onClick={() => onStageChange?.(stage)}
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{stage}</p>
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
+        </TooltipProvider>
+      </div>
+    </div>
+  );
+};
+
+// Componente para o score do lead
+interface LeadScoreProps {
+  score: number;
+  components: Array<{name: string; value: number; color: string}>;
+}
+
+const LeadScore: React.FC<LeadScoreProps> = ({ score, components }) => {
+  // Determinar a cor do score baseada no valor
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return "text-green-600";
+    if (score >= 60) return "text-amber-600";
+    return "text-red-600";
+  };
+
+  // Determinar o status do score
+  const getScoreStatus = (score: number) => {
+    if (score >= 80) return "Alto potencial";
+    if (score >= 60) return "Potencial médio";
+    return "Baixo potencial";
+  };
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center gap-2">
+          <Target className="h-5 w-5" />
+          Score do Lead
+        </CardTitle>
+        <CardDescription>
+          Pontuação baseada em diversos fatores
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center justify-between mb-4">
+          <div className="text-center p-4 bg-muted/30 rounded-lg">
+            <div className={cn("text-3xl font-bold", getScoreColor(score))}>
+              {score}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {getScoreStatus(score)}
+            </div>
+          </div>
+          
+          <div className="flex-1 ml-4">
+            {components.map((component, index) => (
+              <div key={index} className="mb-2">
+                <div className="flex justify-between text-sm mb-1">
+                  <span>{component.name}</span>
+                  <span className="font-medium">{component.value}%</span>
+                </div>
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div 
+                    className={cn("h-full rounded-full", component.color)} 
+                    style={{ width: `${component.value}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// Componente para métricas e analytics
+interface LeadAnalyticsProps {
+  analytics: {
+    tempoPipeline: number;
+    mediaEtapa: number;
+    probabilidade: number;
+    valorMedio: number;
+    tempoMedioFechar: number;
+    leadsAtivos: number;
+    scoreAtual: number;
+  };
+  formatCurrency: (value: number) => string;
+}
+
+const LeadAnalytics: React.FC<LeadAnalyticsProps> = ({ analytics, formatCurrency }) => {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <BarChart className="h-5 w-5" />
+          Analytics e Métricas
+        </CardTitle>
+        <CardDescription>
+          Insights e métricas avançadas para este negócio
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">Tempo na pipeline</p>
+              <div className="flex items-center gap-1 text-sm">
+                <Timer className="h-4 w-4 text-blue-500" />
+                <span className="font-medium">{analytics.tempoPipeline} dias</span>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">Tempo na etapa atual</p>
+              <div className="flex items-center gap-1 text-sm">
+                <Clock className="h-4 w-4 text-amber-500" />
+                <span className="font-medium">{analytics.mediaEtapa} dias</span>
+                <Badge variant="outline" className="text-xs ml-1">
+                  {analytics.mediaEtapa > 7 ? 
+                    <ArrowUp className="h-3 w-3 text-red-500" /> : 
+                    <ArrowDown className="h-3 w-3 text-green-500" />
+                  }
+                </Badge>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">Probabilidade</p>
+              <div className="flex items-center gap-1 text-sm">
+                <Percent className="h-4 w-4 text-green-500" />
+                <span className="font-medium">{analytics.probabilidade}%</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">Valor médio</p>
+              <div className="flex items-center gap-1 text-sm">
+                <DollarSign className="h-4 w-4 text-green-500" />
+                <span className="font-medium">{formatCurrency(analytics.valorMedio)}</span>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">Tempo médio para fechar</p>
+              <div className="flex items-center gap-1 text-sm">
+                <Clock className="h-4 w-4 text-purple-500" />
+                <span className="font-medium">{analytics.tempoMedioFechar} dias</span>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">Leads ativos do vendedor</p>
+              <div className="flex items-center gap-1 text-sm">
+                <User className="h-4 w-4 text-blue-500" />
+                <span className="font-medium">{analytics.leadsAtivos}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// Componente para alertas e próximas ações
+interface AlertsAndActionsProps {
+  alerts: Array<{
+    id: number;
+    type: string;
+    message: string;
+    action: string;
+  }>;
+  actions: Array<{
+    id: number;
+    title: string;
+    dueDate: Date;
+    priority: string;
+    type: string;
+  }>;
+  onCreateAction: () => void;
+}
+
+const AlertsAndActions: React.FC<AlertsAndActionsProps> = ({ 
+  alerts, 
+  actions,
+  onCreateAction
+}) => {
+  // Ícone baseado no tipo de ação
+  const getActionIcon = (type: string) => {
+    switch (type) {
+      case "call": return <PhoneCall className="h-4 w-4 text-blue-500" />;
+      case "email": return <Mail className="h-4 w-4 text-amber-500" />;
+      case "meeting": return <CalendarIcon className="h-4 w-4 text-purple-500" />;
+      default: return <CheckSquare className="h-4 w-4 text-green-500" />;
+    }
+  };
+
+  // Cor baseada na prioridade
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case "high": return "text-red-500";
+      case "medium": return "text-amber-500";
+      default: return "text-blue-500";
+    }
+  };
+  
+  // Formatação de data
+  const formatDueDate = (date: Date) => {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    if (date.toDateString() === today.toDateString()) {
+      return "Hoje";
+    } else if (date.toDateString() === tomorrow.toDateString()) {
+      return "Amanhã";
+    } else {
+      return date.toLocaleDateString('pt-BR');
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center gap-2">
+          <AlertCircle className="h-5 w-5" />
+          Alertas e Próximas Ações
+        </CardTitle>
+        <CardDescription>
+          Alertas importantes e ações sugeridas
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Alertas */}
+        {alerts.length > 0 && (
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium">Alertas</h4>
+            {alerts.map((alert) => (
+              <div 
+                key={alert.id} 
+                className={cn(
+                  "p-3 rounded-md flex items-start gap-3",
+                  alert.type === "danger" ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-700"
+                )}
+              >
+                <AlertTriangle className={cn(
+                  "h-5 w-5 mt-0.5",
+                  alert.type === "danger" ? "text-red-500" : "text-amber-500"
+                )} />
+                <div className="flex-1">
+                  <p className="font-medium text-sm">{alert.message}</p>
+                  <Button 
+                    variant="link" 
+                    className={cn(
+                      "h-auto p-0 text-xs",
+                      alert.type === "danger" ? "text-red-600" : "text-amber-600"
+                    )}
+                  >
+                    {alert.action}
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        {/* Próximas Ações */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm font-medium">Próximas Ações</h4>
+            <Button variant="outline" size="sm" onClick={onCreateAction}>
+              <Plus className="h-3 w-3 mr-1" />
+              Nova Ação
+            </Button>
+          </div>
+          
+          {actions.length > 0 ? (
+            <div className="space-y-2">
+              {actions.map((action) => (
+                <div key={action.id} className="p-3 bg-muted/30 rounded-md">
+                  <div className="flex items-center gap-2">
+                    {getActionIcon(action.type)}
+                    <span className="font-medium text-sm flex-1">{action.title}</span>
+                    <Flag className={cn("h-4 w-4", getPriorityColor(action.priority))} />
+                  </div>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-xs text-muted-foreground">
+                      {formatDueDate(action.dueDate)}
+                    </span>
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="icon" className="h-7 w-7">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-7 w-7">
+                        <Edit className="h-4 w-4 text-blue-500" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-4 text-center text-muted-foreground">
+              <p>Nenhuma ação sugerida.</p>
+              <Button variant="link" className="h-auto p-0 mt-1">
+                Criar nova ação
+              </Button>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 export function LeadDetailDialog({ lead, open, onOpenChange }: LeadDetailDialogProps) {
   const [currentStage, setCurrentStage] = useState("Perdido");
   const [agendaModalOpen, setAgendaModalOpen] = useState(false);
   const [editingAgendaItem, setEditingAgendaItem] = useState<AgendaItem | null>(null);
   const [defaultAgendaType, setDefaultAgendaType] = useState<AgendaItemType>("task");
+  
+  // Valores editáveis do lead
+  const [editableLead, setEditableLead] = useState<Partial<Lead> | null>(null);
+  
+  // Atualizar valores editáveis quando o lead mudar
+  useEffect(() => {
+    if (lead) {
+      setEditableLead(lead);
+      setCurrentStage(lead.stage || "Novo Lead");
+    }
+  }, [lead]);
   
   // Usar o hook de agenda
   const agendaManager = useAgendaManager({ 
@@ -165,6 +760,7 @@ export function LeadDetailDialog({ lead, open, onOpenChange }: LeadDetailDialogP
 
   const handleStageChange = (newStage: string) => {
     setCurrentStage(newStage);
+    setEditableLead({...editableLead, stage: newStage});
     toast.success(`Negócio movido para: ${newStage}`);
   };
 
@@ -252,6 +848,22 @@ export function LeadDetailDialog({ lead, open, onOpenChange }: LeadDetailDialogP
       return "Data inválida";
     }
   };
+
+  // Função para atualizar os campos do lead
+  const handleLeadUpdate = (field: string, value: any) => {
+    if (editableLead) {
+      setEditableLead({
+        ...editableLead,
+        [field]: value
+      });
+      // Aqui você pode chamar uma API para atualizar o lead no banco de dados
+      console.log(`Field "${field}" updated to "${value}"`);
+    }
+  };
+
+  // Calcular o índice da etapa atual na pipeline
+  const stageIndex = pipelineStages.indexOf(currentStage);
+  const stageProgress = Math.max(0, Math.min(100, (stageIndex / (pipelineStages.length - 3)) * 100));
 
   return (
     <>
@@ -355,8 +967,8 @@ export function LeadDetailDialog({ lead, open, onOpenChange }: LeadDetailDialogP
                 </div>
               </DialogHeader>
               <div className="flex-1 p-6 overflow-y-auto bg-gray-50/50">
-                <Tabs defaultValue="historico">
-                  <TabsList>
+                <Tabs defaultValue="info">
+                  <TabsList className="mb-4">
                     <TabsTrigger value="historico">Histórico</TabsTrigger>
                     <TabsTrigger value="atividades">Atividades</TabsTrigger>
                     <TabsTrigger value="agenda">
@@ -366,7 +978,10 @@ export function LeadDetailDialog({ lead, open, onOpenChange }: LeadDetailDialogP
                     <TabsTrigger value="negocios">Negócios</TabsTrigger>
                     <TabsTrigger value="chat">Chat</TabsTrigger>
                     <TabsTrigger value="arquivos">Arquivos</TabsTrigger>
-                    <TabsTrigger value="info">Informações do Negócio</TabsTrigger>
+                    <TabsTrigger value="info">
+                      <Target className="h-4 w-4 mr-1" />
+                      Informações do Negócio
+                    </TabsTrigger>
                   </TabsList>
                   <TabsContent value="historico" className="pt-6">
                     <div className="flex justify-between items-center mb-4">
@@ -501,234 +1116,407 @@ export function LeadDetailDialog({ lead, open, onOpenChange }: LeadDetailDialogP
                     </div>
                   </TabsContent>
                   <TabsContent value="info">
-                    {/* AQUI ESTÁ A ABA DE INFORMAÇÕES DO NEGÓCIO - SUBSTITUINDO O ELEMENTO VAZIO */}
-                    <div className="p-6 space-y-6">
-                      {/* Header de Confirmação */}
-                      <div className="bg-green-100 border-2 border-green-500 p-4 rounded-lg">
-                        <h1 className="text-2xl font-bold text-green-800">
-                          ✅ INFORMAÇÕES DO NEGÓCIO CARREGADAS!
-                        </h1>
-                        <p className="text-green-700">
-                          Substituindo o elemento que mostrava "Nenhuma informação do negócio."
-                        </p>
-                      </div>
-
-                      {/* Métricas Principais */}
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <Card className="border-l-4 border-l-green-500">
-                          <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="text-sm font-medium text-muted-foreground">Valor Total</p>
-                                <p className="text-2xl font-bold text-green-600">{formatCurrency(lead.value)}</p>
-                              </div>
-                              <DollarSign className="h-8 w-8 text-green-500" />
-                            </div>
-                          </CardContent>
-                        </Card>
-
-                        <Card className="border-l-4 border-l-blue-500">
-                          <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="text-sm font-medium text-muted-foreground">Etapa Atual</p>
-                                <p className="text-xl font-bold text-blue-600">{lead.stage}</p>
-                              </div>
-                              <Target className="h-8 w-8 text-blue-500" />
-                            </div>
-                          </CardContent>
-                        </Card>
-
-                        <Card className="border-l-4 border-l-purple-500">
-                          <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="text-sm font-medium text-muted-foreground">Origem</p>
-                                <p className="text-lg font-bold text-purple-600">{lead.source || 'Manual'}</p>
-                              </div>
-                              <Activity className="h-8 w-8 text-purple-500" />
-                            </div>
-                          </CardContent>
-                        </Card>
-
-                        <Card className="border-l-4 border-l-amber-500">
-                          <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="text-sm font-medium text-muted-foreground">Status</p>
-                                <p className="text-lg font-bold text-amber-600">{lead.status || 'Ativo'}</p>
-                              </div>
-                              <Clock className="h-8 w-8 text-amber-500" />
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </div>
-
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* Informações do Cliente */}
-                        <Card>
-                          <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                              <User className="h-5 w-5" />
-                              Informações do Cliente
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent className="space-y-4">
-                            <div>
-                              <label className="text-sm font-medium text-muted-foreground">Nome Completo</label>
-                              <p className="text-lg font-semibold">{lead.name}</p>
-                            </div>
-
-                            {lead.company && (
-                              <div>
-                                <label className="text-sm font-medium text-muted-foreground">Empresa</label>
-                                <p className="text-sm flex items-center gap-2">
-                                  <Building className="h-4 w-4 text-muted-foreground" />
-                                  {lead.company}
-                                </p>
-                              </div>
-                            )}
-
-                            {lead.phone && (
-                              <div>
-                                <label className="text-sm font-medium text-muted-foreground">Telefone</label>
-                                <p className="text-sm flex items-center gap-2">
-                                  
-                                  <Phone className="h-4 w-4 text-muted-foreground" />
-                                  {lead.phone}
-                                </p>
-                              </div>
-                            )}
-
-                            {lead.email && (
-                              <div>
-                                <label className="text-sm font-medium text-muted-foreground">Email</label>
-                                <p className="text-sm flex items-center gap-2">
-                                  <Mail className="h-4 w-4 text-muted-foreground" />
-                                  {lead.email}
-                                </p>
-                              </div>
-                            )}
-                          </CardContent>
-                        </Card>
-
-                        {/* Detalhes do Negócio */}
-                        <Card>
-                          <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                              <DollarSign className="h-5 w-5" />
-                              Detalhes do Negócio
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent className="space-y-4">
-                            <div>
-                              <label className="text-sm font-medium text-muted-foreground">Valor do Negócio</label>
-                              <p className="text-2xl font-bold text-green-600">{formatCurrency(lead.value)}</p>
-                            </div>
-
-                            <div>
-                              <label className="text-sm font-medium text-muted-foreground">Etapa Atual</label>
-                              <Badge variant="outline" className="ml-2 text-lg px-3 py-1">
-                                {lead.stage}
-                              </Badge>
-                            </div>
-
-                            <div>
-                              <label className="text-sm font-medium text-muted-foreground">Status</label>
-                              <p className="text-sm">{lead.status || "Ativo"}</p>
-                            </div>
-
-                            <div>
-                              <label className="text-sm font-medium text-muted-foreground">Origem</label>
-                              <p className="text-sm">{lead.source || "Manual"}</p>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </div>
-
-                      {/* Datas Importantes */}
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="flex items-center gap-2">
-                            <CalendarIcon className="h-5 w-5" />
-                            Datas Importantes
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                              <label className="text-sm font-medium text-muted-foreground">Criado em</label>
-                              <p className="text-sm font-semibold">{formatDate(lead.createdAt)}</p>
-                            </div>
-
-                            <div>
-                              <label className="text-sm font-medium text-muted-foreground">Última atualização</label>
-                              <p className="text-sm font-semibold">{formatDate(lead.updatedAt)}</p>
-                            </div>
-
-                            <div>
-                              <label className="text-sm font-medium text-muted-foreground">Último contato</label>
-                              <p className="text-sm font-semibold">{formatDate(lead.lastContact)}</p>
-                            </div>
+                    {/* NOVA ABA DE INFORMAÇÕES DO NEGÓCIO COM MELHORIAS */}
+                    <div className="space-y-6">
+                      
+                      {/* Header e Progresso da Pipeline */}
+                      <div className="bg-white p-4 rounded-lg border shadow-sm">
+                        <div className="flex items-center justify-between mb-4">
+                          <div>
+                            <h2 className="text-xl font-bold flex items-center gap-2">
+                              <Target className="h-5 w-5 text-primary" />
+                              Informações do Negócio
+                            </h2>
+                            <p className="text-sm text-muted-foreground">
+                              Visão geral e detalhes deste negócio
+                            </p>
                           </div>
-                        </CardContent>
-                      </Card>
+                          
+                          <div className="flex items-center gap-2">
+                            <Badge className="bg-blue-100 text-blue-700 border-blue-200">
+                              ID: {lead.id.substring(0, 8)}
+                            </Badge>
+                            
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-muted/50">
+                                    <Thermometer className="h-5 w-5 text-amber-500" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Temperatura: Morno</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                            
+                            <Button variant="outline" className="gap-1">
+                              <Edit className="h-4 w-4" />
+                              Editar
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        {/* Barra de Progresso da Pipeline */}
+                        <PipelineProgress 
+                          stages={pipelineStages}
+                          currentStage={currentStage}
+                          onStageChange={handleStageChange}
+                        />
+                      </div>
+                      
+                      {/* Layout principal: 2 colunas */}
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* Coluna principal (2/3) */}
+                        <div className="lg:col-span-2 space-y-6">
+                          {/* Métricas Principais */}
+                          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <Card className="group hover:border-green-500 transition-colors">
+                              <CardContent className="p-4">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <p className="text-xs font-medium text-muted-foreground">Valor</p>
+                                    <EditableField
+                                      value={editableLead?.value || 0}
+                                      onSave={(value) => handleLeadUpdate("value", value)}
+                                      type="number"
+                                      formatValue={(v) => formatCurrency(Number(v))}
+                                    />
+                                  </div>
+                                  <DollarSign className="h-8 w-8 text-green-500 group-hover:scale-110 transition-transform" />
+                                </div>
+                              </CardContent>
+                            </Card>
 
-                      {/* Tags e Observações */}
-                      {(lead.tags?.length > 0 || lead.notes) && (
-                        <Card>
-                          <CardHeader>
-                            <CardTitle>Tags e Observações</CardTitle>
-                          </CardHeader>
-                          <CardContent className="space-y-4">
-                            {lead.tags && lead.tags.length > 0 && (
-                              <div>
-                                <label className="text-sm font-medium text-muted-foreground">Tags</label>
-                                <div className="flex flex-wrap gap-2 mt-2">
+                            <Card className="group hover:border-blue-500 transition-colors">
+                              <CardContent className="p-4">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <p className="text-xs font-medium text-muted-foreground">Etapa</p>
+                                    <EditableField
+                                      value={editableLead?.stage || ""}
+                                      onSave={(value) => handleLeadUpdate("stage", value)}
+                                      type="select"
+                                      options={stages.map(s => ({ value: s, label: s }))}
+                                      formatValue={(v) => String(v)}
+                                    />
+                                  </div>
+                                  <Target className="h-8 w-8 text-blue-500 group-hover:scale-110 transition-transform" />
+                                </div>
+                              </CardContent>
+                            </Card>
+
+                            <Card className="group hover:border-purple-500 transition-colors">
+                              <CardContent className="p-4">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <p className="text-xs font-medium text-muted-foreground">Origem</p>
+                                    <EditableField
+                                      value={editableLead?.source || ""}
+                                      onSave={(value) => handleLeadUpdate("source", value)}
+                                      type="text"
+                                      formatValue={(v) => String(v)}
+                                    />
+                                  </div>
+                                  <Activity className="h-8 w-8 text-purple-500 group-hover:scale-110 transition-transform" />
+                                </div>
+                              </CardContent>
+                            </Card>
+
+                            <Card className="group hover:border-amber-500 transition-colors">
+                              <CardContent className="p-4">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <p className="text-xs font-medium text-muted-foreground">Status</p>
+                                    <EditableField
+                                      value={editableLead?.status || ""}
+                                      onSave={(value) => handleLeadUpdate("status", value)}
+                                      type="select"
+                                      options={[
+                                        {value: "new", label: "Novo"},
+                                        {value: "qualified", label: "Qualificado"},
+                                        {value: "negotiating", label: "Negociando"},
+                                        {value: "won", label: "Ganho"},
+                                        {value: "lost", label: "Perdido"}
+                                      ]}
+                                      formatValue={(v) => {
+                                        const statusMap: Record<string, string> = {
+                                          new: "Novo",
+                                          qualified: "Qualificado",
+                                          negotiating: "Negociando",
+                                          won: "Ganho",
+                                          lost: "Perdido"
+                                        };
+                                        return statusMap[String(v)] || String(v);
+                                      }}
+                                    />
+                                  </div>
+                                  <Clock className="h-8 w-8 text-amber-500 group-hover:scale-110 transition-transform" />
+                                </div>
+                              </CardContent>
+                            </Card>
+                          </div>
+                          
+                          {/* Analytics e Métricas */}
+                          <LeadAnalytics 
+                            analytics={analyticsMock}
+                            formatCurrency={formatCurrency}
+                          />
+                          
+                          {/* Alertas e Próximas Ações */}
+                          <AlertsAndActions 
+                            alerts={alertsMock}
+                            actions={suggestedActionsMock}
+                            onCreateAction={() => handleNewAgenda("task")}
+                          />
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Informações do Cliente */}
+                            <Card className="hover:shadow-md transition-shadow">
+                              <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                  <User className="h-5 w-5" />
+                                  Informações do Cliente
+                                </CardTitle>
+                              </CardHeader>
+                              <CardContent className="space-y-4">
+                                <div>
+                                  <label className="text-sm font-medium text-muted-foreground">Nome Completo</label>
+                                  <EditableField
+                                    value={editableLead?.name || ""}
+                                    onSave={(value) => handleLeadUpdate("name", value)}
+                                    type="text"
+                                    className="mt-1"
+                                  />
+                                </div>
+
+                                <div>
+                                  <label className="text-sm font-medium text-muted-foreground">Empresa</label>
+                                  <EditableField
+                                    value={editableLead?.company || ""}
+                                    onSave={(value) => handleLeadUpdate("company", value)}
+                                    type="text"
+                                    className="mt-1"
+                                    icon={<Building className="h-4 w-4 text-muted-foreground" />}
+                                    placeholder="Adicionar empresa"
+                                  />
+                                </div>
+
+                                <div>
+                                  <label className="text-sm font-medium text-muted-foreground">Telefone</label>
+                                  <EditableField
+                                    value={editableLead?.phone || ""}
+                                    onSave={(value) => handleLeadUpdate("phone", value)}
+                                    type="text"
+                                    className="mt-1"
+                                    icon={<Phone className="h-4 w-4 text-muted-foreground" />}
+                                    placeholder="Adicionar telefone"
+                                  />
+                                </div>
+
+                                <div>
+                                  <label className="text-sm font-medium text-muted-foreground">Email</label>
+                                  <EditableField
+                                    value={editableLead?.email || ""}
+                                    onSave={(value) => handleLeadUpdate("email", value)}
+                                    type="text"
+                                    className="mt-1"
+                                    icon={<Mail className="h-4 w-4 text-muted-foreground" />}
+                                    placeholder="Adicionar email"
+                                  />
+                                </div>
+                              </CardContent>
+                            </Card>
+
+                            {/* Datas Importantes */}
+                            <Card className="hover:shadow-md transition-shadow">
+                              <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                  <CalendarIcon className="h-5 w-5" />
+                                  Datas Importantes
+                                </CardTitle>
+                              </CardHeader>
+                              <CardContent>
+                                <div className="space-y-4">
+                                  <div>
+                                    <label className="text-sm font-medium text-muted-foreground">Criado em</label>
+                                    <p className="text-sm font-semibold mt-1 flex items-center">
+                                      <CalendarIcon className="h-4 w-4 text-muted-foreground mr-2" />
+                                      {formatDate(lead.createdAt)}
+                                    </p>
+                                  </div>
+
+                                  <div>
+                                    <label className="text-sm font-medium text-muted-foreground">Última atualização</label>
+                                    <p className="text-sm font-semibold mt-1 flex items-center">
+                                      <Clock className="h-4 w-4 text-muted-foreground mr-2" />
+                                      {formatDate(lead.updatedAt)}
+                                    </p>
+                                  </div>
+
+                                  <div>
+                                    <label className="text-sm font-medium text-muted-foreground">Último contato</label>
+                                    <EditableField
+                                      value={lead.lastContact ? formatDate(lead.lastContact) : "Não informado"}
+                                      onSave={(value) => handleLeadUpdate("lastContact", new Date())}
+                                      type="text"
+                                      className="mt-1"
+                                      icon={<MessageSquare className="h-4 w-4 text-muted-foreground" />}
+                                      placeholder="Registrar contato"
+                                    />
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          </div>
+                          
+                          {/* Tags e Observações */}
+                          <Card className="hover:shadow-md transition-shadow">
+                            <CardHeader>
+                              <CardTitle className="flex items-center gap-2">
+                                <Tag className="h-5 w-5" />
+                                Observações
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <EditableField
+                                value={editableLead?.notes || ""}
+                                onSave={(value) => handleLeadUpdate("notes", value)}
+                                type="textarea"
+                                placeholder="Adicione observações sobre este negócio..."
+                              />
+                            </CardContent>
+                          </Card>
+                        </div>
+                        
+                        {/* Coluna secundária (1/3) */}
+                        <div className="space-y-6">
+                          {/* Score do Lead */}
+                          <LeadScore 
+                            score={analyticsMock.scoreAtual}
+                            components={scoreComponents}
+                          />
+                          
+                          {/* Tags */}
+                          <Card className="hover:shadow-md transition-shadow">
+                            <CardHeader className="pb-2">
+                              <CardTitle className="flex items-center gap-2">
+                                <Tag className="h-5 w-5" />
+                                Tags
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              {lead.tags && lead.tags.length > 0 ? (
+                                <div className="flex flex-wrap gap-2">
                                   {lead.tags.map((tag, index) => (
-                                    <Badge key={index} variant="secondary">
+                                    <Badge key={index} variant="secondary" className="px-2 py-1 gap-1">
                                       {tag}
+                                      <Button variant="ghost" size="icon" className="h-4 w-4 ml-1 hover:bg-muted rounded-full">
+                                        <X className="h-3 w-3" />
+                                      </Button>
                                     </Badge>
                                   ))}
+                                  <Button variant="outline" size="sm" className="rounded-full h-7">
+                                    <Plus className="h-3 w-3 mr-1" />
+                                    Adicionar
+                                  </Button>
+                                </div>
+                              ) : (
+                                <div className="text-center py-4">
+                                  <p className="text-sm text-muted-foreground mb-2">Nenhuma tag adicionada</p>
+                                  <Button variant="outline" size="sm">
+                                    <Plus className="h-4 w-4 mr-1" />
+                                    Adicionar Tags
+                                  </Button>
+                                </div>
+                              )}
+                            </CardContent>
+                          </Card>
+                          
+                          {/* Responsável */}
+                          <Card className="hover:shadow-md transition-shadow">
+                            <CardHeader className="pb-2">
+                              <CardTitle className="flex items-center gap-2">
+                                <User className="h-5 w-5" />
+                                Responsável
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="flex items-center gap-3">
+                                <Avatar>
+                                  <AvatarFallback>
+                                    {lead.salesperson ? lead.salesperson.charAt(0) : "?"}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1">
+                                  <EditableField
+                                    value={lead.salesperson || ""}
+                                    onSave={(value) => handleLeadUpdate("salesperson", value)}
+                                    type="text"
+                                    placeholder="Atribuir responsável"
+                                  />
                                 </div>
                               </div>
-                            )}
-
-                            {lead.notes && (
-                              <div>
-                                <label className="text-sm font-medium text-muted-foreground">Observações</label>
-                                <div className="mt-2 p-3 bg-muted/50 rounded-lg">
-                                  <p className="text-sm">{lead.notes}</p>
-                                </div>
+                            </CardContent>
+                          </Card>
+                          
+                          {/* Ações Rápidas */}
+                          <Card className="hover:shadow-md transition-shadow">
+                            <CardHeader className="pb-2">
+                              <CardTitle className="flex items-center gap-2">
+                                <Zap className="h-5 w-5" />
+                                Ações Rápidas
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-2">
+                              <Button variant="outline" className="w-full justify-start" onClick={() => handleNewAgenda("call")}>
+                                <PhoneCall className="h-4 w-4 mr-2 text-blue-500" />
+                                Agendar Ligação
+                              </Button>
+                              <Button variant="outline" className="w-full justify-start" onClick={() => handleNewAgenda("message")}>
+                                <MessageSquare className="h-4 w-4 mr-2 text-green-500" />
+                                Enviar Mensagem
+                              </Button>
+                              <Button variant="outline" className="w-full justify-start" onClick={() => handleNewAgenda("meeting")}>
+                                <CalendarIcon className="h-4 w-4 mr-2 text-purple-500" />
+                                Agendar Reunião
+                              </Button>
+                              <Button className="w-full mt-4">
+                                <Award className="h-4 w-4 mr-2" />
+                                Converter em Cliente
+                              </Button>
+                            </CardContent>
+                          </Card>
+                          
+                          {/* Atividade Recente */}
+                          <Card className="hover:shadow-md transition-shadow">
+                            <CardHeader className="pb-2">
+                              <CardTitle className="flex items-center gap-2">
+                                <Activity className="h-5 w-5" />
+                                Atividade Recente
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="space-y-3">
+                                {historyMock.slice(0, 3).map((item, index) => (
+                                  <div key={index} className="flex items-start gap-3">
+                                    <div className="bg-muted rounded-full p-1.5 mt-0.5">
+                                      {getIconForHistory(item.type)}
+                                    </div>
+                                    <div>
+                                      <p className="text-sm">{item.content}</p>
+                                      <p className="text-xs text-muted-foreground">{item.date}</p>
+                                    </div>
+                                  </div>
+                                ))}
                               </div>
-                            )}
-                          </CardContent>
-                        </Card>
-                      )}
-
-                      {/* Ações */}
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>Ações Rápidas</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="flex gap-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => console.log('Voltar etapa clicado')}
-                            >
-                              Voltar Etapa
-                            </Button>
-                            <Button 
-                              size="sm"
-                              onClick={() => console.log('Avançar etapa clicado')}
-                            >
-                              Avançar Etapa
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
+                              <Button variant="link" className="mt-2 h-auto p-0">
+                                Ver todo o histórico
+                              </Button>
+                            </CardContent>
+                          </Card>
+                        </div>
+                      </div>
                     </div>
                   </TabsContent>
                 </Tabs>
