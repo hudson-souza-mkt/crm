@@ -55,71 +55,46 @@ export function PipelineCardModal({
               <TabsTrigger value="files">Arquivos</TabsTrigger>
             </TabsList>
 
-            <div className="mt-4">
-              <TabsContent value="info">
-                <div style={{ backgroundColor: '#dcfce7', padding: '16px', borderRadius: '8px' }}>
-                  <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#166534', marginBottom: '16px' }}>
-                    ✅ Informações do Negócio
-                  </h2>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <p><strong>Nome:</strong> {lead.name}</p>
-                    <p><strong>Empresa:</strong> {lead.company || 'N/A'}</p>
-                    <p><strong>Telefone:</strong> {lead.phone || 'N/A'}</p>
-                    <p><strong>Email:</strong> {lead.email || 'N/A'}</p>
-                    <p><strong>Etapa:</strong> {lead.stage}</p>
-                    <p><strong>Valor:</strong> R$ {(lead.value || 0).toLocaleString('pt-BR')}</p>
-                    <p><strong>Responsável:</strong> {lead.assignedTo || 'N/A'}</p>
-                  </div>
-                  
-                  {onStageChange && (
-                    <div style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
-                      <Button 
-                        size="sm" 
-                        onClick={() => onStageChange(lead.id, "Qualificação")}
-                      >
-                        Mover para Qualificação
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => onStageChange(lead.id, "Proposta")}
-                      >
-                        Mover para Proposta
-                      </Button>
-                    </div>
-                  )}
+            <div className="mt-4 border-2 border-red-500 p-4">
+              <p className="text-red-600 font-bold mb-4">
+                CONTAINER DAS ABAS - Se você vê este texto, o container funciona
+              </p>
+              
+              <TabsContent value="info" className="border-2 border-green-500 p-4">
+                <h1 className="text-4xl font-bold text-green-600">
+                  TESTE INFORMAÇÕES - VOCÊ VÊ ESTE TEXTO?
+                </h1>
+                <p className="text-2xl text-black">Nome do Lead: {lead.name}</p>
+                <p className="text-2xl text-black">Etapa: {lead.stage}</p>
+                <div className="w-full h-20 bg-green-500 mt-4">
+                  <p className="text-white text-xl p-4">BLOCO VERDE - VOCÊ VÊ ISTO?</p>
                 </div>
               </TabsContent>
 
-              <TabsContent value="history">
-                <div style={{ backgroundColor: '#dbeafe', padding: '16px', borderRadius: '8px' }}>
-                  <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#1e40af' }}>
-                    📋 Histórico
-                  </h2>
-                  <p>Histórico de mudanças do lead...</p>
-                  <p>Lead criado em: {lead.createdAt?.toLocaleDateString('pt-BR') || 'N/A'}</p>
-                  <p>Última atualização: {lead.stageUpdatedAt?.toLocaleDateString('pt-BR') || 'N/A'}</p>
+              <TabsContent value="history" className="border-2 border-blue-500 p-4">
+                <h1 className="text-4xl font-bold text-blue-600">
+                  TESTE HISTÓRICO - VOCÊ VÊ ESTE TEXTO?
+                </h1>
+                <div className="w-full h-20 bg-blue-500 mt-4">
+                  <p className="text-white text-xl p-4">BLOCO AZUL - VOCÊ VÊ ISTO?</p>
                 </div>
               </TabsContent>
 
-              <TabsContent value="activities">
-                <div style={{ backgroundColor: '#e9d5ff', padding: '16px', borderRadius: '8px' }}>
-                  <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#7c3aed' }}>
-                    ⚡ Atividades
-                  </h2>
-                  <p>Lista de atividades...</p>
-                  <p>Tarefas: {lead.tasksCount || 0}</p>
-                  <p>Notas: {lead.notesCount || 0}</p>
+              <TabsContent value="activities" className="border-2 border-purple-500 p-4">
+                <h1 className="text-4xl font-bold text-purple-600">
+                  TESTE ATIVIDADES - VOCÊ VÊ ESTE TEXTO?
+                </h1>
+                <div className="w-full h-20 bg-purple-500 mt-4">
+                  <p className="text-white text-xl p-4">BLOCO ROXO - VOCÊ VÊ ISTO?</p>
                 </div>
               </TabsContent>
 
-              <TabsContent value="files">
-                <div style={{ backgroundColor: '#fed7aa', padding: '16px', borderRadius: '8px' }}>
-                  <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#c2410c' }}>
-                    📁 Arquivos
-                  </h2>
-                  <p>Arquivos anexados...</p>
-                  <p>Nenhum arquivo anexado ainda.</p>
+              <TabsContent value="files" className="border-2 border-orange-500 p-4">
+                <h1 className="text-4xl font-bold text-orange-600">
+                  TESTE ARQUIVOS - VOCÊ VÊ ESTE TEXTO?
+                </h1>
+                <div className="w-full h-20 bg-orange-500 mt-4">
+                  <p className="text-white text-xl p-4">BLOCO LARANJA - VOCÊ VÊ ISTO?</p>
                 </div>
               </TabsContent>
             </div>
