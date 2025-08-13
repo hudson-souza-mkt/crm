@@ -43,7 +43,11 @@ import {
   MessageSquare,
   PhoneCall,
   CalendarPlus,
-  CheckSquare
+  CheckSquare,
+  DollarSign,
+  Target,
+  Activity,
+  TrendingUp
 } from "lucide-react";
 import type { Lead } from "./PipelineCard";
 import { ChatMessage } from "@/components/chat/ChatMessage";
@@ -53,6 +57,7 @@ import { useAgendaManager } from "@/hooks/useAgendaManager";
 import { AgendaList } from "@/components/agenda/AgendaList";
 import { AgendaModal } from "@/components/agenda/AgendaModal";
 import { AgendaItem, AgendaItemType } from "@/types/agenda";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface LeadDetailDialogProps {
   lead: Lead | null;
@@ -228,6 +233,23 @@ export function LeadDetailDialog({ lead, open, onOpenChange }: LeadDetailDialogP
           agendaManager.completeAgendaItem(item.id);
         }
         break;
+    }
+  };
+
+  const formatCurrency = (value?: number) => {
+    if (!value) return "R$ 0,00";
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
+
+  const formatDate = (date?: Date) => {
+    if (!date) return "Não informado";
+    try {
+      return new Date(date).toLocaleDateString('pt-BR');
+    } catch {
+      return "Data inválida";
     }
   };
 
@@ -479,9 +501,234 @@ export function LeadDetailDialog({ lead, open, onOpenChange }: LeadDetailDialogP
                     </div>
                   </TabsContent>
                   <TabsContent value="info">
-                    <div className="text-center py-12 text-muted-foreground">
-                      <Briefcase className="mx-auto h-10 w-10 mb-2" />
-                      <p>Nenhuma informação do negócio.</p>
+                    {/* AQUI ESTÁ A ABA DE INFORMAÇÕES DO NEGÓCIO - SUBSTITUINDO O ELEMENTO VAZIO */}
+                    <div className="p-6 space-y-6">
+                      {/* Header de Confirmação */}
+                      <div className="bg-green-100 border-2 border-green-500 p-4 rounded-lg">
+                        <h1 className="text-2xl font-bold text-green-800">
+                          ✅ INFORMAÇÕES DO NEGÓCIO CARREGADAS!
+                        </h1>
+                        <p className="text-green-700">
+                          Substituindo o elemento que mostrava "Nenhuma informação do negócio."
+                        </p>
+                      </div>
+
+                      {/* Métricas Principais */}
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <Card className="border-l-4 border-l-green-500">
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-sm font-medium text-muted-foreground">Valor Total</p>
+                                <p className="text-2xl font-bold text-green-600">{formatCurrency(lead.value)}</p>
+                              </div>
+                              <DollarSign className="h-8 w-8 text-green-500" />
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        <Card className="border-l-4 border-l-blue-500">
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-sm font-medium text-muted-foreground">Etapa Atual</p>
+                                <p className="text-xl font-bold text-blue-600">{lead.stage}</p>
+                              </div>
+                              <Target className="h-8 w-8 text-blue-500" />
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        <Card className="border-l-4 border-l-purple-500">
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-sm font-medium text-muted-foreground">Origem</p>
+                                <p className="text-lg font-bold text-purple-600">{lead.source || 'Manual'}</p>
+                              </div>
+                              <Activity className="h-8 w-8 text-purple-500" />
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        <Card className="border-l-4 border-l-amber-500">
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-sm font-medium text-muted-foreground">Status</p>
+                                <p className="text-lg font-bold text-amber-600">{lead.status || 'Ativo'}</p>
+                              </div>
+                              <Clock className="h-8 w-8 text-amber-500" />
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Informações do Cliente */}
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                              <User className="h-5 w-5" />
+                              Informações do Cliente
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div>
+                              <label className="text-sm font-medium text-muted-foreground">Nome Completo</label>
+                              <p className="text-lg font-semibold">{lead.name}</p>
+                            </div>
+
+                            {lead.company && (
+                              <div>
+                                <label className="text-sm font-medium text-muted-foreground">Empresa</label>
+                                <p className="text-sm flex items-center gap-2">
+                                  <Building className="h-4 w-4 text-muted-foreground" />
+                                  {lead.company}
+                                </p>
+                              </div>
+                            )}
+
+                            {lead.phone && (
+                              <div>
+                                <label className="text-sm font-medium text-muted-foreground">Telefone</label>
+                                <p className="text-sm flex items-center gap-2">
+                                  
+                                  <Phone className="h-4 w-4 text-muted-foreground" />
+                                  {lead.phone}
+                                </p>
+                              </div>
+                            )}
+
+                            {lead.email && (
+                              <div>
+                                <label className="text-sm font-medium text-muted-foreground">Email</label>
+                                <p className="text-sm flex items-center gap-2">
+                                  <Mail className="h-4 w-4 text-muted-foreground" />
+                                  {lead.email}
+                                </p>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+
+                        {/* Detalhes do Negócio */}
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                              <DollarSign className="h-5 w-5" />
+                              Detalhes do Negócio
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div>
+                              <label className="text-sm font-medium text-muted-foreground">Valor do Negócio</label>
+                              <p className="text-2xl font-bold text-green-600">{formatCurrency(lead.value)}</p>
+                            </div>
+
+                            <div>
+                              <label className="text-sm font-medium text-muted-foreground">Etapa Atual</label>
+                              <Badge variant="outline" className="ml-2 text-lg px-3 py-1">
+                                {lead.stage}
+                              </Badge>
+                            </div>
+
+                            <div>
+                              <label className="text-sm font-medium text-muted-foreground">Status</label>
+                              <p className="text-sm">{lead.status || "Ativo"}</p>
+                            </div>
+
+                            <div>
+                              <label className="text-sm font-medium text-muted-foreground">Origem</label>
+                              <p className="text-sm">{lead.source || "Manual"}</p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+
+                      {/* Datas Importantes */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2">
+                            <CalendarIcon className="h-5 w-5" />
+                            Datas Importantes
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                              <label className="text-sm font-medium text-muted-foreground">Criado em</label>
+                              <p className="text-sm font-semibold">{formatDate(lead.createdAt)}</p>
+                            </div>
+
+                            <div>
+                              <label className="text-sm font-medium text-muted-foreground">Última atualização</label>
+                              <p className="text-sm font-semibold">{formatDate(lead.updatedAt)}</p>
+                            </div>
+
+                            <div>
+                              <label className="text-sm font-medium text-muted-foreground">Último contato</label>
+                              <p className="text-sm font-semibold">{formatDate(lead.lastContact)}</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Tags e Observações */}
+                      {(lead.tags?.length > 0 || lead.notes) && (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle>Tags e Observações</CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            {lead.tags && lead.tags.length > 0 && (
+                              <div>
+                                <label className="text-sm font-medium text-muted-foreground">Tags</label>
+                                <div className="flex flex-wrap gap-2 mt-2">
+                                  {lead.tags.map((tag, index) => (
+                                    <Badge key={index} variant="secondary">
+                                      {tag}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {lead.notes && (
+                              <div>
+                                <label className="text-sm font-medium text-muted-foreground">Observações</label>
+                                <div className="mt-2 p-3 bg-muted/50 rounded-lg">
+                                  <p className="text-sm">{lead.notes}</p>
+                                </div>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      {/* Ações */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Ações Rápidas</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => console.log('Voltar etapa clicado')}
+                            >
+                              Voltar Etapa
+                            </Button>
+                            <Button 
+                              size="sm"
+                              onClick={() => console.log('Avançar etapa clicado')}
+                            >
+                              Avançar Etapa
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
                     </div>
                   </TabsContent>
                 </Tabs>
