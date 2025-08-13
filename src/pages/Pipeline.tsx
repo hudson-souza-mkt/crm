@@ -26,7 +26,10 @@ const mockLeads: Lead[] = [
     notes: "Cliente interessado em solução completa de CRM",
     priority: "high",
     lastContact: new Date("2024-01-15"),
-    nextFollowUp: new Date("2024-01-20")
+    nextFollowUp: new Date("2024-01-20"),
+    tasksCount: 3,
+    notesCount: 2,
+    isFavorite: true
   },
   {
     id: "2",
@@ -45,7 +48,10 @@ const mockLeads: Lead[] = [
     tags: ["enterprise", "tech"],
     notes: "Empresa em crescimento, precisa de solução escalável",
     priority: "high",
-    lastContact: new Date("2024-01-18")
+    lastContact: new Date("2024-01-18"),
+    tasksCount: 1,
+    notesCount: 4,
+    isFavorite: false
   },
   {
     id: "3",
@@ -64,7 +70,10 @@ const mockLeads: Lead[] = [
     tags: ["construção", "alto valor"],
     notes: "Projeto de grande porte, múltiplas filiais",
     priority: "high",
-    lastContact: new Date("2024-01-16")
+    lastContact: new Date("2024-01-16"),
+    tasksCount: 5,
+    notesCount: 1,
+    isFavorite: true
   },
   {
     id: "4",
@@ -83,7 +92,10 @@ const mockLeads: Lead[] = [
     tags: ["consultoria", "recorrente"],
     notes: "Cliente já conhece nossa solução, negociando valores",
     priority: "medium",
-    lastContact: new Date("2024-01-17")
+    lastContact: new Date("2024-01-17"),
+    tasksCount: 2,
+    notesCount: 0,
+    isFavorite: false
   },
   {
     id: "5",
@@ -102,7 +114,10 @@ const mockLeads: Lead[] = [
     tags: ["startup", "desconto"],
     notes: "Startup em fase inicial, negociando condições especiais",
     priority: "medium",
-    lastContact: new Date("2024-01-19")
+    lastContact: new Date("2024-01-19"),
+    tasksCount: 0,
+    notesCount: 3,
+    isFavorite: false
   },
   {
     id: "6",
@@ -121,7 +136,32 @@ const mockLeads: Lead[] = [
     tags: ["e-commerce", "fechado"],
     notes: "Contrato assinado! Iniciar onboarding na próxima semana",
     priority: "high",
-    lastContact: new Date("2024-01-20")
+    lastContact: new Date("2024-01-20"),
+    tasksCount: 1,
+    notesCount: 1,
+    isFavorite: true
+  },
+  {
+    id: "7",
+    name: "Roberto Lima",
+    phone: "(62) 97777-6666",
+    email: "", // Sem email para testar estado disabled
+    company: "Indústria Lima",
+    stage: "Qualificação",
+    value: 12000,
+    discount: 0,
+    shippingCost: 400,
+    expectedCloseDate: new Date("2024-02-20"),
+    createdAt: new Date("2024-01-08"),
+    stageUpdatedAt: new Date("2024-01-08"),
+    assignedTo: "Ana Sales",
+    tags: ["indústria"],
+    notes: "Contato apenas por telefone",
+    priority: "low",
+    lastContact: new Date("2024-01-14"),
+    tasksCount: 0,
+    notesCount: 0,
+    isFavorite: false
   }
 ];
 
@@ -269,7 +309,7 @@ export default function Pipeline() {
         </DndContext>
       </div>
 
-      {/* Modal de detalhes do lead */}
+      {/* Modal de det alhes do lead */}
       {selectedLead && (
         <PipelineCardModal
           open={modalOpen}
