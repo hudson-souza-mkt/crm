@@ -102,8 +102,10 @@ export function PipelineCardModal({
 }: PipelineCardModalProps) {
   const [activeTab, setActiveTab] = useState("info");
 
-  // Debug: verificar se o lead está chegando
-  console.log('Lead recebido no modal:', lead);
+  // Debug logs
+  console.log('Modal aberto:', open);
+  console.log('Lead:', lead);
+  console.log('Tab ativa:', activeTab);
 
   const currentStage = pipelineStages.find(stage => stage.name === lead.stage);
   const currentStageIndex = currentStage?.order || 0;
@@ -213,8 +215,16 @@ export function PipelineCardModal({
           </TabsList>
 
           {/* Aba Informações do Negócio */}
-          <TabsContent value="info" className="flex-1 overflow-y-auto mt-6">
+          <TabsContent value="info" className="flex-1 overflow-y-auto p-6">
             <div className="space-y-6">
+              {/* Debug - Teste simples primeiro */}
+              <div className="bg-blue-100 p-4 rounded-lg">
+                <h3 className="text-lg font-bold">🎯 Informações do Negócio</h3>
+                <p>Lead: {lead.name}</p>
+                <p>Etapa: {lead.stage}</p>
+                <p>Valor: R$ {totalValue.toLocaleString('pt-BR')}</p>
+              </div>
+
               {/* Header com Resumo Executivo */}
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
                 <Card>
@@ -418,82 +428,6 @@ export function PipelineCardModal({
                       </div>
                     </CardContent>
                   </Card>
-
-                  {/* Métricas e Análises */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <BarChart3 className="h-5 w-5" />
-                        Métricas do Negócio
-                      </CardTitle>
-                      <CardDescription>
-                        Análises e indicadores de performance
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="p-4 bg-blue-50 rounded-lg">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Timer className="h-4 w-4 text-blue-600" />
-                            <span className="text-sm font-medium text-blue-900">Tempo no Pipeline</span>
-                          </div>
-                          <div className="text-2xl font-bold text-blue-600">
-                            {lead.createdAt && isValid(lead.createdAt) 
-                              ? differenceInDays(new Date(), lead.createdAt)
-                              : 0
-                            } dias
-                          </div>
-                          <div className="text-xs text-blue-700">
-                            Desde {formatSimpleDate(lead.createdAt)}
-                          </div>
-                        </div>
-
-                        <div className="p-4 bg-purple-50 rounded-lg">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Activity className="h-4 w-4 text-purple-600" />
-                            <span className="text-sm font-medium text-purple-900">Velocidade</span>
-                          </div>
-                          <div className="text-2xl font-bold text-purple-600">
-                            {currentStageIndex > 0 
-                              ? Math.round((lead.createdAt && isValid(lead.createdAt) 
-                                  ? differenceInDays(new Date(), lead.createdAt) 
-                                  : 0) / currentStageIndex)
-                              : 0
-                            } dias/etapa
-                          </div>
-                          <div className="text-xs text-purple-700">
-                            Média por etapa
-                          </div>
-                        </div>
-
-                        <div className="p-4 bg-green-50 rounded-lg">
-                          <div className="flex items-center gap-2 mb-2">
-                            <TrendingUp className="h-4 w-4 text-green-600" />
-                            <span className="text-sm font-medium text-green-900">Score de Qualificação</span>
-                          </div>
-                          <div className="text-2xl font-bold text-green-600">
-                            {Math.round((currentStage?.probability || 0) + (lead.priority === 'high' ? 20 : lead.priority === 'medium' ? 10 : 0))}%
-                          </div>
-                          <div className="text-xs text-green-700">
-                            Baseado na etapa e prioridade
-                          </div>
-                        </div>
-
-                        <div className="p-4 bg-amber-50 rounded-lg">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Star className="h-4 w-4 text-amber-600" />
-                            <span className="text-sm font-medium text-amber-900">Prioridade</span>
-                          </div>
-                          <div className="text-2xl font-bold text-amber-600 capitalize">
-                            {lead.priority || 'Média'}
-                          </div>
-                          <div className="text-xs text-amber-700">
-                            Definida pelo vendedor
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
                 </div>
 
                 {/* Sidebar - Informações Complementares */}
@@ -644,8 +578,8 @@ export function PipelineCardModal({
             </div>
           </TabsContent>
 
-          {/* Outras abas (placeholder) */}
-          <TabsContent value="history" className="flex-1 overflow-y-auto">
+          {/* Outras abas */}
+          <TabsContent value="history" className="flex-1 overflow-y-auto p-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -675,7 +609,7 @@ export function PipelineCardModal({
             </Card>
           </TabsContent>
 
-          <TabsContent value="activities" className="flex-1 overflow-y-auto">
+          <TabsContent value="activities" className="flex-1 overflow-y-auto p-6">
             <Card>
               <CardHeader>
                 <CardTitle>Atividades</CardTitle>
@@ -686,7 +620,7 @@ export function PipelineCardModal({
             </Card>
           </TabsContent>
 
-          <TabsContent value="schedule" className="flex-1 overflow-y-auto">
+          <TabsContent value="schedule" className="flex-1 overflow-y-auto p-6">
             <Card>
               <CardHeader>
                 <CardTitle>Agenda</CardTitle>
@@ -697,7 +631,7 @@ export function PipelineCardModal({
             </Card>
           </TabsContent>
 
-          <TabsContent value="deals" className="flex-1 overflow-y-auto">
+          <TabsContent value="deals" className="flex-1 overflow-y-auto p-6">
             <Card>
               <CardHeader>
                 <CardTitle>Negócios</CardTitle>
@@ -708,7 +642,7 @@ export function PipelineCardModal({
             </Card>
           </TabsContent>
 
-          <TabsContent value="chat" className="flex-1 overflow-y-auto">
+          <TabsContent value="chat" className="flex-1 overflow-y-auto p-6">
             <Card>
               <CardHeader>
                 <CardTitle>Chat</CardTitle>
@@ -719,11 +653,11 @@ export function PipelineCardModal({
             </Card>
           </TabsContent>
 
-          <TabsContent value="files" className="flex-1 overflow-y-auto">
+          <TabsContent value="files" className="flex-1 overflow-y-auto p-6">
             <Card>
               <CardHeader>
                 <CardTitle>Arquivos</CardTitle>
-              </CardHeader>
+              </CardContent>
               <CardContent>
                 <p className="text-muted-foreground">Conteúdo da aba de arquivos...</p>
               </CardContent>
