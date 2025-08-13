@@ -90,9 +90,7 @@ export function ContactAttemptModal({
     { value: 'busy', label: 'Ocupado', description: 'Linha ocupada ou indisponível' },
     { value: 'not_interested', label: 'Não Interessado', description: 'Não demonstrou interesse' },
     { value: 'refused', label: 'Recusou', description: 'Recusou o contato' },
-    { value: 'invalid', label: '
-
-Inválido', description: 'Número/email inválido' },
+    { value: 'invalid', label: 'Inválido', description: 'Número/email inválido' },
     { value: 'failed', label: 'Falhou', description: 'Falha técnica' }
   ];
 
