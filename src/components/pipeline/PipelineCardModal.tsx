@@ -57,9 +57,11 @@ export function PipelineCardModal({
 
             <div className="mt-4">
               <TabsContent value="info">
-                <div className="p-4 bg-green-100 rounded-lg">
-                  <h2 className="text-xl font-bold text-green-800 mb-4">✅ Informações do Negócio</h2>
-                  <div className="space-y-2">
+                <div style={{ backgroundColor: '#dcfce7', padding: '16px', borderRadius: '8px' }}>
+                  <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#166534', marginBottom: '16px' }}>
+                    ✅ Informações do Negócio
+                  </h2>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <p><strong>Nome:</strong> {lead.name}</p>
                     <p><strong>Empresa:</strong> {lead.company || 'N/A'}</p>
                     <p><strong>Telefone:</strong> {lead.phone || 'N/A'}</p>
@@ -70,7 +72,7 @@ export function PipelineCardModal({
                   </div>
                   
                   {onStageChange && (
-                    <div className="mt-4 flex gap-2">
+                    <div style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
                       <Button 
                         size="sm" 
                         onClick={() => onStageChange(lead.id, "Qualificação")}
@@ -90,23 +92,34 @@ export function PipelineCardModal({
               </TabsContent>
 
               <TabsContent value="history">
-                <div className="p-4 bg-blue-100 rounded-lg">
-                  <h2 className="text-xl font-bold text-blue-800">📋 Histórico</h2>
+                <div style={{ backgroundColor: '#dbeafe', padding: '16px', borderRadius: '8px' }}>
+                  <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#1e40af' }}>
+                    📋 Histórico
+                  </h2>
                   <p>Histórico de mudanças do lead...</p>
+                  <p>Lead criado em: {lead.createdAt?.toLocaleDateString('pt-BR') || 'N/A'}</p>
+                  <p>Última atualização: {lead.stageUpdatedAt?.toLocaleDateString('pt-BR') || 'N/A'}</p>
                 </div>
               </TabsContent>
 
               <TabsContent value="activities">
-                <div className="p-4 bg-purple-100 rounded-lg">
-                  <h2 className="text-xl font-bold text-purple-800">⚡ Atividades</h2>
+                <div style={{ backgroundColor: '#e9d5ff', padding: '16px', borderRadius: '8px' }}>
+                  <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#7c3aed' }}>
+                    ⚡ Atividades
+                  </h2>
                   <p>Lista de atividades...</p>
+                  <p>Tarefas: {lead.tasksCount || 0}</p>
+                  <p>Notas: {lead.notesCount || 0}</p>
                 </div>
               </TabsContent>
 
               <TabsContent value="files">
-                <div className="p-4 bg-orange-100 rounded-lg">
-                  <h2 className="text-xl font-bold text-orange-800">📁 Arquivos</h2>
+                <div style={{ backgroundColor: '#fed7aa', padding: '16px', borderRadius: '8px' }}>
+                  <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#c2410c' }}>
+                    📁 Arquivos
+                  </h2>
                   <p>Arquivos anexados...</p>
+                  <p>Nenhum arquivo anexado ainda.</p>
                 </div>
               </TabsContent>
             </div>
