@@ -5,6 +5,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { LeadFilters } from "./LeadFilters";
+import { ContactAttemptButton } from "./ContactAttemptButton";
 import { Lead, LeadSource, LeadStatus } from "@/types/lead";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { 
@@ -14,10 +15,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, MessageCircle } from "lucide-react";
+import { MoreHorizontal, MessageCircle, TrendingUp, Clock, Target } from "lucide-react";
 import { toast } from "sonner";
+import { useContactAttempts } from "@/hooks/useContactAttempts";
 
-// Mock data for leads
+// Mock data for leads (mantendo o mesmo)
 export const mockLeads: Lead[] = [
   {
     id: "1",
@@ -125,6 +127,7 @@ interface LeadListProps {
 
 export function LeadList({ filterOpen, onLeadClick }: LeadListProps) {
   const [leads] = useState<Lead[]>(mockLeads);
+  const { getContactAttemptSummary } = useContactAttempts();
   
   const handleChatWithLead = (lead: Lead) => {
     toast.success(`Iniciando chat com ${lead.name}`);
@@ -150,6 +153,21 @@ export function LeadList({ filterOpen, onLeadClick }: LeadListProps) {
     };
     return colors[status];
   };
+
+  const getAttemptStatusColor = (summary: any) => {
+    if (summary.totalAttempts === 0) return "text-gray-400";
+    
+    const successRate = summary.successfulAttempts / summary.totalAttempts;
+    if (successRate >= 0.7) return "text-green-600";
+    if (successRate >= 0.4) return "text-yellow-600";
+    return "text-red-600";
+  };
+
+  const getDaysSinceLastAttempt = (lastAttempt?: Date) => {
+    if (!lastAttempt) return null;
+    const days = Math.floor((new Date().getTime() - lastAttempt.getTime()) / (1000 * 60 * 60 * 24));
+    return days;
+  };
   
   return (
     <div className="space-y-4">
@@ -165,91 +183,152 @@ export function LeadList({ filterOpen, onLeadClick }: LeadListProps) {
               <TableHead>Origem</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Tags</TableHead>
+              <TableHead>Tentativas</TableHead>
               <TableHead>Valor</TableHead>
               <TableHead>Último Contato</TableHead>
               <TableHead>Responsável</TableHead>
-              <TableHead className="w-[80px]">Ações</TableHead>
+              <TableHead className="w-[120px]">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {leads.map(lead => (
-              <TableRow 
-                key={lead.id} 
-                className="cursor-pointer hover:bg-muted/50"
-                onClick={() => onLeadClick(lead)}
-              >
-                <TableCell className="font-medium">
-                  <div className="flex items-center gap-2">
-                    <Avatar className="h-8 w-8 border">
-                      <AvatarFallback className="text-xs bg-primary text-primary-foreground">
-                        {lead.name.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col">
-                      <span>{lead.name}</span>
-                      {lead.email && <span className="text-xs text-muted-foreground">{lead.email}</span>}
+            {leads.map(lead => {
+              const attemptSummary = getContactAttemptSummary(lead.id);
+              const daysSinceLastAttempt = getDaysSinceLastAttempt(attemptSummary.lastAttempt);
+              
+              return (
+                <TableRow 
+                  key={lead.id} 
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => onLeadClick(lead)}
+                >
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-8 w-8 border">
+                        <AvatarFallback className="text-xs bg-primary text-primary-foreground">
+                          {lead.name.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col">
+                        <span>{lead.name}</span>
+                        {lead.email && <span className="text-xs text-muted-foreground">{lead.email}</span>}
+                      </div>
                     </div>
-                  </div>
-                </TableCell>
-                <TableCell>{lead.phone}</TableCell>
-                <TableCell>{lead.company || "—"}</TableCell>
-                <TableCell>
-                  <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
-                    {getSourceLabel(lead.source)}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline" className={getStatusColor(lead.status)}>
-                    {lead.stage}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <div className="flex flex-wrap gap-1">
-                    {lead.tags.map(tag => (
-                      <Badge key={tag} variant="secondary" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </TableCell>
-                <TableCell>{lead.value ? `R$ ${lead.value.toFixed(2)}` : "—"}</TableCell>
-                <TableCell>{lead.lastContact?.toLocaleDateString() || "—"}</TableCell>
-                <TableCell>{lead.assignedTo || "—"}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-1">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-8 w-8" 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleChatWithLead(lead);
-                      }}
-                    >
-                      <MessageCircle className="h-4 w-4" />
-                    </Button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>Editar</DropdownMenuItem>
-                        <DropdownMenuItem>Criar negócio</DropdownMenuItem>
-                        <DropdownMenuItem>Adicionar tag</DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600">Excluir</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
+                  </TableCell>
+                  <TableCell>{lead.phone}</TableCell>
+                  <TableCell>{lead.company || "—"}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
+                      {getSourceLabel(lead.source)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={getStatusColor(lead.status)}>
+                      {lead.stage}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      {lead.tags.map(tag => (
+                        <Badge key={tag} variant="secondary" className="text-xs">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      {attemptSummary.totalAttempts > 0 ? (
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1">
+                            <Target className={`h-4 w-4 ${getAttemptStatusColor(attemptSummary)}`} />
+                            <span className={`font-medium ${getAttemptStatusColor(attemptSummary)}`}>
+                              {attemptSummary.totalAttempts}
+                            </span>
+                          </div>
+                          
+                          {attemptSummary.successfulAttempts > 0 && (
+                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                              <TrendingUp className="h-3 w-3 mr-1" />
+                              {Math.round((attemptSummary.successfulAttempts / attemptSummary.totalAttempts) * 100)}%
+                            </Badge>
+                          )}
+                          
+                          {daysSinceLastAttempt !== null && daysSinceLastAttempt > 7 && (
+                            <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200">
+                              <Clock className="h-3 w-3 mr-1" />
+                              {daysSinceLastAttempt}d
+                            </Badge>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">Nenhuma</span>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>{lead.value ? `R$ ${lead.value.toFixed(2)}` : "—"}</TableCell>
+                  <TableCell>
+                    <div>
+                      {attemptSummary.lastAttempt ? (
+                        <div>
+                          <div className="text-sm">
+                            {attemptSummary.lastAttempt.toLocaleDateString('pt-BR')}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {daysSinceLastAttempt === 0 ? 'Hoje' : 
+                             daysSinceLastAttempt === 1 ? 'Ontem' : 
+                             `${daysSinceLastAttempt} dias atrás`}
+                          </div>
+                        </div>
+                      ) : (
+                        lead.lastContact?.toLocaleDateString('pt-BR') || "—"
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>{lead.assignedTo || "—"}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <ContactAttemptButton 
+                        lead={lead} 
+                        variant="ghost" 
+                        size="sm"
+                        showCount={false}
+                      />
+                      
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleChatWithLead(lead);
+                        }}
+                      >
+                        <MessageCircle className="h-4 w-4" />
+                      </Button>
+                      
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>Editar</DropdownMenuItem>
+                          <DropdownMenuItem>Criar negócio</DropdownMenuItem>
+                          <DropdownMenuItem>Adicionar tag</DropdownMenuItem>
+                          <DropdownMenuItem className="text-red-600">Excluir</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>
