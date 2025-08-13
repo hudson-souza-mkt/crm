@@ -7,6 +7,7 @@ import { AgendaModal } from "@/components/agenda/AgendaModal";
 import { AgendaItem, AgendaItemType } from "@/types/agenda";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { toast } from "sonner";
 
 export type CalendarViewType = 'day' | 'week' | 'month';
 
@@ -61,12 +62,14 @@ export default function Calendar() {
   const handleAgendaSubmit = (agendaData: Partial<AgendaItem>) => {
     if (editingItem) {
       agendaManager.updateAgendaItem(editingItem.id, agendaData);
+      toast.success("Agendamento atualizado com sucesso!");
     } else {
       agendaManager.createAgendaItem({
         ...agendaData,
         scheduledDate: selectedDate || new Date(),
         createdBy: "Usuário Atual"
       });
+      toast.success("Agendamento criado com sucesso!");
     }
   };
 
@@ -75,6 +78,34 @@ export default function Calendar() {
       scheduledDate: newDate,
       ...(newTime && { scheduledTime: newTime })
     });
+    toast.success("Agendamento movido com sucesso!");
+  };
+
+  const handleCompleteItem = (id: string) => {
+    const item = agendaManager.agendaItems.find(item => item.id === id);
+    if (item) {
+      agendaManager.updateAgendaItem(id, { 
+        status: item.status === 'completed' ? 'pending' : 'completed' 
+      });
+      toast.success(
+        item.status === 'completed' 
+          ? "Agendamento marcado como pendente" 
+          : "Agendamento concluído!"
+      );
+    }
+  };
+
+  const handleEditItem = (item: AgendaItem) => {
+    setEditingItem(item);
+    setAgendaModalOpen(true);
+  };
+
+  const handleDeleteItem = (id: string) => {
+    const item = agendaManager.agendaItems.find(item => item.id === id);
+    if (item && window.confirm(`Tem certeza que deseja excluir "${item.title}"?`)) {
+      agendaManager.deleteAgendaItem(id);
+      toast.success("Agendamento excluído com sucesso!");
+    }
   };
 
   return (
@@ -87,6 +118,10 @@ export default function Calendar() {
         onCreateEvent={handleDateClick}
         onEventClick={handleEventClick}
         currentDate={currentDate}
+        selectedDate={selectedDate}
+        onCompleteItem={handleCompleteItem}
+        onEditItem={handleEditItem}
+        onDeleteItem={handleDeleteItem}
       />
 
       {/* Main Calendar Area */}
@@ -95,9 +130,16 @@ export default function Calendar() {
         <CalendarHeader
           currentDate={currentDate}
           viewType={viewType}
-          onDateChange={setCurrentDate}
+          onDateChange={(date) => {
+            setCurrentDate(date);
+            setSelectedDate(date);
+          }}
           onViewChange={setViewType}
-          onTodayClick={() => setCurrentDate(new Date())}
+          onTodayClick={() => {
+            const today = new Date();
+            setCurrentDate(today);
+            setSelectedDate(today);
+          }}
         />
 
         {/* Calendar Content */}
