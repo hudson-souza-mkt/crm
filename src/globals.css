@@ -235,49 +235,6 @@
   .touch-target {
     @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
   }
-
-  /* Barra de ações rápidas dos cards */
-  .quick-action-bar {
-    @apply border-t border-border bg-gray-50/50 px-2 py-2;
-  }
-  
-  .quick-action-button {
-    @apply h-8 w-8 rounded-sm transition-all duration-200 hover:scale-105;
-  }
-  
-  .quick-action-button:active {
-    @apply scale-95;
-  }
-  
-  /* Contadores de ações */
-  .action-counter {
-    @apply absolute -top-1 -right-1 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-medium;
-  }
-  
-  /* Estados de hover para ações específicas */
-  .action-whatsapp {
-    @apply text-green-600 hover:text-green-700 hover:bg-green-50;
-  }
-  
-  .action-call {
-    @apply text-blue-600 hover:text-blue-700 hover:bg-blue-50;
-  }
-  
-  .action-schedule {
-    @apply text-purple-600 hover:text-purple-700 hover:bg-purple-50;
-  }
-  
-  .action-email {
-    @apply text-orange-600 hover:text-orange-700 hover:bg-orange-50;
-  }
-  
-  .action-tasks {
-    @apply text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50;
-  }
-  
-  .action-notes {
-    @apply text-cyan-600 hover:text-cyan-700 hover:bg-cyan-50;
-  }
 }
 
 /* Classes para cores de gráficos e elementos visuais */
@@ -379,46 +336,4 @@
     font-size: 1.125rem;
     line-height: 1.75rem;
   }
-  
-  /* Ajustar barra de ações em mobile */
-  .quick-action-bar {
-    @apply px-1 py-1.5;
-  }
-  
-  .quick-action-button {
-    @apply h-7 w-7;
-  }
-}
-
-/* Melhorias para tablet */
-@media (min-width: 641px) and (max-width: 1024px) {
-  /* Ajustes específicos para tablet */
-  .sidebar-corporate {
-    width: 240px;
-  }
-}
-
-/* Animações para as ações rápidas */
-@keyframes actionPulse {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-}
-
-.action-pulse {
-  animation: actionPulse 0.3s ease-in-out;
-}
-
-/* Efeitos de hover mais suaves */
-.quick-action-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.quick-action-button:active {
-  transform: translateY(0);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }

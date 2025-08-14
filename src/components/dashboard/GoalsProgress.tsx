@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, TrendingDown, Target } from "lucide-react";
+import { TrendingUp, TrendingDown } from "lucide-react";
 
 const goals = [
   {
@@ -52,7 +52,7 @@ export function GoalsProgress() {
   return (
     <Card className="col-span-2">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle>
           🎯 Progresso das Metas
         </CardTitle>
         <CardDescription>
@@ -62,7 +62,7 @@ export function GoalsProgress() {
       <CardContent className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {goals.map((goal, index) => (
-            <div key={index} className="space-y-3 p-4 rounded-lg border bg-gradient-to-r from-muted/30 to-muted/10">
+            <div key={index} className="space-y-3 p-4 rounded-lg border">
               <div className="flex items-center justify-between">
                 <h4 className="font-medium text-sm">{goal.title}</h4>
                 <Badge variant={goal.trend === 'up' ? 'default' : 'secondary'} className="text-xs">

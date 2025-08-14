@@ -4,17 +4,17 @@ import { TopPerformers } from "@/components/dashboard/TopPerformers";
 import { GoalsProgress } from "@/components/dashboard/GoalsProgress";
 import { FunnelAnalysis } from "@/components/dashboard/FunnelAnalysis";
 import { RecentActivities } from "@/components/dashboard/RecentActivities";
-import { DollarSign, Users, Activity, TrendingUp, Target, MessageCircle, Calendar } from "lucide-react";
+import { DollarSign, Users, Activity, TrendingUp } from "lucide-react";
 
 export default function Dashboard() {
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-        <h1 className="text-2xl font-bold">Dashboard de Vendas</h1>
+    <div className="space-y-6 pb-10">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
       </div>
       
-      {/* Cards de métricas aprimorados */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Cards de métricas */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <EnhancedMetricCard
           title="Total de Vendas"
           value="R$ 387.500"
@@ -53,19 +53,15 @@ export default function Dashboard() {
         />
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Gráfico de Vendas */}
+      {/* Gráfico e Top Vendedores */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <SalesChart />
-        
-        {/* Top Vendedores */}
         <TopPerformers />
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Progresso das Metas */}
+      {/* Metas e Funil */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <GoalsProgress />
-        
-        {/* Análise do Funil */}
         <FunnelAnalysis />
       </div>
       
