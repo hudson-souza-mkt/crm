@@ -3,7 +3,7 @@ import { KanbanColumn } from "./KanbanColumn";
 import { ActionModals } from "./ActionModals";
 import type { Lead } from "./PipelineCard";
 import { Button } from "@/components/ui/button";
-import { Plus, FileBarChart, Kanban, List } from "lucide-react";
+import { Plus, FileBarChart, Kanban, List, Filter } from "lucide-react";
 import { toast } from "sonner";
 import { LeadDetailDialog } from "./LeadDetailDialog";
 import { supabase } from "@/lib/supabase";
