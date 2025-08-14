@@ -7,7 +7,7 @@ import { StageTransitionDialog } from "@/components/pipeline/StageTransitionDial
 import { PipelineTable } from "@/components/pipeline/PipelineTable";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ChevronLeft, Filter, Plus, Kanban, List, BarChart2 } from "lucide-react";
+import { ChevronLeft, Filter, Plus, Upload, Download, BarChart2 } from "lucide-react";
 
 // Mock data com informações financeiras expandidas
 const mockLeads: Lead[] = [
@@ -293,7 +293,7 @@ export default function Pipeline() {
 
   return (
     <div className="space-y-4">
-      {/* Header com título e botão de voltar */}
+      {/* Header com título e ações */}
       <div className="flex items-center gap-4 mb-2">
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -307,40 +307,61 @@ export default function Pipeline() {
         </Button>
       </div>
       
-      {/* Controles de visualização - Destaque principal no lugar do "Resumo do funil" */}
-      <div className="flex items-center justify-between bg-white rounded-lg border p-4 mb-2">
-        {/* Controles de visualização em destaque */}
-        <div className="flex items-center gap-4">
-          <span className="font-medium text-sm">Visualizações:</span>
-          
-          <div className="flex border rounded-md overflow-hidden">
+      {/* Este é o elemento alvo pelo seletor CSS fornecido - Modificado para visualizações */}
+      <div className="flex justify-between items-center mb-4 p-4 bg-white rounded-lg border shadow-sm">
+        <div className="flex items-center">
+          <h3 className="text-sm font-medium mr-4">Visualizações:</h3>
+          <div className="flex bg-gray-100 rounded-md p-1">
             <button 
-              className={`px-3 py-1.5 flex items-center gap-1.5 text-sm ${
-                viewMode === "kanban" 
-                  ? "bg-primary text-white font-medium" 
-                  : "bg-gray-50 hover:bg-gray-100"
-              }`}
-              onClick={() => setViewMode("kanban")}
+              onClick={() => setViewMode("kanban")} 
+              className={`px-3 py-1 text-sm rounded-md flex items-center gap-1.5 ${viewMode === "kanban" ? "bg-primary text-white" : "hover:bg-gray-200"}`}
             >
-              <Kanban className="h-4 w-4" />
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="16" 
+                height="16" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                className="lucide lucide-kanban size-4"
+              >
+                <path d="M6 5v11"/>
+                <path d="M12 5v6"/>
+                <path d="M18 5v14"/>
+              </svg>
               Kanban
             </button>
-            
             <button 
-              className={`px-3 py-1.5 flex items-center gap-1.5 text-sm ${
-                viewMode === "list" 
-                  ? "bg-primary text-white font-medium" 
-                  : "bg-gray-50 hover:bg-gray-100"
-              }`}
-              onClick={() => setViewMode("list")}
+              onClick={() => setViewMode("list")} 
+              className={`px-3 py-1 text-sm rounded-md flex items-center gap-1.5 ${viewMode === "list" ? "bg-primary text-white" : "hover:bg-gray-200"}`}
             >
-              <List className="h-4 w-4" />
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="16" 
+                height="16" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                className="lucide lucide-list size-4"
+              >
+                <line x1="8" x2="21" y1="6" y2="6"/>
+                <line x1="8" x2="21" y1="12" y2="12"/>
+                <line x1="8" x2="21" y1="18" y2="18"/>
+                <line x1="3" x2="3.01" y1="6" y2="6"/>
+                <line x1="3" x2="3.01" y1="12" y2="12"/>
+                <line x1="3" x2="3.01" y1="18" y2="18"/>
+              </svg>
               Lista
             </button>
           </div>
         </div>
         
-        {/* Botões de ação */}
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" className="flex items-center gap-1">
             <BarChart2 className="h-4 w-4" />
