@@ -15,6 +15,7 @@ import { AgentFollowUpConfig } from "./config/AgentFollowUpConfig";
 import { AgentIntegrationsConfig } from "./config/AgentIntegrationsConfig";
 import { AgentTestChat } from "./config/AgentTestChat";
 import { AgentAdvancedConfig } from "./config/AgentAdvancedConfig";
+import { AgentConversationFlowConfig } from "./config/AgentConversationFlowConfig";
 import {
   Bot,
   FileText,
@@ -24,7 +25,8 @@ import {
   Repeat,
   Plug,
   MessageSquare,
-  Settings
+  Settings,
+  GitBranch
 } from "lucide-react";
 import type { AIAgent } from "@/types/aiAgent";
 
@@ -112,7 +114,7 @@ export function AgentConfigDialog({
         
         <div className="flex-1 overflow-hidden">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-            <TabsList className="grid w-full grid-cols-9 px-6 py-2">
+            <TabsList className="grid w-full grid-cols-10 px-6 py-2">
               <TabsTrigger value="basico" className="flex items-center gap-1 text-xs">
                 <Bot className="h-3 w-3" />
                 <span className="hidden sm:inline">Básico</span>
@@ -120,6 +122,10 @@ export function AgentConfigDialog({
               <TabsTrigger value="instrucoes" className="flex items-center gap-1 text-xs">
                 <FileText className="h-3 w-3" />
                 <span className="hidden sm:inline">Instruções</span>
+              </TabsTrigger>
+              <TabsTrigger value="fluxo" className="flex items-center gap-1 text-xs">
+                <GitBranch className="h-3 w-3" />
+                <span className="hidden sm:inline">Fluxo de Conversa</span>
               </TabsTrigger>
               <TabsTrigger value="empresa" className="flex items-center gap-1 text-xs">
                 <Building className="h-3 w-3" />
@@ -162,6 +168,14 @@ export function AgentConfigDialog({
               
               <TabsContent value="instrucoes" className="p-6 mt-0">
                 <AgentInstructionsConfig
+                  data={formData}
+                  onChange={updateFormData}
+                  onSave={handleSave}
+                />
+              </TabsContent>
+              
+              <TabsContent value="fluxo" className="p-6 mt-0">
+                <AgentConversationFlowConfig
                   data={formData}
                   onChange={updateFormData}
                   onSave={handleSave}
