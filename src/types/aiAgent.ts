@@ -1,4 +1,4 @@
-export type AgentType = 'atendimento' | 'qualificacao' | 'vendas' | 'followup' | 'suporte' | 'consultor';
+export type AgentType = 'atendimento' | 'qualificacao' | 'vendas' | 'followup' | 'suporte';
 export type AgentStatus = 'ativo' | 'inativo' | 'treinamento' | 'manutencao';
 export type FollowUpTrigger = 'tempo' | 'acao' | 'evento' | 'manual';
 export type EscalationRule = 'sempre_humano' | 'condicional' | 'nunca';
@@ -7,30 +7,6 @@ export type TimeUnit = 'minutos' | 'horas' | 'dias';
 // Novos tipos para integração com pipeline
 export type StepCompletionCondition = 'manual' | 'automatic' | 'conditional';
 export type PipelineAction = 'create_deal' | 'move_stage' | 'update_value' | 'add_note' | 'schedule_task';
-
-// Tipos específicos para agente consultor
-export type AnalysisType = 'vendas' | 'atendimento' | 'qualificacao' | 'oportunidades' | 'satisfacao' | 'personalizado';
-export type AnalysisFrequency = 'tempo_real' | 'diario' | 'semanal' | 'mensal' | 'manual';
-
-export interface AnalysisGuideline {
-  id: string;
-  name: string;
-  description: string;
-  type: AnalysisType;
-  prompt: string;
-  active: boolean;
-  priority: 'alta' | 'media' | 'baixa';
-}
-
-export interface ConsultorConfig {
-  enabled: boolean;
-  analysisFrequency: AnalysisFrequency;
-  guidelines: AnalysisGuideline[];
-  autoGenerateReports: boolean;
-  notifyOnInsights: boolean;
-  analysisScope: 'todas_conversas' | 'apenas_finalizadas' | 'com_problemas';
-  reportFormat: 'resumo' | 'detalhado' | 'pontos_chave';
-}
 
 export interface ConversationStep {
   id: string;
@@ -88,9 +64,6 @@ export interface AIAgent {
   systemInstructions: string;
   conversationFlow: ConversationStep[]; // Atualizado para usar o novo tipo
   prohibitedTopics: string[];
-  
-  // Configurações específicas para consultor
-  consultorConfig?: ConsultorConfig;
   
   // Configurações de pipeline
   pipelineConfig?: {
