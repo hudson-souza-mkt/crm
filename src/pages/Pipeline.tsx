@@ -5,10 +5,9 @@ import { PipelineCard, type Lead } from "@/components/pipeline/PipelineCard";
 import { PipelineCardModal } from "@/components/pipeline/PipelineCardModal";
 import { StageTransitionDialog } from "@/components/pipeline/StageTransitionDialog";
 import { PipelineTable } from "@/components/pipeline/PipelineTable";
-import { PipelineViewToggle } from "@/components/pipeline/PipelineViewToggle";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ChevronLeft, Filter, Plus, Upload, Download, BarChart2 } from "lucide-react";
+import { ChevronLeft, Filter, Plus, Kanban, List, BarChart2 } from "lucide-react";
 
 // Mock data com informações financeiras expandidas
 const mockLeads: Lead[] = [
@@ -294,7 +293,7 @@ export default function Pipeline() {
 
   return (
     <div className="space-y-4">
-      {/* Header inspirado no design da captura de tela */}
+      {/* Header com título e botão de voltar */}
       <div className="flex items-center gap-4 mb-2">
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -308,26 +307,45 @@ export default function Pipeline() {
         </Button>
       </div>
       
-      {/* Resumo do Funil + Ações */}
+      {/* Controles de visualização - Destaque principal no lugar do "Resumo do funil" */}
       <div className="flex items-center justify-between bg-white rounded-lg border p-4 mb-2">
-        <div>
-          <h3 className="text-sm font-medium">Resumo do funil</h3>
-          <p className="text-sm text-muted-foreground">
-            Total: {leads.length} negócios / R$ {leads.reduce((sum, lead) => sum + (lead.value || 0), 0).toLocaleString('pt-BR')}
-          </p>
+        {/* Controles de visualização em destaque */}
+        <div className="flex items-center gap-4">
+          <span className="font-medium text-sm">Visualizações:</span>
+          
+          <div className="flex border rounded-md overflow-hidden">
+            <button 
+              className={`px-3 py-1.5 flex items-center gap-1.5 text-sm ${
+                viewMode === "kanban" 
+                  ? "bg-primary text-white font-medium" 
+                  : "bg-gray-50 hover:bg-gray-100"
+              }`}
+              onClick={() => setViewMode("kanban")}
+            >
+              <Kanban className="h-4 w-4" />
+              Kanban
+            </button>
+            
+            <button 
+              className={`px-3 py-1.5 flex items-center gap-1.5 text-sm ${
+                viewMode === "list" 
+                  ? "bg-primary text-white font-medium" 
+                  : "bg-gray-50 hover:bg-gray-100"
+              }`}
+              onClick={() => setViewMode("list")}
+            >
+              <List className="h-4 w-4" />
+              Lista
+            </button>
+          </div>
         </div>
         
+        {/* Botões de ação */}
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" className="flex items-center gap-1">
             <BarChart2 className="h-4 w-4" />
             Estatísticas
           </Button>
-          
-          {/* Componente de alternância de visualização */}
-          <PipelineViewToggle 
-            activeView={viewMode}
-            onChange={setViewMode}
-          />
           
           <Button variant="outline" size="sm" className="flex items-center gap-1">
             <Filter className="h-4 w-4" />
@@ -339,14 +357,6 @@ export default function Pipeline() {
             Novo Negócio
           </Button>
         </div>
-      </div>
-      
-      {/* Dica para o usuário sobre a alternância de visualização */}
-      <div className="bg-blue-50 border border-blue-200 p-3 rounded-md text-sm text-blue-700 mb-4">
-        <p>
-          <strong>Novo:</strong> Agora você pode alternar entre as visualizações Kanban e Lista usando os botões acima.
-          A visualização em lista permite edição rápida e ordenação personalizada dos seus negócios.
-        </p>
       </div>
       
       {/* Visão Kanban */}
