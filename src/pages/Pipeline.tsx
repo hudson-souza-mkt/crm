@@ -6,7 +6,6 @@ import { PipelineCardModal } from "@/components/pipeline/PipelineCardModal";
 import { StageTransitionDialog } from "@/components/pipeline/StageTransitionDialog";
 import { PipelineTable } from "@/components/pipeline/PipelineTable";
 import { Button } from "@/components/ui/button";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { toast } from "sonner";
 import { Kanban, List, Plus, Upload, Download, Filter } from "lucide-react";
 
@@ -292,55 +291,70 @@ export default function Pipeline() {
 
   const activeLead = activeId ? leads.find(lead => lead.id === activeId) : null;
 
+  console.log("Modo de visualização atual:", viewMode);
+
   return (
     <div className="space-y-6">
-      {/* Header com título e ações */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <h1 className="text-3xl font-bold tracking-tight">Pipeline de Vendas</h1>
         
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Controles de visualização */}
-          <div className="flex items-center border rounded-md p-1 mr-2">
-            <Button
-              variant={viewMode === "kanban" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setViewMode("kanban")}
-              className="flex items-center gap-1"
-            >
-              <Kanban className="h-4 w-4" />
-              <span className="hidden sm:inline">Kanban</span>
-            </Button>
-            <Button
-              variant={viewMode === "list" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setViewMode("list")}
-              className="flex items-center gap-1"
-            >
-              <List className="h-4 w-4" />
-              <span className="hidden sm:inline">Lista</span>
-            </Button>
+        <div className="flex items-center gap-4">
+          {/* Botões de visualização simples e destacados */}
+          <div className="flex flex-col items-start gap-2">
+            <div className="text-sm font-medium text-gray-500">Visualização:</div>
+            <div className="flex bg-gray-100 p-1 rounded-md">
+              <button
+                className={`px-4 py-2 rounded flex items-center gap-2 ${
+                  viewMode === "kanban" 
+                    ? "bg-white shadow text-primary font-medium" 
+                    : "text-gray-700 hover:bg-gray-200"
+                }`}
+                onClick={() => setViewMode("kanban")}
+              >
+                <Kanban className="h-4 w-4" />
+                Kanban
+              </button>
+              <button
+                className={`px-4 py-2 rounded flex items-center gap-2 ${
+                  viewMode === "list" 
+                    ? "bg-white shadow text-primary font-medium" 
+                    : "text-gray-700 hover:bg-gray-200"
+                }`}
+                onClick={() => setViewMode("list")}
+              >
+                <List className="h-4 w-4" />
+                Lista
+              </button>
+            </div>
           </div>
           
-          <Button variant="outline" size="sm" className="flex items-center gap-1">
-            <Filter className="h-4 w-4" />
-            <span className="hidden sm:inline">Filtrar</span>
-          </Button>
-          
-          <Button variant="outline" size="sm" className="flex items-center gap-1">
-            <Upload className="h-4 w-4" />
-            <span className="hidden sm:inline">Importar</span>
-          </Button>
-          
-          <Button variant="outline" size="sm" className="flex items-center gap-1">
-            <Download className="h-4 w-4" />
-            <span className="hidden sm:inline">Exportar</span>
-          </Button>
-          
-          <Button size="sm" className="flex items-center gap-1">
-            <Plus className="h-4 w-4" />
-            <span>Novo Negócio</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm">
+              <Filter className="h-4 w-4 mr-2" />
+              Filtrar
+            </Button>
+            
+            <Button variant="outline" size="sm">
+              <Upload className="h-4 w-4 mr-2" />
+              Importar
+            </Button>
+            
+            <Button variant="outline" size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              Exportar
+            </Button>
+            
+            <Button size="sm">
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Negócio
+            </Button>
+          </div>
         </div>
+      </div>
+
+      {/* Nota de debug - remover após resolver o problema */}
+      <div className="bg-yellow-50 border border-yellow-200 p-3 rounded text-sm text-yellow-800">
+        Modo de visualização atual: {viewMode}. Clique nos botões acima para alternar entre Kanban e Lista.
       </div>
       
       {/* Visão Kanban */}
