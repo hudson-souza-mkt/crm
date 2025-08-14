@@ -11,9 +11,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, X, Repeat, Clock, Zap, AlertTriangle } from "lucide-react";
+import { Plus, X, Repeat, Clock, Zap, AlertTriangle, Sparkles } from "lucide-react";
 import { useState } from "react";
-import type { AIAgent, FollowUpInterval, FollowUpTrigger, EscalationRule } from "@/types/aiAgent";
+import type { AIAgent, FollowUpInterval, FollowUpTrigger, EscalationRule, TimeUnit } from "@/types/aiAgent";
 
 interface AgentFollowUpConfigProps {
   data: Partial<AIAgent>;
@@ -24,8 +24,11 @@ interface AgentFollowUpConfigProps {
 export function AgentFollowUpConfig({ data, onChange, onSave }: AgentFollowUpConfigProps) {
   const [newInterval, setNewInterval] = useState<Partial<FollowUpInterval>>({
     delay: 24,
+    timeUnit: 'horas',
     message: "",
-    condition: ""
+    condition: "",
+    useContext: false,
+    contextPrompt: ""
   });
 
   const updateFollowUpConfig = (field: string, value: any) => {
@@ -42,13 +45,23 @@ export function AgentFollowUpConfig({ data, onChange, onSave }: AgentFollowUpCon
 
     const interval: FollowUpInterval = {
       delay: newInterval.delay || 24,
+      timeUnit: newInterval.timeUnit || 'horas',
       message: newInterval.message || "",
-      condition: newInterval.condition
+      condition: newInterval.condition,
+      useContext: newInterval.useContext || false,
+      contextPrompt: newInterval.contextPrompt
     };
 
     const currentIntervals = data.followUpConfig?.intervals || [];
     updateFollowUpConfig("intervals", [...currentIntervals, interval]);
-    setNewInterval({ delay: 24, message: "", condition: "" });
+    setNewInterval({ 
+      delay: 24, 
+      timeUnit: 'horas', 
+      message: "", 
+      condition: "", 
+      useContext: false,
+      contextPrompt: ""
+    });
   };
 
   const handleRemoveInterval = (index: number) => {
@@ -83,6 +96,10 @@ export function AgentFollowUpConfig({ data, onChange, onSave }: AgentFollowUpCon
       manual: "Disparado manualmente pelo usuário"
     };
     return descriptions[trigger];
+  };
+
+  const formatTimeDisplay = (delay: number, timeUnit: TimeUnit) => {
+    return `${delay} ${timeUnit}`;
   };
 
   return (
@@ -121,7 +138,21 @@ export function AgentFollowUpConfig({ data, onChange, onSave }: AgentFollowUpCon
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-center justify-between mt-4">
+              <div>
+                <Label htmlFor="useConversationContext">Usar Contexto da Conversa</Label>
+                <p className="text-sm text-muted-foreground">
+                  Permite que o agente use informações da conversa anterior nos follow-ups
+                </p>
+              </div>
+              <Switch
+                id="useConversationContext"
+                checked={data.followUpConfig?.useConversationContext || false}
+                onCheckedChange={(checked) => updateFollowUpConfig("useConversationContext", checked)}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
               <div>
                 <Label htmlFor="maxAttempts">Máximo de Tentativas</Label>
                 <Input
@@ -204,9 +235,9 @@ export function AgentFollowUpConfig({ data, onChange, onSave }: AgentFollowUpCon
             {/* Formulário para novo intervalo */}
             <div className="p-4 border rounded-lg bg-muted/50">
               <h5 className="font-medium mb-3">Adicionar Novo Intervalo</h5>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                 <div>
-                  <Label htmlFor="intervalDelay">Delay (horas)</Label>
+                  <Label htmlFor="intervalDelay">Valor</Label>
                   <Input
                     id="intervalDelay"
                     type="number"
@@ -214,6 +245,22 @@ export function AgentFollowUpConfig({ data, onChange, onSave }: AgentFollowUpCon
                     value={newInterval.delay || 24}
                     onChange={(e) => setNewInterval({ ...newInterval, delay: parseInt(e.target.value) })}
                   />
+                </div>
+                <div>
+                  <Label htmlFor="timeUnit">Unidade</Label>
+                  <Select
+                    value={newInterval.timeUnit || 'horas'}
+                    onValueChange={(value: TimeUnit) => setNewInterval({ ...newInterval, timeUnit: value })}
+                  >
+                    <SelectTrigger id="timeUnit">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="minutos">Minutos</SelectItem>
+                      <SelectItem value="horas">Horas</SelectItem>
+                      <SelectItem value="dias">Dias</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="md:col-span-2">
                   <Label htmlFor="intervalMessage">Mensagem</Label>
@@ -234,6 +281,39 @@ export function AgentFollowUpConfig({ data, onChange, onSave }: AgentFollowUpCon
                   placeholder="Ex: se não respondeu ao email anterior"
                 />
               </div>
+              
+              <div className="mt-4 p-3 border rounded-lg bg-muted/30">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-amber-500" />
+                    <Label htmlFor="useContext" className="font-medium">
+                      Usar contexto da conversa
+                    </Label>
+                  </div>
+                  <Switch
+                    id="useContext"
+                    checked={newInterval.useContext || false}
+                    onCheckedChange={(checked) => setNewInterval({ ...newInterval, useContext: checked })}
+                  />
+                </div>
+                
+                {newInterval.useContext && (
+                  <div className="mt-3">
+                    <Label htmlFor="contextPrompt">Prompt de contextualização</Label>
+                    <Textarea
+                      id="contextPrompt"
+                      value={newInterval.contextPrompt || ""}
+                      onChange={(e) => setNewInterval({ ...newInterval, contextPrompt: e.target.value })}
+                      placeholder="Ex: Utilize os tópicos discutidos na conversa anterior para personalizar a mensagem de follow-up"
+                      rows={3}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Instrua o agente sobre como usar o contexto da conversa anterior
+                    </p>
+                  </div>
+                )}
+              </div>
+              
               <Button onClick={handleAddInterval} className="mt-3" size="sm">
                 <Plus className="h-4 w-4 mr-2" />
                 Adicionar Intervalo
@@ -245,21 +325,35 @@ export function AgentFollowUpConfig({ data, onChange, onSave }: AgentFollowUpCon
               <div className="space-y-3">
                 <Label>Intervalos Configurados:</Label>
                 {data.followUpConfig.intervals.map((interval, index) => (
-                  <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
+                  <div key={index} className="flex items-start gap-3 p-3 border rounded-lg">
                     <div className="bg-primary/10 text-primary rounded-full w-8 h-8 flex items-center justify-center text-sm font-medium">
                       {index + 1}
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <Clock className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">{interval.delay}h após</span>
+                        <span className="font-medium">
+                          {formatTimeDisplay(interval.delay, interval.timeUnit || 'horas')} após
+                        </span>
                         {interval.condition && (
                           <span className="text-sm text-muted-foreground">
                             ({interval.condition})
                           </span>
                         )}
+                        {interval.useContext && (
+                          <span className="inline-flex items-center text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
+                            <Sparkles className="h-3 w-3 mr-1" />
+                            Contextualizado
+                          </span>
+                        )}
                       </div>
                       <p className="text-sm">{interval.message}</p>
+                      {interval.contextPrompt && interval.useContext && (
+                        <div className="mt-1 text-xs text-muted-foreground border-l-2 border-amber-300 pl-2">
+                          <p className="font-medium text-amber-700">Instrução de contexto:</p>
+                          <p>{interval.contextPrompt}</p>
+                        </div>
+                      )}
                     </div>
                     <Button
                       variant="ghost"

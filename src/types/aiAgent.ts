@@ -2,6 +2,7 @@ export type AgentType = 'atendimento' | 'qualificacao' | 'vendas' | 'followup' |
 export type AgentStatus = 'ativo' | 'inativo' | 'treinamento' | 'manutencao';
 export type FollowUpTrigger = 'tempo' | 'acao' | 'evento' | 'manual';
 export type EscalationRule = 'sempre_humano' | 'condicional' | 'nunca';
+export type TimeUnit = 'minutos' | 'horas' | 'dias';
 
 export interface AIAgent {
   id: string;
@@ -47,6 +48,7 @@ export interface AIAgent {
     intervals: FollowUpInterval[];
     maxAttempts: number;
     escalationRules: EscalationRule;
+    useConversationContext?: boolean;
   };
   
   // Integrações
@@ -136,9 +138,12 @@ export interface KnowledgeItem {
 }
 
 export interface FollowUpInterval {
-  delay: number; // em horas
+  delay: number;
+  timeUnit: TimeUnit;
   message: string;
   condition?: string;
+  useContext?: boolean;
+  contextPrompt?: string;
 }
 
 export interface ConversationTest {

@@ -91,10 +91,28 @@ const mockAgents: AIAgent[] = [
     ],
     followUpConfig: {
       enabled: true,
+      useConversationContext: true,
       triggers: ["tempo", "acao"],
       intervals: [
-        { delay: 24, message: "Olá! Como posso ajudar com mais alguma coisa?" },
-        { delay: 72, message: "Gostaria de agendar uma demonstração?" }
+        { 
+          delay: 24, 
+          timeUnit: 'horas',
+          message: "Olá! Como posso ajudar com mais alguma coisa?",
+          useContext: false
+        },
+        { 
+          delay: 72, 
+          timeUnit: 'horas',
+          message: "Gostaria de agendar uma demonstração?",
+          useContext: false
+        },
+        {
+          delay: 30,
+          timeUnit: 'minutos',
+          message: "Notei que você tinha dúvidas sobre nossa funcionalidade. Posso esclarecer mais alguma coisa?",
+          useContext: true,
+          contextPrompt: "Mencione especificamente a funcionalidade que o cliente estava perguntando na conversa anterior"
+        }
       ],
       maxAttempts: 3,
       escalationRules: "condicional"
@@ -160,10 +178,28 @@ const mockAgents: AIAgent[] = [
     knowledgeBase: [],
     followUpConfig: {
       enabled: true,
+      useConversationContext: true,
       triggers: ["tempo", "acao"],
       intervals: [
-        { delay: 48, message: "Olá! Conseguiu analisar as informações que compartilhei?" },
-        { delay: 168, message: "Gostaria de agendar uma demonstração personalizada?" }
+        { 
+          delay: 48, 
+          timeUnit: 'horas',
+          message: "Olá! Conseguiu analisar as informações que compartilhei?",
+          useContext: false
+        },
+        { 
+          delay: 7, 
+          timeUnit: 'dias',
+          message: "Gostaria de agendar uma demonstração personalizada?",
+          useContext: false
+        },
+        {
+          delay: 15,
+          timeUnit: 'minutos',
+          message: "Notei que você estava interessado em nossa solução para seu problema específico. Posso detalhar melhor como podemos ajudar?",
+          useContext: true,
+          contextPrompt: "Mencione o problema específico que o cliente descreveu e sugira soluções relevantes"
+        }
       ],
       maxAttempts: 2,
       escalationRules: "condicional"
@@ -229,10 +265,28 @@ const mockAgents: AIAgent[] = [
     knowledgeBase: [],
     followUpConfig: {
       enabled: true,
+      useConversationContext: true,
       triggers: ["tempo", "acao"],
       intervals: [
-        { delay: 24, message: "Ol! Teve tempo de analisar nossa proposta?" },
-        { delay: 72, message: "Posso esclarecer alguma dúvida sobre a proposta?" }
+        { 
+          delay: 24, 
+          timeUnit: 'horas',
+          message: "Olá! Teve tempo de analisar nossa proposta?",
+          useContext: false
+        },
+        { 
+          delay: 72, 
+          timeUnit: 'horas',
+          message: "Posso esclarecer alguma dúvida sobre a proposta?",
+          useContext: false
+        },
+        {
+          delay: 5,
+          timeUnit: 'dias',
+          message: "Vi que você demonstrou interesse no nosso plano Premium. Gostaria de conversar sobre os benefícios específicos para sua empresa?",
+          useContext: true,
+          contextPrompt: "Mencione o plano ou produto específico que o cliente demonstrou mais interesse e ofereça detalhes personalizados"
+        }
       ],
       maxAttempts: 3,
       escalationRules: "condicional"
@@ -298,6 +352,7 @@ export function useAIAgents() {
       knowledgeBase: agentData.knowledgeBase || [],
       followUpConfig: agentData.followUpConfig || {
         enabled: false,
+        useConversationContext: false,
         triggers: [],
         intervals: [],
         maxAttempts: 3,
