@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { KanbanColumn } from "./KanbanColumn";
 import { ActionModals } from "./ActionModals";
 import type { Lead } from "./PipelineCard";
 import { Button } from "@/components/ui/button";
-import { Plus, FileBarChart, Kanban, List, Filter } from "lucide-react";
+import { Plus, FileBarChart, Kanban, List, Filter, ChevronUp, ChevronDown, MoreHorizontal, ArrowUpDown, Check, Edit, Trash2, Copy, Eye, Search } from "lucide-react";
 import { toast } from "sonner";
 import { LeadDetailDialog } from "./LeadDetailDialog";
 import { supabase } from "@/lib/supabase";
@@ -26,6 +26,33 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export type StageColor = "blue" | "purple" | "amber" | "green" | "red" | "pink" | "indigo" | "cyan" | "gray";
 
@@ -317,6 +344,13 @@ export function KanbanBoard() {
 
   // Estado para controlar a visualização (kanban ou lista)
   const [viewMode, setViewMode] = useState<"kanban" | "list">("kanban");
+  
+  // Estados para a visualização em lista
+  const [sortColumn, setSortColumn] = useState<string>("name");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [stageFilter, setStageFilter] = useState<string | null>(null);
 
   // Novos estados para ações rápidas
   const [activeModal, setActiveModal] = useState<string | null>(null);
@@ -330,6 +364,96 @@ export function KanbanBoard() {
       },
     })
   );
+
+  // Convertendo leads do formato de objeto para array para a visualização em lista
+  const allLeadsList = useMemo(() => {
+    const allLeads: Lead[] = [];
+    Object.entries(localLeads).forEach(([stageName, stageLeads]) => {
+      stageLeads.forEach(lead => {
+        // Garantir que o stage está definido
+        allLeads.push({
+          ...lead,
+          stage: lead.stage || stageName
+        });
+      });
+    });
+    return allLeads;
+  }, [localLeads]);
+  
+  // Aplicar ordenação e filtros na lista
+  const filteredAndSortedLeads = useMemo(() => {
+    let results = [...allLeadsList];
+    
+    // Aplicar filtro de pesquisa
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      results = results.filter(lead => 
+        lead.name.toLowerCase().includes(searchLower) || 
+        (lead.company && lead.company.toLowerCase().includes(searchLower)) ||
+        (lead.email && lead.email.toLowerCase().includes(searchLower))
+      );
+    }
+    
+    // Aplicar filtro de etapa
+    if (stageFilter) {
+      results = results.filter(lead => lead.stage === stageFilter);
+    }
+    
+    // Aplicar ordenação
+    results.sort((a, b) => {
+      let aValue: any = a[sortColumn as keyof Lead];
+      let bValue: any = b[sortColumn as keyof Lead];
+      
+      // Tratamentos especiais para alguns campos
+      if (sortColumn === "value") {
+        aValue = aValue || 0;
+        bValue = bValue || 0;
+      } else if (sortColumn === "tags") {
+        aValue = aValue ? aValue.join(", ") : "";
+        bValue = bValue ? bValue.join(", ") : "";
+      } else if (sortColumn === "date" || sortColumn === "stageUpdatedAt") {
+        aValue = aValue ? new Date(aValue).getTime() : 0;
+        bValue = bValue ? new Date(bValue).getTime() : 0;
+      }
+      
+      if (aValue === bValue) return 0;
+      
+      const result = aValue > bValue ? 1 : -1;
+      return sortDirection === "asc" ? result : -result;
+    });
+    
+    return results;
+  }, [allLeadsList, searchTerm, stageFilter, sortColumn, sortDirection]);
+  
+  // Função para manipular a ordenação
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      // Inverter direção se clicar na mesma coluna
+      setSortDirection(prev => prev === "asc" ? "desc" : "asc");
+    } else {
+      // Nova coluna, definir como ascendente
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  };
+  
+  // Função para selecionar/deselecionar todos os leads
+  const toggleSelectAll = () => {
+    if (selectedLeadIds.length === filteredAndSortedLeads.length) {
+      setSelectedLeadIds([]);
+    } else {
+      setSelectedLeadIds(filteredAndSortedLeads.map(lead => lead.id));
+    }
+  };
+  
+  // Função para alternar seleção de um lead
+  const toggleLeadSelection = (leadId: string) => {
+    setSelectedLeadIds(prev => 
+      prev.includes(leadId) 
+        ? prev.filter(id => id !== leadId) 
+        : [...prev, leadId]
+    );
+  };
 
   const handleCardClick = (lead: Lead) => {
     setSelectedLead(lead);
@@ -454,8 +578,9 @@ export function KanbanBoard() {
   };
 
   const handleEditAction = (lead: Lead) => {
-    // Aqui você abriria um modal de edição
-    toast.success(`Editando ${lead.name}`);
+    // Abrir modal de edição (usando o dialog de detalhes)
+    setSelectedLead(lead);
+    setIsDetailDialogOpen(true);
   };
 
   const handleModalSubmit = (action: string, data: any) => {
@@ -587,6 +712,51 @@ export function KanbanBoard() {
     
     toast.success(`Lead ${lead.name} movido para ${toStage}`);
   };
+  
+  // Funções para ações em massa na visualização em lista
+  const handleBulkStageChange = (newStage: string) => {
+    if (selectedLeadIds.length === 0) return;
+    
+    // Para cada lead selecionado, alteramos o estágio
+    selectedLeadIds.forEach(leadId => {
+      const lead = allLeadsList.find(l => l.id === leadId);
+      if (lead && lead.stage !== newStage) {
+        moveLead(lead, newStage);
+      }
+    });
+    
+    toast.success(`${selectedLeadIds.length} leads movidos para ${newStage}`);
+    setSelectedLeadIds([]);
+  };
+  
+  const handleBulkDelete = () => {
+    if (selectedLeadIds.length === 0) return;
+    
+    if (confirm(`Tem certeza que deseja excluir ${selectedLeadIds.length} leads?`)) {
+      setLocalLeads(prev => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach(stageName => {
+          updated[stageName] = updated[stageName].filter(
+            lead => !selectedLeadIds.includes(lead.id)
+          );
+        });
+        return updated;
+      });
+      
+      toast.success(`${selectedLeadIds.length} leads excluídos com sucesso`);
+      setSelectedLeadIds([]);
+    }
+  };
+  
+  const formatCurrency = (value: number | undefined) => {
+    if (value === undefined || value === null) return "—";
+    return value.toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    });
+  };
 
   if (loading) {
     return <div className="flex items-center justify-center h-full"><p>Carregando pipeline...</p></div>;
@@ -637,12 +807,327 @@ export function KanbanBoard() {
         </DndContext>
       );
     } else {
-      // Aqui você pode renderizar a visualização de lista
-      // Por exemplo, um componente PipelineTable
+      // Visualização em lista
       return (
-        <div className="p-4 bg-white rounded-lg border">
-          <h3 className="text-lg font-medium mb-4">Visualização em Lista</h3>
-          <p>Implementação da visualização em lista será feita em breve.</p>
+        <div className="bg-white rounded-lg border shadow">
+          <div className="p-4 border-b">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="relative w-64">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar leads..."
+                    className="pl-8"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                
+                <Select
+                  value={stageFilter || ""}
+                  onValueChange={(value) => setStageFilter(value || null)}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Filtrar por etapa" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Todas as etapas</SelectItem>
+                    {stages.map((stage) => (
+                      <SelectItem key={stage.id} value={stage.name}>
+                        {stage.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <Button variant="default" size="sm" onClick={() => setIsNewLeadDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Novo Lead
+              </Button>
+            </div>
+            
+            {selectedLeadIds.length > 0 && (
+              <div className="bg-muted p-2 rounded-md flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">{selectedLeadIds.length} leads selecionados</span>
+                  
+                  <Select onValueChange={handleBulkStageChange}>
+                    <SelectTrigger className="h-8 w-[180px]">
+                      <SelectValue placeholder="Mover para..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {stages.map((stage) => (
+                        <SelectItem key={stage.id} value={stage.name}>
+                          {stage.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-8 text-red-600"
+                    onClick={handleBulkDelete}
+                  >
+                    <Trash2 className="h-3 w-3 mr-1" />
+                    Excluir
+                  </Button>
+                </div>
+                
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-8"
+                  onClick={() => setSelectedLeadIds([])}
+                >
+                  Cancelar
+                </Button>
+              </div>
+            )}
+          </div>
+          
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[40px]">
+                    <Checkbox 
+                      checked={selectedLeadIds.length > 0 && selectedLeadIds.length === filteredAndSortedLeads.length} 
+                      onCheckedChange={toggleSelectAll}
+                    />
+                  </TableHead>
+                  <TableHead className="cursor-pointer" onClick={() => handleSort("name")}>
+                    <div className="flex items-center">
+                      Lead
+                      {sortColumn === "name" && (
+                        sortDirection === "asc" ? <ChevronUp className="ml-1 h-4 w-4" /> : <ChevronDown className="ml-1 h-4 w-4" />
+                      )}
+                    </div>
+                  </TableHead>
+                  <TableHead className="cursor-pointer" onClick={() => handleSort("company")}>
+                    <div className="flex items-center">
+                      Empresa
+                      {sortColumn === "company" && (
+                        sortDirection === "asc" ? <ChevronUp className="ml-1 h-4 w-4" /> : <ChevronDown className="ml-1 h-4 w-4" />
+                      )}
+                    </div>
+                  </TableHead>
+                  <TableHead className="cursor-pointer" onClick={() => handleSort("stage")}>
+                    <div className="flex items-center">
+                      Etapa
+                      {sortColumn === "stage" && (
+                        sortDirection === "asc" ? <ChevronUp className="ml-1 h-4 w-4" /> : <ChevronDown className="ml-1 h-4 w-4" />
+                      )}
+                    </div>
+                  </TableHead>
+                  <TableHead className="cursor-pointer" onClick={() => handleSort("value")}>
+                    <div className="flex items-center">
+                      Valor
+                      {sortColumn === "value" && (
+                        sortDirection === "asc" ? <ChevronUp className="ml-1 h-4 w-4" /> : <ChevronDown className="ml-1 h-4 w-4" />
+                      )}
+                    </div>
+                  </TableHead>
+                  <TableHead className="cursor-pointer" onClick={() => handleSort("salesperson")}>
+                    <div className="flex items-center">
+                      Responsável
+                      {sortColumn === "salesperson" && (
+                        sortDirection === "asc" ? <ChevronUp className="ml-1 h-4 w-4" /> : <ChevronDown className="ml-1 h-4 w-4" />
+                      )}
+                    </div>
+                  </TableHead>
+                  <TableHead className="cursor-pointer" onClick={() => handleSort("date")}>
+                    <div className="flex items-center">
+                      Previsão
+                      {sortColumn === "date" && (
+                        sortDirection === "asc" ? <ChevronUp className="ml-1 h-4 w-4" /> : <ChevronDown className="ml-1 h-4 w-4" />
+                      )}
+                    </div>
+                  </TableHead>
+                  <TableHead>Tags</TableHead>
+                  <TableHead className="cursor-pointer" onClick={() => handleSort("lastContact")}>
+                    <div className="flex items-center">
+                      Último Contato
+                      {sortColumn === "lastContact" && (
+                        sortDirection === "asc" ? <ChevronUp className="ml-1 h-4 w-4" /> : <ChevronDown className="ml-1 h-4 w-4" />
+                      )}
+                    </div>
+                  </TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredAndSortedLeads.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={10} className="text-center h-24 text-muted-foreground">
+                      Nenhum lead encontrado.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredAndSortedLeads.map((lead) => (
+                    <TableRow key={lead.id} className="group">
+                      <TableCell>
+                        <Checkbox 
+                          checked={selectedLeadIds.includes(lead.id)} 
+                          onCheckedChange={() => toggleLeadSelection(lead.id)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </TableCell>
+                      <TableCell 
+                        className="font-medium cursor-pointer"
+                        onClick={() => handleCardClick(lead)}
+                      >
+                        <div className="flex items-center space-x-2">
+                          <Avatar className="h-8 w-8 border">
+                            <AvatarFallback className="text-xs bg-primary text-primary-foreground">
+                              {lead.name.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="font-medium flex items-center gap-1">
+                              {lead.name}
+                              {lead.isFavorite && (
+                                <Heart className="h-3 w-3 text-red-500 fill-current" />
+                              )}
+                            </div>
+                            {lead.email && <div className="text-xs text-muted-foreground">{lead.email}</div>}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>{lead.company || "—"}</TableCell>
+                      <TableCell>
+                        <Select
+                          defaultValue={lead.stage}
+                          onValueChange={(value) => moveLead(lead, value)}
+                        >
+                          <SelectTrigger className="h-8 w-[150px]">
+                            <SelectValue>{lead.stage}</SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            {stages.map((stage) => (
+                              <SelectItem key={stage.id} value={stage.name}>
+                                {stage.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell>{formatCurrency(lead.value)}</TableCell>
+                      <TableCell>{lead.salesperson || "—"}</TableCell>
+                      <TableCell>{lead.date || "—"}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {lead.tags && lead.tags.length > 0 ? (
+                            lead.tags.slice(0, 2).map((tag) => (
+                              <Badge key={tag} variant="secondary" className="text-xs">
+                                {tag}
+                              </Badge>
+                            ))
+                          ) : (
+                            <span className="text-muted-foreground text-sm">—</span>
+                          )}
+                          {lead.tags && lead.tags.length > 2 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{lead.tags.length - 2}
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>{lead.lastContact || "—"}</TableCell>
+                      <TableCell>
+                        <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          {lead.phone && (
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8"
+                              onClick={() => handleQuickAction('whatsapp', lead)}
+                            >
+                              <MessageSquare className="h-4 w-4 text-green-600" />
+                            </Button>
+                          )}
+                          {lead.phone && (
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8"
+                              onClick={() => handleQuickAction('call', lead)}
+                            >
+                              <Phone className="h-4 w-4 text-blue-600" />
+                            </Button>
+                          )}
+                          {lead.email && (
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8"
+                              onClick={() => handleQuickAction('email', lead)}
+                            >
+                              <Mail className="h-4 w-4 text-orange-600" />
+                            </Button>
+                          )}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleCardClick(lead)}>
+                                <Eye className="h-4 w-4 mr-2" />
+                                Visualizar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleEditAction(lead)}>
+                                <Edit className="h-4 w-4 mr-2" />
+                                Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleQuickAction('favorite', lead)}>
+                                <Heart className={`h-4 w-4 mr-2 ${lead.isFavorite ? "text-red-500 fill-current" : ""}`} />
+                                {lead.isFavorite ? "Desfavoritar" : "Favoritar"}
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => handleQuickAction('schedule', lead)}>
+                                <Calendar className="h-4 w-4 mr-2" />
+                                Agendar reunião
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleQuickAction('tasks', lead)}>
+                                <CheckSquare className="h-4 w-4 mr-2" />
+                                Adicionar tarefa
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleQuickAction('notes', lead)}>
+                                <FileText className="h-4 w-4 mr-2" />
+                                Adicionar nota
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="text-red-600"
+                                onClick={() => {
+                                  if (confirm(`Tem certeza que deseja excluir o lead ${lead.name}?`)) {
+                                    setLocalLeads(prev => {
+                                      const updated = { ...prev };
+                                      const stageName = lead.stage || "Novo Lead";
+                                      updated[stageName] = updated[stageName].filter(l => l.id !== lead.id);
+                                      return updated;
+                                    });
+                                    toast.success(`Lead ${lead.name} excluído com sucesso`);
+                                  }
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Excluir
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       );
     }
@@ -716,7 +1201,7 @@ export function KanbanBoard() {
             Filtrar
           </Button>
           
-          <Button size="sm" className="flex items-center gap-1">
+          <Button size="sm" className="flex items-center gap-1" onClick={() => setIsNewLeadDialogOpen(true)}>
             <Plus className="h-4 w-4" />
             Novo Negócio
           </Button>
