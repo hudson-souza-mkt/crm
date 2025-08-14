@@ -91,7 +91,8 @@ export default function AIAgents() {
       qualificacao: "Qualificação",
       vendas: "Vendas",
       followup: "Follow-up",
-      suporte: "Suporte"
+      suporte: "Suporte",
+      consultor: "Consultor"
     };
     return labels[type];
   };
@@ -220,6 +221,7 @@ export default function AIAgents() {
             <SelectItem value="vendas">Vendas</SelectItem>
             <SelectItem value="followup">Follow-up</SelectItem>
             <SelectItem value="suporte">Suporte</SelectItem>
+            <SelectItem value="consultor">Consultor</SelectItem>
           </SelectContent>
         </Select>
         

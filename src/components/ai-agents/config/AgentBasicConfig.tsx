@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { X } from "lucide-react";
+import { X, BrainCircuit } from "lucide-react";
 import { useState } from "react";
 import type { AIAgent, AgentType } from "@/types/aiAgent";
 
@@ -94,6 +94,7 @@ export function AgentBasicConfig({ data, onChange, onSave }: AgentBasicConfigPro
                   <SelectItem value="vendas">💰 Vendas</SelectItem>
                   <SelectItem value="followup">📞 Follow-up</SelectItem>
                   <SelectItem value="suporte">🛠️ Suporte</SelectItem>
+                  <SelectItem value="consultor">🧠 Consultor</SelectItem>
                 </SelectContent>
               </Select>
             </div>

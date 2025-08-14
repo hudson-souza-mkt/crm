@@ -1,4 +1,4 @@
-export type AgentType = 'atendimento' | 'qualificacao' | 'vendas' | 'followup' | 'suporte';
+export type AgentType = 'atendimento' | 'qualificacao' | 'vendas' | 'followup' | 'suporte' | 'consultor';
 export type AgentStatus = 'ativo' | 'inativo' | 'treinamento' | 'manutencao';
 export type FollowUpTrigger = 'tempo' | 'acao' | 'evento' | 'manual';
 export type EscalationRule = 'sempre_humano' | 'condicional' | 'nunca';

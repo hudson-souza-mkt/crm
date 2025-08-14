@@ -456,6 +456,74 @@ const mockAgents: AIAgent[] = [
     createdBy: "Admin",
     version: "1.0.0",
     tags: ["vendas", "fechamento", "beta"]
+  },
+  {
+    id: "agent-4",
+    name: "Max - Consultor de Vendas",
+    description: "Agente de IA que analisa conversas e fornece insights para a equipe de vendas.",
+    type: "consultor",
+    status: "ativo",
+    objective: "Analisar conversas e fornecer insights para melhoria da equipe de vendas.",
+    personality: "Analítico, direto e construtivo.",
+    tone: "consultivo",
+    language: "pt-BR",
+    systemInstructions: "Sua tarefa é analisar transcrições de conversas e fornecer 3 pontos de melhoria e 2 pontos fortes. Seja direto e construtivo, focando em técnicas de vendas e comunicação.",
+    conversationFlow: [],
+    prohibitedTopics: ["Opiniões pessoais", "Julgamentos de valor sobre o cliente"],
+    pipelineConfig: {
+      enabled: false,
+      defaultPipeline: "",
+      autoCreateDeals: false,
+      dealNamingPattern: "",
+      defaultDealValue: 0
+    },
+    companyInfo: {
+      name: "Space Sales",
+      description: "Plataforma completa de CRM e automação de vendas",
+      mission: "Revolucionar a forma como empresas gerenciam relacionamentos com clientes",
+      values: ["Inovação", "Transparência", "Resultados", "Relacionamento"],
+      differentials: ["IA avançada", "Interface intuitiva", "Suporte 24/7", "Integrações nativas"],
+      targetAudience: "Empresas de todos os tamanhos que buscam otimizar vendas"
+    },
+    products: [],
+    services: [],
+    faqs: [],
+    knowledgeBase: [],
+    followUpConfig: {
+      enabled: false,
+      useConversationContext: false,
+      triggers: [],
+      intervals: [],
+      maxAttempts: 0,
+      escalationRules: "nunca"
+    },
+    integrations: {
+      whatsapp: false,
+      email: false,
+      webchat: false,
+      telegram: false,
+      instagram: false
+    },
+    advancedConfig: {
+      maxResponseTime: 60,
+      confidenceThreshold: 0.7,
+      escalateOnLowConfidence: false,
+      saveConversationHistory: true,
+      learningMode: true
+    },
+    metrics: {
+      totalConversations: 58, // Análises realizadas
+      successfulQualifications: 0,
+      conversionRate: 0,
+      averageResponseTime: 45,
+      satisfactionScore: 4.9,
+      lastTrainingDate: new Date()
+    },
+    createdAt: new Date("2024-03-01"),
+    updatedAt: new Date(),
+    createdBy: "Admin",
+    version: "1.0.0",
+    tags: ["análise", "coaching", "vendas"]
   }
 ];
 

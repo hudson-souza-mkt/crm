@@ -20,7 +20,8 @@ import {
   TrendingUp,
   Clock,
   Star,
-  Settings
+  Settings,
+  BrainCircuit
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AIAgent, AgentType, AgentStatus } from "@/types/aiAgent";
@@ -53,6 +54,7 @@ export function AgentCard({
       case "vendas": return "💰";
       case "followup": return "📞";
       case "suporte": return "🛠️";
+      case "consultor": return "🧠";
       default: return "🤖";
     }
   };
@@ -64,6 +66,7 @@ export function AgentCard({
       case "vendas": return "bg-green-100 text-green-700";
       case "followup": return "bg-orange-100 text-orange-700";
       case "suporte": return "bg-cyan-100 text-cyan-700";
+      case "consultor": return "bg-teal-100 text-teal-700";
       default: return "bg-gray-100 text-gray-700";
     }
   };
