@@ -8,6 +8,30 @@ export type TimeUnit = 'minutos' | 'horas' | 'dias';
 export type StepCompletionCondition = 'manual' | 'automatic' | 'conditional';
 export type PipelineAction = 'create_deal' | 'move_stage' | 'update_value' | 'add_note' | 'schedule_task';
 
+// Tipos para extração automática de dados
+export interface DataExtractionField {
+  id: string;
+  name: string;
+  key: string;
+  description: string;
+  required: boolean;
+  extractionPatterns: string[];
+  validationRule?: string;
+  defaultPrompt?: string;
+  destination: {
+    field: string;
+    entityType: 'lead' | 'deal' | 'contact' | 'company';
+  };
+}
+
+export interface DataExtractionConfig {
+  enabled: boolean;
+  autoUpdate: boolean;
+  confirmBeforeUpdate: boolean;
+  requestMissingFields: boolean;
+  fields: DataExtractionField[];
+}
+
 export interface ConversationStep {
   id: string;
   name: string;
@@ -73,6 +97,9 @@ export interface AIAgent {
     dealNamingPattern: string; // Ex: "{cliente} - {produto}"
     defaultDealValue: number;
   };
+  
+  // Extração automática de dados
+  dataExtractionConfig?: DataExtractionConfig;
   
   // Informações da empresa
   companyInfo: {
