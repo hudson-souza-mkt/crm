@@ -4,7 +4,11 @@ import { PipelineColumn } from "@/components/pipeline/PipelineColumn";
 import { PipelineCard, type Lead } from "@/components/pipeline/PipelineCard";
 import { PipelineCardModal } from "@/components/pipeline/PipelineCardModal";
 import { StageTransitionDialog } from "@/components/pipeline/StageTransitionDialog";
+import { PipelineTable } from "@/components/pipeline/PipelineTable";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { Kanban, List, Plus, Upload, Download } from "lucide-react";
 
 // Mock data com informações financeiras expandidas
 const mockLeads: Lead[] = [
@@ -186,6 +190,7 @@ export default function Pipeline() {
     fromStage: string;
     toStage: string;
   } | null>(null);
+  const [viewMode, setViewMode] = useState<"kanban" | "list">("kanban");
 
   const getLeadsByStage = (stage: string) => {
     return leads.filter(lead => lead.stage === stage);
@@ -279,37 +284,97 @@ export default function Pipeline() {
       setSelectedLead(prev => prev ? { ...prev, ...updates } : null);
     }
   };
+  
+  const handleDeleteLead = (leadId: string) => {
+    setLeads(prevLeads => prevLeads.filter(lead => lead.id !== leadId));
+    toast.success("Lead excluído com sucesso!");
+  };
 
   const activeLead = activeId ? leads.find(lead => lead.id === activeId) : null;
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="flex-1 overflow-x-auto">
-        <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-          <div className="flex gap-6 p-6 min-w-max">
-            {stages.map(stage => (
-              <PipelineColumn
-                key={stage}
-                title={stage}
-                leads={getLeadsByStage(stage)}
-                onCardClick={handleCardClick}
-              />
-            ))}
-          </div>
+    <div className="space-y-6">
+      {/* Header com título e ações */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <h1 className="text-3xl font-bold tracking-tight">Pipeline de Vendas</h1>
+        
+        <div className="flex flex-wrap gap-2">
+          <Tabs 
+            value={viewMode} 
+            onValueChange={(value) => setViewMode(value as "kanban" | "list")}
+            className="mr-auto sm:mr-0"
+          >
+            <TabsList>
+              <TabsTrigger value="kanban" className="flex items-center gap-1">
+                <Kanban className="h-4 w-4" />
+                Kanban
+              </TabsTrigger>
+              <TabsTrigger value="list" className="flex items-center gap-1">
+                <List className="h-4 w-4" />
+                Lista
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
           
-          <DragOverlay>
-            {activeLead ? (
-              <PipelineCard 
-                lead={activeLead} 
-                onCardClick={() => {}} 
-                isDragging 
-              />
-            ) : null}
-          </DragOverlay>
-        </DndContext>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" className="flex items-center gap-1">
+              <Upload className="h-4 w-4" />
+              Importar
+            </Button>
+            <Button variant="outline" size="sm" className="flex items-center gap-1">
+              <Download className="h-4 w-4" />
+              Exportar
+            </Button>
+            <Button size="sm" className="flex items-center gap-1">
+              <Plus className="h-4 w-4" />
+              Novo Negócio
+            </Button>
+          </div>
+        </div>
       </div>
+      
+      {/* Visão Kanban */}
+      {viewMode === "kanban" && (
+        <div className="h-full flex flex-col">
+          <div className="flex-1 overflow-x-auto">
+            <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+              <div className="flex gap-6 p-6 min-w-max">
+                {stages.map(stage => (
+                  <PipelineColumn
+                    key={stage}
+                    title={stage}
+                    leads={getLeadsByStage(stage)}
+                    onCardClick={handleCardClick}
+                  />
+                ))}
+              </div>
+              
+              <DragOverlay>
+                {activeLead ? (
+                  <PipelineCard 
+                    lead={activeLead} 
+                    onCardClick={() => {}} 
+                    isDragging 
+                  />
+                ) : null}
+              </DragOverlay>
+            </DndContext>
+          </div>
+        </div>
+      )}
+      
+      {/* Visão em Lista */}
+      {viewMode === "list" && (
+        <PipelineTable 
+          leads={leads}
+          stages={stages}
+          onStageChange={handleStageChange}
+          onLeadUpdate={handleLeadUpdate}
+          onDeleteLead={handleDeleteLead}
+        />
+      )}
 
-      {/* Modal de det alhes do lead */}
+      {/* Modal de detalhes do lead */}
       {selectedLead && (
         <PipelineCardModal
           open={modalOpen}
