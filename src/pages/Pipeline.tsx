@@ -6,9 +6,9 @@ import { PipelineCardModal } from "@/components/pipeline/PipelineCardModal";
 import { StageTransitionDialog } from "@/components/pipeline/StageTransitionDialog";
 import { PipelineTable } from "@/components/pipeline/PipelineTable";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { toast } from "sonner";
-import { Kanban, List, Plus, Upload, Download } from "lucide-react";
+import { Kanban, List, Plus, Upload, Download, Filter } from "lucide-react";
 
 // Mock data com informações financeiras expandidas
 const mockLeads: Lead[] = [
@@ -295,41 +295,51 @@ export default function Pipeline() {
   return (
     <div className="space-y-6">
       {/* Header com título e ações */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <h1 className="text-3xl font-bold tracking-tight">Pipeline de Vendas</h1>
         
-        <div className="flex flex-wrap gap-2">
-          <Tabs 
-            value={viewMode} 
-            onValueChange={(value) => setViewMode(value as "kanban" | "list")}
-            className="mr-auto sm:mr-0"
-          >
-            <TabsList>
-              <TabsTrigger value="kanban" className="flex items-center gap-1">
-                <Kanban className="h-4 w-4" />
-                Kanban
-              </TabsTrigger>
-              <TabsTrigger value="list" className="flex items-center gap-1">
-                <List className="h-4 w-4" />
-                Lista
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-          
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="flex items-center gap-1">
-              <Upload className="h-4 w-4" />
-              Importar
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Controles de visualização */}
+          <div className="flex items-center border rounded-md p-1 mr-2">
+            <Button
+              variant={viewMode === "kanban" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("kanban")}
+              className="flex items-center gap-1"
+            >
+              <Kanban className="h-4 w-4" />
+              <span className="hidden sm:inline">Kanban</span>
             </Button>
-            <Button variant="outline" size="sm" className="flex items-center gap-1">
-              <Download className="h-4 w-4" />
-              Exportar
-            </Button>
-            <Button size="sm" className="flex items-center gap-1">
-              <Plus className="h-4 w-4" />
-              Novo Negócio
+            <Button
+              variant={viewMode === "list" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("list")}
+              className="flex items-center gap-1"
+            >
+              <List className="h-4 w-4" />
+              <span className="hidden sm:inline">Lista</span>
             </Button>
           </div>
+          
+          <Button variant="outline" size="sm" className="flex items-center gap-1">
+            <Filter className="h-4 w-4" />
+            <span className="hidden sm:inline">Filtrar</span>
+          </Button>
+          
+          <Button variant="outline" size="sm" className="flex items-center gap-1">
+            <Upload className="h-4 w-4" />
+            <span className="hidden sm:inline">Importar</span>
+          </Button>
+          
+          <Button variant="outline" size="sm" className="flex items-center gap-1">
+            <Download className="h-4 w-4" />
+            <span className="hidden sm:inline">Exportar</span>
+          </Button>
+          
+          <Button size="sm" className="flex items-center gap-1">
+            <Plus className="h-4 w-4" />
+            <span>Novo Negócio</span>
+          </Button>
         </div>
       </div>
       
