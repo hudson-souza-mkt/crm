@@ -3,7 +3,31 @@ import { KanbanColumn } from "./KanbanColumn";
 import { ActionModals } from "./ActionModals";
 import type { Lead } from "./PipelineCard";
 import { Button } from "@/components/ui/button";
-import { Plus, FileBarChart, Kanban, List, Filter, ChevronUp, ChevronDown, MoreHorizontal, ArrowUpDown, Check, Edit, Trash2, Copy, Eye, Search } from "lucide-react";
+import { 
+  Plus, 
+  FileBarChart, 
+  Kanban, 
+  List, 
+  Filter, 
+  ChevronUp, 
+  ChevronDown, 
+  MoreHorizontal, 
+  ArrowUpDown, 
+  Check, 
+  Edit, 
+  Trash2, 
+  Copy, 
+  Eye, 
+  Search,
+  Phone,
+  Mail,
+  MessageSquare,
+  Calendar as CalendarIcon,
+  Heart,
+  FileText,
+  CheckSquare,
+  Calendar
+} from "lucide-react";
 import { toast } from "sonner";
 import { LeadDetailDialog } from "./LeadDetailDialog";
 import { supabase } from "@/lib/supabase";
