@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Card, 
   CardContent, 
@@ -14,8 +14,9 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, BrainCircuit, Database, Plus, Trash2, Wand2 } from "lucide-react";
+import { AlertCircle, BrainCircuit, Database, Plus, Trash2, Wand2, Check, Info } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { getFieldsForEntityType } from "@/lib/field-mappings";
 import type { AIAgent } from "@/types/aiAgent";
 
 interface AgentDataExtractionConfigProps {
@@ -63,8 +64,32 @@ export function AgentDataExtractionConfig({ data, onChange, onSave }: AgentDataE
     }
   });
 
+  // Estado para campos disponíveis baseado na entidade selecionada
+  const [availableFields, setAvailableFields] = useState(getFieldsForEntityType('lead'));
+
   // Estado para controlar a string de padrão sendo editada
   const [newPattern, setNewPattern] = useState('');
+
+  // Atualizar campos disponíveis quando a entidade muda
+  useEffect(() => {
+    if (newField.destination?.entityType) {
+      setAvailableFields(getFieldsForEntityType(newField.destination.entityType));
+      
+      // Resetar o campo selecionado se não estiver disponível na nova entidade
+      if (newField.destination.field) {
+        const fieldExists = availableFields.some(f => f.value === newField.destination?.field);
+        if (!fieldExists) {
+          setNewField({
+            ...newField,
+            destination: {
+              ...newField.destination,
+              field: ''
+            }
+          });
+        }
+      }
+    }
+  }, [newField.destination?.entityType]);
 
   // Atualizar configuração geral
   const updateConfig = (field: string, value: any) => {
@@ -80,11 +105,14 @@ export function AgentDataExtractionConfig({ data, onChange, onSave }: AgentDataE
   const addField = () => {
     if (!newField.name || !newField.key || !newField.destination?.field) return;
     
+    // Encontrar o rótulo do campo selecionado para exibição mais amigável
+    const selectedField = availableFields.find(f => f.value === newField.destination?.field);
+    
     const field: DataExtractionField = {
       id: `field-${Date.now()}`,
       name: newField.name,
       key: newField.key,
-      description: newField.description || '',
+      description: newField.description || (selectedField?.description || ''),
       required: newField.required || false,
       extractionPatterns: newField.extractionPatterns || [],
       validationRule: newField.validationRule,
@@ -235,7 +263,7 @@ export function AgentDataExtractionConfig({ data, onChange, onSave }: AgentDataE
           'O produto {valor} me interessa'
         ],
         destination: {
-          field: 'tags',
+          field: 'interest',
           entityType: 'lead'
         }
       }
@@ -248,6 +276,13 @@ export function AgentDataExtractionConfig({ data, onChange, onSave }: AgentDataE
     };
     
     onChange({ dataExtractionConfig: updatedConfig });
+  };
+
+  // Encontrar nome amigável para um campo de destino
+  const getFieldLabel = (entityType: string, fieldValue: string) => {
+    const fields = getFieldsForEntityType(entityType as any);
+    const field = fields.find(f => f.value === fieldValue);
+    return field?.label || fieldValue;
   };
 
   return (
@@ -387,7 +422,7 @@ export function AgentDataExtractionConfig({ data, onChange, onSave }: AgentDataE
                         <Badge variant="secondary" className="mr-1">
                           {field.destination.entityType}
                         </Badge>
-                        {field.destination.field}
+                        {getFieldLabel(field.destination.entityType, field.destination.field)}
                       </span>
                     </TableCell>
                     <TableCell>
@@ -483,6 +518,7 @@ export function AgentDataExtractionConfig({ data, onChange, onSave }: AgentDataE
                     ...newField,
                     destination: {
                       ...newField.destination,
+                      field: '', // Resetar o campo ao mudar de entidade
                       entityType: value as 'lead' | 'deal' | 'contact' | 'company'
                     }
                   })}
@@ -500,18 +536,34 @@ export function AgentDataExtractionConfig({ data, onChange, onSave }: AgentDataE
               </div>
               <div>
                 <Label htmlFor="destinationField">Campo de Destino</Label>
-                <Input
-                  id="destinationField"
+                <Select
                   value={newField.destination?.field || ''}
-                  onChange={(e) => setNewField({
+                  onValueChange={(value) => setNewField({
                     ...newField,
                     destination: {
                       ...newField.destination,
-                      field: e.target.value
+                      field: value
                     }
                   })}
-                  placeholder="Ex: name, email, phone, etc."
-                />
+                >
+                  <SelectTrigger id="destinationField">
+                    <SelectValue placeholder="Selecione o campo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableFields.map(field => (
+                      <SelectItem key={field.value} value={field.value}>
+                        <div className="flex flex-col">
+                          <span>{field.label}</span>
+                          {field.description && (
+                            <span className="text-xs text-muted-foreground truncate max-w-[200px]">
+                              {field.description}
+                            </span>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -585,12 +637,44 @@ export function AgentDataExtractionConfig({ data, onChange, onSave }: AgentDataE
               />
             </div>
 
-            <Button onClick={addField} disabled={!newField.name || !newField.key || !newField.destination?.field}>
+            <Button 
+              onClick={addField} 
+              disabled={!newField.name || !newField.key || !newField.destination?.field}
+              className="gap-2"
+            >
+              <Plus className="h-4 w-4" />
               Adicionar Campo
             </Button>
           </CardContent>
         </Card>
       )}
+
+      {/* Informação sobre integração com campos existentes */}
+      <Card className="bg-blue-50 border-blue-200">
+        <CardHeader className="pb-2">
+          <div className="flex items-center gap-2">
+            <Info className="h-5 w-5 text-blue-500" />
+            <CardTitle className="text-base text-blue-700">
+              Campos Integrados ao Sistema
+            </CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-blue-700">
+            Os campos de destino disponíveis correspondem exatamente aos campos existentes no seu sistema. 
+            Isso garante que os dados extraídos pelo agente sejam salvos corretamente nos registros de leads, 
+            negócios, contatos e empresas.
+          </p>
+          <div className="flex items-center gap-2 mt-3 text-sm text-blue-700">
+            <Check className="h-4 w-4 text-green-600" />
+            <span>Todos os campos mapeados diretamente para seu banco de dados</span>
+          </div>
+          <div className="flex items-center gap-2 mt-1 text-sm text-blue-700">
+            <Check className="h-4 w-4 text-green-600" />
+            <span>Sem necessidade de configurações adicionais de integração</span>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Ações */}
       <div className="flex justify-end gap-2">
