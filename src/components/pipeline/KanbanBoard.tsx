@@ -3,7 +3,7 @@ import { KanbanColumn } from "./KanbanColumn";
 import { ActionModals } from "./ActionModals";
 import type { Lead } from "./PipelineCard";
 import { Button } from "@/components/ui/button";
-import { Plus, FileBarChart } from "lucide-react";
+import { Plus, FileBarChart, Kanban, List } from "lucide-react";
 import { toast } from "sonner";
 import { LeadDetailDialog } from "./LeadDetailDialog";
 import { supabase } from "@/lib/supabase";
@@ -315,6 +315,9 @@ export function KanbanBoard() {
   const [localLeads, setLocalLeads] = useState<Record<string, Lead[]>>(mockLeads);
   const [stats] = useState(mockStats);
 
+  // Estado para controlar a visualização (kanban ou lista)
+  const [viewMode, setViewMode] = useState<"kanban" | "list">("kanban");
+
   // Novos estados para ações rápidas
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [selectedLeadForAction, setSelectedLeadForAction] = useState<Lead | null>(null);
@@ -589,90 +592,139 @@ export function KanbanBoard() {
     return <div className="flex items-center justify-center h-full"><p>Carregando pipeline...</p></div>;
   }
 
+  // Aqui vamos renderizar o componente adequado com base no viewMode
+  const renderContent = () => {
+    if (viewMode === "kanban") {
+      return (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCorners}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="flex overflow-x-auto pb-6 gap-5">
+            {stages.map((stage) => (
+              <KanbanColumn 
+                key={stage.id} 
+                id={stage.id}
+                title={stage.name} 
+                leads={localLeads[stage.name] || []}
+                totalValue={getTotalValue(localLeads[stage.name] || [])}
+                count={(localLeads[stage.name] || []).length}
+                color={stage.color}
+                onColorChange={(color) => handleColorChange(stage.id, color as StageColor)}
+                onCardClick={handleCardClick}
+                onAddClick={() => handleNewLeadClick(stage.name)}
+                onQuickAction={handleQuickAction}
+              />
+            ))}
+            <div className="flex-shrink-0 w-80 h-16 flex items-center justify-center">
+              <Button variant="outline" className="w-full bg-white/80 border-dashed border-2">
+                <Plus className="h-4 w-4 mr-2" />
+                Nova coluna
+              </Button>
+            </div>
+          </div>
+          
+          <DragOverlay>
+            {draggedLead ? (
+              <div className="w-80">
+                <PipelineCard lead={draggedLead} onCardClick={() => {}} />
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
+      );
+    } else {
+      // Aqui você pode renderizar a visualização de lista
+      // Por exemplo, um componente PipelineTable
+      return (
+        <div className="p-4 bg-white rounded-lg border">
+          <h3 className="text-lg font-medium mb-4">Visualização em Lista</h3>
+          <p>Implementação da visualização em lista será feita em breve.</p>
+        </div>
+      );
+    }
+  };
+
   return (
     <div className="flex flex-col h-full">
-      {/* Estatísticas do funil */}
+      {/* Modificação do "Resumo do funil" para incluir visualizações */}
       <div className="flex justify-between items-center mb-4 p-4 bg-white rounded-lg border shadow-sm">
-        <div>
-          <h3 className="font-medium text-sm">Resumo do funil</h3>
-          <p className="text-xs text-muted-foreground">
-            Total: {stats.totalLeads} negócios / R$ {stats.totalValue.toFixed(2)}
-          </p>
-        </div>
-        
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" size="sm">
-              <FileBarChart className="h-4 w-4 mr-2" />
-              Estatísticas detalhadas
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-80">
-            <div className="space-y-2">
-              <h4 className="font-medium text-sm">Estatísticas por etapa</h4>
-              <div className="text-xs space-y-1">
-                {stages.map(stage => (
-                  <div key={stage.id} className="flex justify-between items-center">
-                    <span>{stage.name}</span>
-                    <span>
-                      {stats.byStage[stage.name]?.count || 0} leads / 
-                      R$ {(stats.byStage[stage.name]?.value || 0).toFixed(2)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </PopoverContent>
-        </Popover>
-      </div>
-      
-      {/* Dica para o usuário */}
-      <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
-        <p>
-          <strong>Novo:</strong> Agora você pode usar ações rápidas nos cards! Passe o mouse sobre um card para ver 
-          botões de WhatsApp, ligação, agendamento e mais. Experimente as novas funcionalidades!
-        </p>
-      </div>
-      
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCorners}
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="flex overflow-x-auto pb-6 gap-5">
-          {stages.map((stage) => (
-            <KanbanColumn 
-              key={stage.id} 
-              id={stage.id}
-              title={stage.name} 
-              leads={localLeads[stage.name] || []}
-              totalValue={getTotalValue(localLeads[stage.name] || [])}
-              count={(localLeads[stage.name] || []).length}
-              color={stage.color}
-              onColorChange={(color) => handleColorChange(stage.id, color as StageColor)}
-              onCardClick={handleCardClick}
-              onAddClick={() => handleNewLeadClick(stage.name)}
-              onQuickAction={handleQuickAction}
-            />
-          ))}
-          <div className="flex-shrink-0 w-80 h-16 flex items-center justify-center">
-            <Button variant="outline" className="w-full bg-white/80 border-dashed border-2">
-              <Plus className="h-4 w-4 mr-2" />
-              Nova coluna
-            </Button>
+        <div className="flex items-center">
+          <h3 className="text-sm font-medium mr-4">Visualizações:</h3>
+          <div className="flex bg-gray-100 rounded-md p-1">
+            <button 
+              onClick={() => setViewMode("kanban")} 
+              className={`px-3 py-1 text-sm rounded-md flex items-center gap-1.5 ${viewMode === "kanban" ? "bg-primary text-white" : "hover:bg-gray-200"}`}
+            >
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="16" 
+                height="16" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                className="lucide lucide-kanban size-4"
+              >
+                <path d="M6 5v11"/>
+                <path d="M12 5v6"/>
+                <path d="M18 5v14"/>
+              </svg>
+              Kanban
+            </button>
+            <button 
+              onClick={() => setViewMode("list")} 
+              className={`px-3 py-1 text-sm rounded-md flex items-center gap-1.5 ${viewMode === "list" ? "bg-primary text-white" : "hover:bg-gray-200"}`}
+            >
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="16" 
+                height="16" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                className="lucide lucide-list size-4"
+              >
+                <line x1="8" x2="21" y1="6" y2="6"/>
+                <line x1="8" x2="21" y1="12" y2="12"/>
+                <line x1="8" x2="21" y1="18" y2="18"/>
+                <line x1="3" x2="3.01" y1="6" y2="6"/>
+                <line x1="3" x2="3.01" y1="12" y2="12"/>
+                <line x1="3" x2="3.01" y1="18" y2="18"/>
+              </svg>
+              Lista
+            </button>
           </div>
         </div>
         
-        <DragOverlay>
-          {draggedLead ? (
-            <div className="w-80">
-              <PipelineCard lead={draggedLead} onCardClick={() => {}} />
-            </div>
-          ) : null}
-        </DragOverlay>
-      </DndContext>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="flex items-center gap-1">
+            <FileBarChart className="h-4 w-4" />
+            Estatísticas
+          </Button>
+          
+          <Button variant="outline" size="sm" className="flex items-center gap-1">
+            <Filter className="h-4 w-4" />
+            Filtrar
+          </Button>
+          
+          <Button size="sm" className="flex items-center gap-1">
+            <Plus className="h-4 w-4" />
+            Novo Negócio
+          </Button>
+        </div>
+      </div>
+      
+      {/* Conteúdo principal baseado no modo de visualização */}
+      {renderContent()}
       
       {/* Diálogos existentes */}
       <LeadDetailDialog 
