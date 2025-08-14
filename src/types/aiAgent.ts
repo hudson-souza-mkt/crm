@@ -4,6 +4,48 @@ export type FollowUpTrigger = 'tempo' | 'acao' | 'evento' | 'manual';
 export type EscalationRule = 'sempre_humano' | 'condicional' | 'nunca';
 export type TimeUnit = 'minutos' | 'horas' | 'dias';
 
+// Novos tipos para integração com pipeline
+export type StepCompletionCondition = 'manual' | 'automatic' | 'conditional';
+export type PipelineAction = 'create_deal' | 'move_stage' | 'update_value' | 'add_note' | 'schedule_task';
+
+export interface ConversationStep {
+  id: string;
+  name: string;
+  description: string;
+  order: number;
+  
+  // Integração com pipeline
+  pipelineStage?: string; // ID ou nome da etapa do pipeline
+  pipelineAction: PipelineAction;
+  
+  // Instruções específicas para esta etapa
+  instructions: string;
+  systemPrompt: string;
+  
+  // Condições de conclusão
+  completionCondition: StepCompletionCondition;
+  completionCriteria?: string; // Critérios específicos para conclusão automática
+  
+  // Ações automáticas
+  autoActions?: {
+    createDeal?: boolean;
+    updateDealValue?: number;
+    addTags?: string[];
+    scheduleFollowUp?: boolean;
+    notifyTeam?: boolean;
+  };
+  
+  // Condições de branching
+  branches?: ConversationBranch[];
+}
+
+export interface ConversationBranch {
+  id: string;
+  condition: string; // Ex: "se cliente interessado"
+  nextStepId: string;
+  instructions: string;
+}
+
 export interface AIAgent {
   id: string;
   name: string;
@@ -20,8 +62,17 @@ export interface AIAgent {
   
   // Instruções e treinamento
   systemInstructions: string;
-  conversationFlow: string[];
+  conversationFlow: ConversationStep[]; // Atualizado para usar o novo tipo
   prohibitedTopics: string[];
+  
+  // Configurações de pipeline
+  pipelineConfig?: {
+    enabled: boolean;
+    defaultPipeline: string; // ID do pipeline padrão
+    autoCreateDeals: boolean;
+    dealNamingPattern: string; // Ex: "{cliente} - {produto}"
+    defaultDealValue: number;
+  };
   
   // Informações da empresa
   companyInfo: {
@@ -173,4 +224,19 @@ export interface AgentTemplate {
   industry: string;
   config: Partial<AIAgent>;
   popular: boolean;
+}
+
+// Tipos para pipeline (mock - em um sistema real viriam do backend)
+export interface PipelineStage {
+  id: string;
+  name: string;
+  order: number;
+  color: string;
+}
+
+export interface Pipeline {
+  id: string;
+  name: string;
+  description: string;
+  stages: PipelineStage[];
 }

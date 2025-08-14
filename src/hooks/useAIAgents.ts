@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import type { AIAgent, AgentType, AgentStatus } from "@/types/aiAgent";
+import type { AIAgent, AgentType, AgentStatus, ConversationStep } from "@/types/aiAgent";
 
 // Mock data para demonstração
 const mockAgents: AIAgent[] = [
@@ -16,13 +16,66 @@ const mockAgents: AIAgent[] = [
     language: "pt-BR",
     systemInstructions: "Você é Sofia, uma assistente virtual especializada em atendimento ao cliente. Seja sempre cordial, eficiente e busque resolver as dúvidas dos clientes de forma rápida e precisa.",
     conversationFlow: [
-      "Cumprimentar o cliente",
-      "Identificar a necessidade",
-      "Fornecer informações ou direcionar",
-      "Confirmar se a dúvida foi esclarecida",
-      "Oferecer ajuda adicional"
+      {
+        id: "step-1",
+        name: "Cumprimentar o cliente",
+        description: "Saudação inicial e apresentação do agente",
+        order: 0,
+        pipelineStage: "stage-1",
+        pipelineAction: "create_deal",
+        instructions: "Cumprimente o cliente de forma calorosa e se apresente. Pergunte como pode ajudar.",
+        systemPrompt: "Seja caloroso e acolhedor. Use o nome do cliente se disponível.",
+        completionCondition: "automatic",
+        autoActions: {
+          createDeal: true,
+          addTags: ["novo-contato"],
+          notifyTeam: true
+        }
+      },
+      {
+        id: "step-2",
+        name: "Identificar necessidade",
+        description: "Descobrir qual é a necessidade ou problema do cliente",
+        order: 1,
+        pipelineStage: "stage-2",
+        pipelineAction: "move_stage",
+        instructions: "Faça perguntas abertas para entender a necessidade do cliente. Seja um bom ouvinte.",
+        systemPrompt: "Use perguntas como 'Conte-me mais sobre...', 'O que você está buscando?'",
+        completionCondition: "conditional",
+        completionCriteria: "cliente explicou sua necessidade claramente"
+      },
+      {
+        id: "step-3",
+        name: "Fornecer solução",
+        description: "Apresentar solução ou direcionar para especialista",
+        order: 2,
+        pipelineStage: "stage-3",
+        pipelineAction: "move_stage",
+        instructions: "Com base na necessidade identificada, forneça informações relevantes ou direcione para um especialista.",
+        systemPrompt: "Seja específico e útil. Se não souber, seja honesto e ofereça alternativas.",
+        completionCondition: "conditional",
+        completionCriteria: "cliente demonstrou satisfação com a resposta"
+      },
+      {
+        id: "step-4",
+        name: "Confirmar resolução",
+        description: "Verificar se a dúvida foi esclarecida",
+        order: 3,
+        pipelineStage: "stage-4",
+        pipelineAction: "add_note",
+        instructions: "Pergunte se a dúvida foi esclarecida e se há mais alguma coisa em que pode ajudar.",
+        systemPrompt: "Seja proativo em oferecer ajuda adicional.",
+        completionCondition: "manual"
+      }
     ],
     prohibitedTopics: ["Informações confidenciais", "Dados pessoais de outros clientes"],
+    pipelineConfig: {
+      enabled: true,
+      defaultPipeline: "pipeline-1",
+      autoCreateDeals: true,
+      dealNamingPattern: "{cliente} - Atendimento",
+      defaultDealValue: 0
+    },
     companyInfo: {
       name: "Space Sales",
       description: "Plataforma completa de CRM e automação de vendas",
@@ -157,13 +210,61 @@ const mockAgents: AIAgent[] = [
     language: "pt-BR",
     systemInstructions: "Você é Carlos, especialista em qualificação de leads. Sua missão é identificar se o lead tem fit com nossa solução através de perguntas estratégicas sobre necessidades, budget e timing.",
     conversationFlow: [
-      "Apresentar-se e explicar o objetivo",
-      "Identificar dores e necessidades",
-      "Qualificar budget disponível",
-      "Entender timing de decisão",
-      "Classificar o lead e próximos passos"
+      {
+        id: "qual-step-1",
+        name: "Apresentação e contexto",
+        description: "Apresentar-se e explicar o objetivo da conversa",
+        order: 0,
+        pipelineStage: "stage-2",
+        pipelineAction: "move_stage",
+        instructions: "Apresente-se como especialista em qualificação e explique que vai fazer algumas perguntas para entender melhor as necessidades.",
+        systemPrompt: "Seja profissional mas acessível. Explique o valor do processo de qualificação.",
+        completionCondition: "automatic"
+      },
+      {
+        id: "qual-step-2",
+        name: "Identificar dores",
+        description: "Descobrir problemas e necessidades específicas",
+        order: 1,
+        pipelineStage: "stage-2",
+        pipelineAction: "add_note",
+        instructions: "Faça perguntas sobre os desafios atuais, problemas que enfrentam e o que gostariam de melhorar.",
+        systemPrompt: "Use perguntas abertas. Seja curioso e empático. Anote mentalmente as dores mencionadas.",
+        completionCondition: "conditional",
+        completionCriteria: "cliente mencionou pelo menos 2 dores específicas"
+      },
+      {
+        id: "qual-step-3",
+        name: "Qualificar budget",
+        description: "Entender capacidade de investimento",
+        order: 2,
+        pipelineStage: "stage-3",
+        pipelineAction: "update_value",
+        instructions: "Pergunte sobre budget disponível de forma indireta e profissional.",
+        systemPrompt: "Seja sutil ao abordar budget. Use frases como 'qual faixa de investimento vocês consideram?'",
+        completionCondition: "conditional",
+        completionCriteria: "cliente forneceu informação sobre budget ou faixa de preço"
+      },
+      {
+        id: "qual-step-4",
+        name: "Timing de decisão",
+        description: "Entender urgência e processo de decisão",
+        order: 3,
+        pipelineStage: "stage-3",
+        pipelineAction: "schedule_task",
+        instructions: "Pergunte sobre timing para implementação e quem está envolvido na decisão.",
+        systemPrompt: "Entenda a urgência real e mapeie os decisores.",
+        completionCondition: "manual"
+      }
     ],
     prohibitedTopics: ["Informações de concorrentes", "Dados confidenciais"],
+    pipelineConfig: {
+      enabled: true,
+      defaultPipeline: "pipeline-1",
+      autoCreateDeals: false,
+      dealNamingPattern: "{cliente} - Qualificação",
+      defaultDealValue: 1000
+    },
     companyInfo: {
       name: "Space Sales",
       description: "Plataforma completa de CRM e automação de vendas",
@@ -244,13 +345,50 @@ const mockAgents: AIAgent[] = [
     language: "pt-BR",
     systemInstructions: "Você é Ana, especialista em vendas. Sua missão é apresentar nossas soluções de forma convincente, superar objeções e conduzir o cliente ao fechamento.",
     conversationFlow: [
-      "Revisar necessidades identificadas",
-      "Apresentar solução adequada",
-      "Demonstrar valor e ROI",
-      "Superar objeções",
-      "Conduzir ao fechamento"
+      {
+        id: "sales-step-1",
+        name: "Revisar necessidades",
+        description: "Revisar informações da qualificação",
+        order: 0,
+        pipelineStage: "stage-4",
+        pipelineAction: "move_stage",
+        instructions: "Revise as necessidades identificadas na qualificação e confirme se ainda são válidas.",
+        systemPrompt: "Demonstre que você estudou o caso e conhece as necessidades do cliente.",
+        completionCondition: "automatic"
+      },
+      {
+        id: "sales-step-2",
+        name: "Apresentar solução",
+        description: "Apresentar a solução mais adequada",
+        order: 1,
+        pipelineStage: "stage-4",
+        pipelineAction: "add_note",
+        instructions: "Apresente a solução que melhor atende às necessidades identificadas, focando nos benefícios.",
+        systemPrompt: "Conecte cada feature com um benefício específico para o cliente.",
+        completionCondition: "conditional",
+        completionCriteria: "cliente demonstrou interesse na solução apresentada"
+      },
+      {
+        id: "sales-step-3",
+        name: "Demonstrar ROI",
+        description: "Mostrar retorno sobre investimento",
+        order: 2,
+        pipelineStage: "stage-5",
+        pipelineAction: "move_stage",
+        instructions: "Apresente números concretos de ROI baseados no perfil do cliente.",
+        systemPrompt: "Use dados específicos e seja convincente com números reais.",
+        completionCondition: "conditional",
+        completionCriteria: "cliente entendeu o valor do ROI"
+      }
     ],
     prohibitedTopics: ["Descontos não autorizados", "Promessas irreais"],
+    pipelineConfig: {
+      enabled: true,
+      defaultPipeline: "pipeline-1",
+      autoCreateDeals: false,
+      dealNamingPattern: "{cliente} - Proposta {produto}",
+      defaultDealValue: 5000
+    },
     companyInfo: {
       name: "Space Sales",
       description: "Plataforma completa de CRM e automação de vendas",
@@ -338,6 +476,13 @@ export function useAIAgents() {
       systemInstructions: agentData.systemInstructions || "",
       conversationFlow: agentData.conversationFlow || [],
       prohibitedTopics: agentData.prohibitedTopics || [],
+      pipelineConfig: agentData.pipelineConfig || {
+        enabled: false,
+        defaultPipeline: "",
+        autoCreateDeals: false,
+        dealNamingPattern: "{cliente} - {produto}",
+        defaultDealValue: 0
+      },
       companyInfo: agentData.companyInfo || {
         name: "",
         description: "",
