@@ -3,8 +3,12 @@ import { LeadList } from "@/components/leads/LeadList";
 import { LeadFormDialog } from "@/components/leads/LeadFormDialog";
 import { LeadImportDialog } from "@/components/leads/LeadImportDialog";
 import { LeadSegmentsNav } from "@/components/leads/LeadSegmentsNav";
+import { CustomerSegmentDashboard } from "@/components/leads/CustomerSegmentDashboard";
 import { Button } from "@/components/ui/button";
-import { Plus, Upload, Filter, Users, UserPlus, UserCheck, DollarSign, Calendar } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Plus, Upload, Filter, Users, List, BarChart2, TableProperties 
+} from "lucide-react";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { LeadDetailDialog } from "@/components/pipeline/LeadDetailDialog";
 import { Lead as ListLead } from "@/types/lead";
@@ -28,6 +32,7 @@ const mapListLeadToDetailLead = (listLead: ListLead): DetailLead => {
 };
 
 export default function Leads() {
+  const [activeView, setActiveView] = useState<"list" | "segments">("list");
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -50,7 +55,7 @@ export default function Leads() {
 
       <div className="flex flex-col gap-6">
         {/* Dashboard de métricas */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <MetricCard
             title="Total de Contatos"
             value="2.347"
@@ -59,31 +64,24 @@ export default function Leads() {
             changeType="increase"
           />
           <MetricCard
-            title="Leads Ativos"
-            value="1.879"
-            icon={UserPlus}
+            title="Leads"
+            value="1.298"
+            icon={Users}
             change="+8.1% vs. mês passado"
             changeType="increase"
           />
           <MetricCard
             title="Clientes"
-            value="468"
-            icon={UserCheck}
+            value="1.047"
+            icon={Users}
             change="+15.3% vs. mês passado"
             changeType="increase"
           />
           <MetricCard
             title="Ticket Médio"
-            value="R$ 1.250,00"
-            icon={DollarSign}
+            value="R$ 7.850,00"
+            icon={Users}
             change="+5.2% vs. mês passado"
-            changeType="increase"
-          />
-          <MetricCard
-            title="LTV/Meses"
-            value="4.2"
-            icon={Calendar}
-            change="+0.3 vs. mês passado"
             changeType="increase"
           />
         </div>
@@ -117,7 +115,27 @@ export default function Leads() {
           </div>
         </div>
 
-        <LeadList filterOpen={filterOpen} onLeadClick={handleLeadClick} />
+        {/* Alternância entre visualizações */}
+        <div className="border-b">
+          <Tabs value={activeView} onValueChange={(value) => setActiveView(value as "list" | "segments")}>
+            <TabsList className="bg-transparent border-b-0">
+              <TabsTrigger value="list" className="data-[state=active]:bg-background data-[state=active]:shadow-none">
+                <List className="h-4 w-4 mr-2" />
+                Lista
+              </TabsTrigger>
+              <TabsTrigger value="segments" className="data-[state=active]:bg-background data-[state=active]:shadow-none">
+                <BarChart2 className="h-4 w-4 mr-2" />
+                Segmentação
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+
+        {activeView === "list" ? (
+          <LeadList filterOpen={filterOpen} onLeadClick={handleLeadClick} />
+        ) : (
+          <CustomerSegmentDashboard />
+        )}
         
         <LeadFormDialog 
           open={addDialogOpen} 

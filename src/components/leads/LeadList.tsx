@@ -15,12 +15,25 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, MessageCircle, TrendingUp, Clock, Target } from "lucide-react";
+import { 
+  MoreHorizontal, MessageCircle, TrendingUp, Clock, Target, 
+  Trophy, Medal, Gem, UserCheck, UserMinus, AlertCircle, BellRing
+} from "lucide-react";
 import { toast } from "sonner";
 import { useContactAttempts } from "@/hooks/useContactAttempts";
 
-// Mock data for leads (mantendo o mesmo)
-export const mockLeads: Lead[] = [
+// Adicionar campos para classificação ABC e status de cliente
+export interface EnhancedLead extends Lead {
+  classification?: 'A' | 'B' | 'C';
+  clientStatus?: 'active' | 'inactive' | 'lead';
+  leadQuality?: 'hot' | 'warm' | 'cold';
+  lifetime?: number; // Valor vitalício em R$
+  lastPurchase?: Date;
+  purchaseCount?: number;
+}
+
+// Mock data atualizado com informações de segmentação
+export const mockLeads: EnhancedLead[] = [
   {
     id: "1",
     name: "João Silva",
@@ -43,7 +56,13 @@ export const mockLeads: Lead[] = [
       utm_source: "facebook",
       utm_medium: "social",
       utm_campaign: "lancamento_feature_x",
-    }
+    },
+    classification: "B",
+    clientStatus: "active",
+    leadQuality: "hot",
+    lifetime: 12500,
+    lastPurchase: new Date("2023-05-20"),
+    purchaseCount: 3
   },
   {
     id: "2",
@@ -62,7 +81,13 @@ export const mockLeads: Lead[] = [
     createdAt: new Date("2023-05-25"),
     updatedAt: new Date("2023-06-12"),
     lastContact: new Date("2023-06-12"),
-    assignedTo: "Carlos Vendas"
+    assignedTo: "Carlos Vendas",
+    classification: "A",
+    clientStatus: "active",
+    leadQuality: "hot",
+    lifetime: 67800,
+    lastPurchase: new Date("2023-06-01"),
+    purchaseCount: 5
   },
   {
     id: "3",
@@ -80,7 +105,13 @@ export const mockLeads: Lead[] = [
     createdAt: new Date("2023-04-18"),
     updatedAt: new Date("2023-06-10"),
     lastContact: new Date("2023-06-10"),
-    assignedTo: "Ana Sales"
+    assignedTo: "Ana Sales",
+    classification: "A",
+    clientStatus: "active",
+    leadQuality: "hot",
+    lifetime: 125000,
+    lastPurchase: new Date("2023-05-15"),
+    purchaseCount: 6
   },
   {
     id: "4",
@@ -98,7 +129,13 @@ export const mockLeads: Lead[] = [
     createdAt: new Date("2023-03-05"),
     updatedAt: new Date("2023-06-08"),
     lastContact: new Date("2023-06-08"),
-    assignedTo: "Marcos Suporte"
+    assignedTo: "Marcos Suporte",
+    classification: "B",
+    clientStatus: "active",
+    leadQuality: "hot",
+    lifetime: 36000,
+    lastPurchase: new Date("2023-06-05"),
+    purchaseCount: 3
   },
   {
     id: "5",
@@ -116,7 +153,53 @@ export const mockLeads: Lead[] = [
     createdAt: new Date("2023-06-14"),
     updatedAt: new Date("2023-06-14"),
     lastContact: new Date("2023-06-14"),
-    assignedTo: ""
+    assignedTo: "",
+    clientStatus: "lead",
+    leadQuality: "warm",
+  },
+  {
+    id: "6",
+    name: "Carla Ferreira",
+    phone: "(21) 99876-5432",
+    email: "carla@example.com",
+    company: "Modas CF",
+    source: "manual",
+    status: "lost",
+    funnel: "Vendas",
+    stage: "Perdido",
+    tags: ["varejo", "pequeno porte"],
+    notes: "Cliente optou por solução do concorrente - preço menor",
+    value: 3500,
+    createdAt: new Date("2023-05-10"),
+    updatedAt: new Date("2023-06-01"),
+    lastContact: new Date("2023-06-01"),
+    assignedTo: "Carlos Vendas",
+    classification: "C",
+    clientStatus: "inactive",
+    leadQuality: "cold",
+    lifetime: 3500,
+    lastPurchase: new Date("2023-01-15"),
+    purchaseCount: 1
+  },
+  {
+    id: "7",
+    name: "Roberto Almeida",
+    phone: "(11) 97777-8888",
+    email: "roberto@example.com",
+    company: "Supermercados RA",
+    source: "import",
+    status: "qualified",
+    funnel: "Vendas",
+    stage: "Demonstração",
+    tags: ["varejo", "médio porte"],
+    notes: "Demonstração agendada para próxima semana",
+    value: 18000,
+    createdAt: new Date("2023-06-05"),
+    updatedAt: new Date("2023-06-15"),
+    lastContact: new Date("2023-06-15"),
+    assignedTo: "Ana Sales",
+    clientStatus: "lead",
+    leadQuality: "hot",
   }
 ];
 
@@ -126,7 +209,7 @@ interface LeadListProps {
 }
 
 export function LeadList({ filterOpen, onLeadClick }: LeadListProps) {
-  const [leads] = useState<Lead[]>(mockLeads);
+  const [leads] = useState<EnhancedLead[]>(mockLeads);
   const { getContactAttemptSummary } = useContactAttempts();
   
   const handleChatWithLead = (lead: Lead) => {
@@ -153,6 +236,73 @@ export function LeadList({ filterOpen, onLeadClick }: LeadListProps) {
     };
     return colors[status];
   };
+  
+  const getClassificationBadge = (classification?: 'A' | 'B' | 'C') => {
+    if (!classification) return null;
+    
+    const badges = {
+      A: {
+        icon: Trophy,
+        classes: "bg-amber-50 text-amber-700 border-amber-200",
+        tooltip: "Cliente A - Alto valor"
+      },
+      B: {
+        icon: Medal,
+        classes: "bg-slate-50 text-slate-700 border-slate-200",
+        tooltip: "Cliente B - Médio valor"
+      },
+      C: {
+        icon: Gem,
+        classes: "bg-indigo-50 text-indigo-700 border-indigo-200",
+        tooltip: "Cliente C - Baixo valor"
+      }
+    };
+    
+    const { icon: Icon, classes, tooltip } = badges[classification];
+    
+    return (
+      <Badge variant="outline" className={`${classes} gap-1`} title={tooltip}>
+        <Icon className="h-3 w-3" />
+        {classification}
+      </Badge>
+    );
+  };
+  
+  const getClientStatusBadge = (clientStatus?: 'active' | 'inactive' | 'lead', leadQuality?: 'hot' | 'warm' | 'cold') => {
+    if (!clientStatus) return null;
+    
+    const badges = {
+      active: {
+        icon: UserCheck,
+        classes: "bg-emerald-50 text-emerald-700 border-emerald-200",
+        tooltip: "Cliente ativo"
+      },
+      inactive: {
+        icon: UserMinus,
+        classes: "bg-rose-50 text-rose-700 border-rose-200",
+        tooltip: "Cliente inativo"
+      },
+      lead: {
+        icon: leadQuality === 'hot' ? BellRing : 
+              leadQuality === 'warm' ? Target : AlertCircle,
+        classes: leadQuality === 'hot' ? "bg-blue-50 text-blue-700 border-blue-200" : 
+                leadQuality === 'warm' ? "bg-purple-50 text-purple-700 border-purple-200" : 
+                "bg-slate-50 text-slate-700 border-slate-200",
+        tooltip: leadQuality === 'hot' ? "Lead quente" : 
+                leadQuality === 'warm' ? "Lead morno" : "Lead frio"
+      }
+    };
+    
+    const { icon: Icon, classes, tooltip } = badges[clientStatus];
+    
+    return (
+      <Badge variant="outline" className={`${classes} gap-1`} title={tooltip}>
+        <Icon className="h-3 w-3" />
+        {clientStatus === 'lead' ? `Lead ${leadQuality || ''}` : 
+         clientStatus === 'active' ? 'Ativo' : 'Inativo'}
+      </Badge>
+    );
+  };
 
   const getAttemptStatusColor = (summary: any) => {
     if (summary.totalAttempts === 0) return "text-gray-400";
@@ -169,6 +319,12 @@ export function LeadList({ filterOpen, onLeadClick }: LeadListProps) {
     return days;
   };
   
+  const getDaysSinceLastPurchase = (lastPurchase?: Date) => {
+    if (!lastPurchase) return null;
+    const days = Math.floor((new Date().getTime() - lastPurchase.getTime()) / (1000 * 60 * 60 * 24));
+    return days;
+  };
+  
   return (
     <div className="space-y-4">
       {filterOpen && <LeadFilters />}
@@ -182,8 +338,7 @@ export function LeadList({ filterOpen, onLeadClick }: LeadListProps) {
               <TableHead>Empresa</TableHead>
               <TableHead>Origem</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Tags</TableHead>
-              <TableHead>Tentativas</TableHead>
+              <TableHead>Segmento</TableHead>
               <TableHead>Valor</TableHead>
               <TableHead>Último Contato</TableHead>
               <TableHead>Responsável</TableHead>
@@ -194,6 +349,7 @@ export function LeadList({ filterOpen, onLeadClick }: LeadListProps) {
             {leads.map(lead => {
               const attemptSummary = getContactAttemptSummary(lead.id);
               const daysSinceLastAttempt = getDaysSinceLastAttempt(attemptSummary.lastAttempt);
+              const daysSinceLastPurchase = getDaysSinceLastPurchase(lead.lastPurchase);
               
               return (
                 <TableRow 
@@ -227,45 +383,26 @@ export function LeadList({ filterOpen, onLeadClick }: LeadListProps) {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {lead.tags.map(tag => (
-                        <Badge key={tag} variant="secondary" className="text-xs">
-                          {tag}
-                        </Badge>
-                      ))}
+                    <div className="flex flex-col gap-1">
+                      {getClassificationBadge(lead.classification)}
+                      {getClientStatusBadge(lead.clientStatus, lead.leadQuality)}
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      {attemptSummary.totalAttempts > 0 ? (
-                        <div className="flex items-center gap-2">
-                          <div className="flex items-center gap-1">
-                            <Target className={`h-4 w-4 ${getAttemptStatusColor(attemptSummary)}`} />
-                            <span className={`font-medium ${getAttemptStatusColor(attemptSummary)}`}>
-                              {attemptSummary.totalAttempts}
-                            </span>
-                          </div>
-                          
-                          {attemptSummary.successfulAttempts > 0 && (
-                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-                              <TrendingUp className="h-3 w-3 mr-1" />
-                              {Math.round((attemptSummary.successfulAttempts / attemptSummary.totalAttempts) * 100)}%
-                            </Badge>
-                          )}
-                          
-                          {daysSinceLastAttempt !== null && daysSinceLastAttempt > 7 && (
-                            <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-200">
-                              <Clock className="h-3 w-3 mr-1" />
-                              {daysSinceLastAttempt}d
-                            </Badge>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">Nenhuma</span>
+                    <div className="flex flex-col">
+                      <span>{lead.value ? `R$ ${lead.value.toFixed(2)}` : "—"}</span>
+                      {lead.lifetime && (
+                        <span className="text-xs text-muted-foreground">
+                          LTV: R$ {lead.lifetime.toLocaleString('pt-BR')}
+                        </span>
+                      )}
+                      {lead.purchaseCount && (
+                        <span className="text-xs text-muted-foreground">
+                          {lead.purchaseCount} {lead.purchaseCount === 1 ? 'compra' : 'compras'}
+                        </span>
                       )}
                     </div>
                   </TableCell>
-                  <TableCell>{lead.value ? `R$ ${lead.value.toFixed(2)}` : "—"}</TableCell>
                   <TableCell>
                     <div>
                       {attemptSummary.lastAttempt ? (
@@ -281,6 +418,17 @@ export function LeadList({ filterOpen, onLeadClick }: LeadListProps) {
                         </div>
                       ) : (
                         lead.lastContact?.toLocaleDateString('pt-BR') || "—"
+                      )}
+                      
+                      {lead.lastPurchase && (
+                        <div className="mt-1">
+                          <div className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            Última compra: {daysSinceLastPurchase === 0 ? 'Hoje' : 
+                              daysSinceLastPurchase === 1 ? 'Ontem' : 
+                              `${daysSinceLastPurchase} dias atrás`}
+                          </div>
+                        </div>
                       )}
                     </div>
                   </TableCell>
@@ -321,6 +469,7 @@ export function LeadList({ filterOpen, onLeadClick }: LeadListProps) {
                           <DropdownMenuItem>Editar</DropdownMenuItem>
                           <DropdownMenuItem>Criar negócio</DropdownMenuItem>
                           <DropdownMenuItem>Adicionar tag</DropdownMenuItem>
+                          <DropdownMenuItem>Alterar segmento</DropdownMenuItem>
                           <DropdownMenuItem className="text-red-600">Excluir</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
