@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import type { Lead } from "@/components/pipeline/PipelineCard";
 
@@ -177,4 +177,122 @@ export function identifyLeadsAtRisk(leads: Lead[]): Lead[] {
       atRisk
     };
   });
+}
+
+/**
+ * Função para permitir que o agente de IA mova um negócio automaticamente no pipeline
+ * com base em seu fluxo de conversa
+ */
+export async function moveLeadByAgent(
+  leadId: string, 
+  targetStageName: string, 
+  agentInfo: { 
+    agentId: string, 
+    agentName: string, 
+    conversationStep?: string,
+    conversationId?: string
+  }
+) {
+  try {
+    // Buscamos o lead
+    const { data: lead, error: leadError } = await supabase
+      .from("leads")
+      .select("*, stage:pipeline_stages(id, name)")
+      .eq("id", leadId)
+      .single();
+
+    if (leadError) {
+      console.error("Erro ao buscar lead:", leadError);
+      return { success: false, error: "Lead não encontrado" };
+    }
+
+    // Buscamos o ID da etapa de destino
+    const { data: targetStage, error: stageError } = await supabase
+      .from("pipeline_stages")
+      .select("id")
+      .eq("name", targetStageName)
+      .single();
+
+    if (stageError) {
+      console.error("Erro ao buscar etapa de destino:", stageError);
+      return { success: false, error: "Etapa de destino não encontrada" };
+    }
+
+    // Verificamos se o lead pode ser movido para a etapa
+    const canMove = canMoveLeadToStage(lead, targetStageName);
+    if (!canMove.valid) {
+      return { success: false, error: canMove.message };
+    }
+
+    // Comentário automático para o histórico
+    const comments = `Negócio movido automaticamente pelo agente ${agentInfo.agentName} durante o fluxo de conversa${agentInfo.conversationStep ? ` (Etapa: ${agentInfo.conversationStep})` : ''}.`;
+
+    // Movemos o lead para a nova etapa
+    const result = await updateLeadStage(
+      leadId,
+      targetStage.id,
+      "Movimento automático por agente de IA",
+      comments
+    );
+
+    // Registrar a ação do agente em um log específico (opcional)
+    await supabase.from("agent_actions_log").insert({
+      agent_id: agentInfo.agentId,
+      lead_id: leadId,
+      action_type: "move_stage",
+      previous_stage: lead.stage?.name,
+      new_stage: targetStageName,
+      conversation_id: agentInfo.conversationId,
+      conversation_step: agentInfo.conversationStep,
+      created_at: new Date().toISOString()
+    }).then(({ error }) => {
+      if (error) console.error("Erro ao registrar ação do agente:", error);
+    });
+
+    // Notificação opcional
+    toast.success(`Negócio movido para ${targetStageName} pelo agente ${agentInfo.agentName}`);
+
+    return { 
+      success: true, 
+      message: `Negócio movido com sucesso para ${targetStageName}` 
+    };
+  } catch (error) {
+    console.error("Erro ao mover negócio pelo agente:", error);
+    return { 
+      success: false, 
+      error: "Ocorreu um erro ao mover o negócio" 
+    };
+  }
+}
+
+/**
+ * Função simplificada para uso direto em fluxos de agente
+ * Esta função é mais fácil de usar em contextos automáticos
+ */
+export async function autoMoveLeadStage(options: {
+  leadId: string;
+  targetStage: string;
+  agentId: string;
+  agentName: string;
+  stepName?: string;
+  conversationId?: string;
+}) {
+  const { leadId, targetStage, agentId, agentName, stepName, conversationId } = options;
+  
+  const result = await moveLeadByAgent(
+    leadId,
+    targetStage,
+    {
+      agentId,
+      agentName,
+      conversationStep: stepName,
+      conversationId
+    }
+  );
+  
+  if (!result.success) {
+    console.warn(`Falha ao mover automaticamente o negócio: ${result.error}`);
+  }
+  
+  return result;
 }
