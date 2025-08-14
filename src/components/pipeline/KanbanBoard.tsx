@@ -848,14 +848,14 @@ export function KanbanBoard() {
                 </div>
                 
                 <Select
-                  value={stageFilter || ""}
-                  onValueChange={(value) => setStageFilter(value || null)}
+                  value={stageFilter || "all"}
+                  onValueChange={(value) => setStageFilter(value === "all" ? null : value)}
                 >
                   <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Filtrar por etapa" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todas as etapas</SelectItem>
+                    <SelectItem value="all">Todas as etapas</SelectItem>
                     {stages.map((stage) => (
                       <SelectItem key={stage.id} value={stage.name}>
                         {stage.name}
