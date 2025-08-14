@@ -5,9 +5,10 @@ import { PipelineCard, type Lead } from "@/components/pipeline/PipelineCard";
 import { PipelineCardModal } from "@/components/pipeline/PipelineCardModal";
 import { StageTransitionDialog } from "@/components/pipeline/StageTransitionDialog";
 import { PipelineTable } from "@/components/pipeline/PipelineTable";
+import { PipelineViewToggle } from "@/components/pipeline/PipelineViewToggle";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Kanban, List, Plus, Upload, Download, Filter } from "lucide-react";
+import { ChevronLeft, Filter, Plus, Upload, Download, BarChart2 } from "lucide-react";
 
 // Mock data com informações financeiras expandidas
 const mockLeads: Lead[] = [
@@ -291,70 +292,61 @@ export default function Pipeline() {
 
   const activeLead = activeId ? leads.find(lead => lead.id === activeId) : null;
 
-  console.log("Modo de visualização atual:", viewMode);
-
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-        <h1 className="text-3xl font-bold tracking-tight">Pipeline de Vendas</h1>
+    <div className="space-y-4">
+      {/* Header inspirado no design da captura de tela */}
+      <div className="flex items-center gap-4 mb-2">
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <h2 className="text-xl font-semibold">Funil de Qualificação</h2>
+        </div>
         
-        <div className="flex items-center gap-4">
-          {/* Botões de visualização simples e destacados */}
-          <div className="flex flex-col items-start gap-2">
-            <div className="text-sm font-medium text-gray-500">Visualização:</div>
-            <div className="flex bg-gray-100 p-1 rounded-md">
-              <button
-                className={`px-4 py-2 rounded flex items-center gap-2 ${
-                  viewMode === "kanban" 
-                    ? "bg-white shadow text-primary font-medium" 
-                    : "text-gray-700 hover:bg-gray-200"
-                }`}
-                onClick={() => setViewMode("kanban")}
-              >
-                <Kanban className="h-4 w-4" />
-                Kanban
-              </button>
-              <button
-                className={`px-4 py-2 rounded flex items-center gap-2 ${
-                  viewMode === "list" 
-                    ? "bg-white shadow text-primary font-medium" 
-                    : "text-gray-700 hover:bg-gray-200"
-                }`}
-                onClick={() => setViewMode("list")}
-              >
-                <List className="h-4 w-4" />
-                Lista
-              </button>
-            </div>
-          </div>
+        <Button variant="outline" size="sm" className="ml-auto">
+          Configurar Funil
+        </Button>
+      </div>
+      
+      {/* Resumo do Funil + Ações */}
+      <div className="flex items-center justify-between bg-white rounded-lg border p-4 mb-2">
+        <div>
+          <h3 className="text-sm font-medium">Resumo do funil</h3>
+          <p className="text-sm text-muted-foreground">
+            Total: {leads.length} negócios / R$ {leads.reduce((sum, lead) => sum + (lead.value || 0), 0).toLocaleString('pt-BR')}
+          </p>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="flex items-center gap-1">
+            <BarChart2 className="h-4 w-4" />
+            Estatísticas
+          </Button>
           
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
-              <Filter className="h-4 w-4 mr-2" />
-              Filtrar
-            </Button>
-            
-            <Button variant="outline" size="sm">
-              <Upload className="h-4 w-4 mr-2" />
-              Importar
-            </Button>
-            
-            <Button variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Exportar
-            </Button>
-            
-            <Button size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              Novo Negócio
-            </Button>
-          </div>
+          {/* Componente de alternância de visualização */}
+          <PipelineViewToggle 
+            activeView={viewMode}
+            onChange={setViewMode}
+          />
+          
+          <Button variant="outline" size="sm" className="flex items-center gap-1">
+            <Filter className="h-4 w-4" />
+            Filtrar
+          </Button>
+          
+          <Button size="sm" className="flex items-center gap-1">
+            <Plus className="h-4 w-4" />
+            Novo Negócio
+          </Button>
         </div>
       </div>
-
-      {/* Nota de debug - remover após resolver o problema */}
-      <div className="bg-yellow-50 border border-yellow-200 p-3 rounded text-sm text-yellow-800">
-        Modo de visualização atual: {viewMode}. Clique nos botões acima para alternar entre Kanban e Lista.
+      
+      {/* Dica para o usuário sobre a alternância de visualização */}
+      <div className="bg-blue-50 border border-blue-200 p-3 rounded-md text-sm text-blue-700 mb-4">
+        <p>
+          <strong>Novo:</strong> Agora você pode alternar entre as visualizações Kanban e Lista usando os botões acima.
+          A visualização em lista permite edição rápida e ordenação personalizada dos seus negócios.
+        </p>
       </div>
       
       {/* Visão Kanban */}
