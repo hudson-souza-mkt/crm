@@ -110,13 +110,13 @@ export function MessageNodeConfig({ data, onChange }: MessageNodeConfigProps) {
               <Label htmlFor="recipients">Destinatários</Label>
               <Textarea 
                 id="recipients"
-                placeholder="{{lead.email}}, outro@email.com"
+                placeholder="{'{{'} lead.email {'}}'}  , outro@email.com"
                 value={data.messageConfig?.recipients || ""}
                 onChange={(e) => handleConfigChange("recipients", e.target.value)}
                 rows={2}
               />
               <p className="text-xs text-muted-foreground">
-                Separe múltiplos emails com vírgula. Você pode usar variáveis como {{lead.email}}.
+                Separe múltiplos emails com vírgula. Você pode usar variáveis como {'{{'} lead.email {'}}'}  .
               </p>
             </div>
             
@@ -189,7 +189,7 @@ export function MessageNodeConfig({ data, onChange }: MessageNodeConfigProps) {
                   <TabsContent value="html">
                     <Textarea 
                       id="bodyHtml"
-                      placeholder="<p>Olá {{lead.name}},</p><p>Texto do email...</p>"
+                      placeholder="<p>Olá {'{{'} lead.name {'}}'}  ,</p><p>Texto do email...</p>"
                       value={data.messageConfig?.bodyHtml || ""}
                       onChange={(e) => handleConfigChange("bodyHtml", e.target.value)}
                       rows={6}
@@ -198,9 +198,9 @@ export function MessageNodeConfig({ data, onChange }: MessageNodeConfigProps) {
                   <TabsContent value="text">
                     <Textarea 
                       id="bodyText"
-                      placeholder="Olá {{lead.name}},
+                      placeholder={`Olá {'{{'} lead.name {'}}'}  ,
 
-Texto do email..."
+Texto do email...`}
                       value={data.messageConfig?.bodyText || ""}
                       onChange={(e) => handleConfigChange("bodyText", e.target.value)}
                       rows={6}
@@ -214,7 +214,7 @@ Texto do email..."
               <Label>Anexos</Label>
               <div className="flex space-x-2">
                 <Input 
-                  placeholder="{{variavel}} ou URL do arquivo"
+                  placeholder="{'{{'} variavel {'}}'}  ou URL do arquivo"
                   value={data.messageConfig?.newAttachment || ""}
                   onChange={(e) => handleConfigChange("newAttachment", e.target.value)}
                 />
@@ -253,7 +253,7 @@ Texto do email..."
               <Label htmlFor="recipients">Destinatários</Label>
               <Textarea 
                 id="recipients"
-                placeholder="{{lead.phone}}, +5511999998888"
+                placeholder="{'{{'} lead.phone {'}}'}  , +5511999998888"
                 value={data.messageConfig?.recipients || ""}
                 onChange={(e) => handleConfigChange("recipients", e.target.value)}
                 rows={2}
@@ -267,13 +267,13 @@ Texto do email..."
               <Label htmlFor="body">Texto da mensagem</Label>
               <Textarea 
                 id="body"
-                placeholder="Olá {{lead.name}}, obrigado pelo seu interesse. Gostaríamos de conversar sobre sua necessidade."
+                placeholder="Olá {'{{'} lead.name {'}}'}  , obrigado pelo seu interesse. Gostaríamos de conversar sobre sua necessidade."
                 value={data.messageConfig?.body || ""}
                 onChange={(e) => handleConfigChange("body", e.target.value)}
                 rows={4}
               />
               <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Você pode usar variáveis como {{lead.name}}.</span>
+                <span>Você pode usar variáveis como {'{{'} lead.name {'}}'}  .</span>
                 <span>{(data.messageConfig?.body || "").length}/160 caracteres</span>
               </div>
             </div>
@@ -287,7 +287,7 @@ Texto do email..."
               <Label htmlFor="recipients">Destinatários</Label>
               <Textarea 
                 id="recipients"
-                placeholder="{{lead.phone}}, +5511999998888"
+                placeholder="{'{{'} lead.phone {'}}'}  , +5511999998888"
                 value={data.messageConfig?.recipients || ""}
                 onChange={(e) => handleConfigChange("recipients", e.target.value)}
                 rows={2}
@@ -301,7 +301,7 @@ Texto do email..."
               <Label htmlFor="body">Texto da mensagem</Label>
               <Textarea 
                 id="body"
-                placeholder="Olá {{lead.name}}, obrigado pelo seu interesse. Gostaríamos de conversar sobre sua necessidade."
+                placeholder="Olá {'{{'} lead.name {'}}'}  , obrigado pelo seu interesse. Gostaríamos de conversar sobre sua necessidade."
                 value={data.messageConfig?.body || ""}
                 onChange={(e) => handleConfigChange("body", e.target.value)}
                 rows={4}
@@ -415,7 +415,7 @@ Texto do email..."
               <Label htmlFor="deepLink">Link de destino (opcional)</Label>
               <Input 
                 id="deepLink"
-                placeholder="Ex: /leads/{{lead.id}}"
+                placeholder="Ex: /leads/{'{{'} lead.id {'}}'}  "
                 value={data.messageConfig?.deepLink || ""}
                 onChange={(e) => handleConfigChange("deepLink", e.target.value)}
               />

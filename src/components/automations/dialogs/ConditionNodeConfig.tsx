@@ -216,10 +216,10 @@ export function ConditionNodeConfig({ data, onChange }: ConditionNodeConfigProps
                         <Input 
                           value={condition.value || ""}
                           onChange={(e) => handleUpdateCondition(index, "value", e.target.value)}
-                          placeholder="Digite o valor ou use {{variável}}"
+                          placeholder="Digite o valor ou use variáveis"
                         />
                         <p className="text-xs text-muted-foreground">
-                          Você pode usar variáveis como {{lead.email}} ou valores fixos.
+                          Você pode usar variáveis como {'{{'} lead.email {'}}'}  ou valores fixos.
                         </p>
                       </div>
                     )}

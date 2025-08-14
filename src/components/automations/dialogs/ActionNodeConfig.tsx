@@ -132,12 +132,12 @@ export function ActionNodeConfig({ data, onChange }: ActionNodeConfigProps) {
               <Label htmlFor="name">Nome do Lead</Label>
               <Input 
                 id="name"
-                placeholder="Ex: {{trigger.form.name}} ou João Silva"
+                placeholder="Ex: {'{{'} trigger.form.name {'}}'}  ou João Silva"
                 value={data.actionConfig?.name || ""}
                 onChange={(e) => handleConfigChange("name", e.target.value)}
               />
               <p className="text-xs text-muted-foreground">
-                Use {{trigger.variable}} para valores dinâmicos do gatilho.
+                Use {'{{'} trigger.variable {'}}'}  para valores dinâmicos do gatilho.
               </p>
             </div>
             
@@ -145,7 +145,7 @@ export function ActionNodeConfig({ data, onChange }: ActionNodeConfigProps) {
               <Label htmlFor="email">Email</Label>
               <Input 
                 id="email"
-                placeholder="Ex: {{trigger.form.email}}"
+                placeholder="Ex: {'{{'} trigger.form.email {'}}'} "
                 value={data.actionConfig?.email || ""}
                 onChange={(e) => handleConfigChange("email", e.target.value)}
               />
@@ -155,7 +155,7 @@ export function ActionNodeConfig({ data, onChange }: ActionNodeConfigProps) {
               <Label htmlFor="phone">Telefone</Label>
               <Input 
                 id="phone"
-                placeholder="Ex: {{trigger.form.phone}}"
+                placeholder="Ex: {'{{'} trigger.form.phone {'}}'} "
                 value={data.actionConfig?.phone || ""}
                 onChange={(e) => handleConfigChange("phone", e.target.value)}
               />
@@ -235,7 +235,7 @@ export function ActionNodeConfig({ data, onChange }: ActionNodeConfigProps) {
               <Label htmlFor="title">Título do Negócio</Label>
               <Input 
                 id="title"
-                placeholder="Ex: {{trigger.lead.name}} - {{trigger.lead.company}}"
+                placeholder="Ex: {'{{'} trigger.lead.name {'}}'}  - {'{{'} trigger.lead.company {'}}'} "
                 value={data.actionConfig?.title || ""}
                 onChange={(e) => handleConfigChange("title", e.target.value)}
               />
@@ -282,6 +282,7 @@ export function ActionNodeConfig({ data, onChange }: ActionNodeConfigProps) {
               <Input 
                 id="value"
                 type="number"
+                min="1"
                 placeholder="Ex: 1000"
                 value={data.actionConfig?.value || ""}
                 onChange={(e) => handleConfigChange("value", e.target.value)}
@@ -321,7 +322,7 @@ export function ActionNodeConfig({ data, onChange }: ActionNodeConfigProps) {
               <Label htmlFor="title">Título da Tarefa</Label>
               <Input 
                 id="title"
-                placeholder="Ex: Entrar em contato com {{trigger.lead.name}}"
+                placeholder="Ex: Entrar em contato com {'{{'} trigger.lead.name {'}}'}  "
                 value={data.actionConfig?.title || ""}
                 onChange={(e) => handleConfigChange("title", e.target.value)}
               />
@@ -405,7 +406,7 @@ export function ActionNodeConfig({ data, onChange }: ActionNodeConfigProps) {
               <Label htmlFor="recipients">Destinatários</Label>
               <Input 
                 id="recipients"
-                placeholder="Ex: equipe@empresa.com, {{lead.owner.email}}"
+                placeholder="Ex: equipe@empresa.com, {'{{'} lead.owner.email {'}}'}  "
                 value={data.actionConfig?.recipients || ""}
                 onChange={(e) => handleConfigChange("recipients", e.target.value)}
               />
@@ -418,7 +419,7 @@ export function ActionNodeConfig({ data, onChange }: ActionNodeConfigProps) {
               <Label htmlFor="subject">Assunto</Label>
               <Input 
                 id="subject"
-                placeholder="Ex: Novo lead: {{lead.name}}"
+                placeholder="Ex: Novo lead: {'{{'} lead.name {'}}'}  "
                 value={data.actionConfig?.subject || ""}
                 onChange={(e) => handleConfigChange("subject", e.target.value)}
               />
